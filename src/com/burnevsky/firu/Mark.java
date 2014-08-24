@@ -4,72 +4,77 @@ import android.util.Log;
 
 public class Mark {
 
-	public static final int UknownWord = 0;
-	public static final int YetToLearn = 1;
-	public static final int WithHints = 2;
-	public static final int AlmostLearned = 3;
-	public static final int Learned = 4;
+    private int mValue;
+    
+    public Mark(int value) {
+	mValue = value;
+    }
+    
+    private static final int UnfamiliarValue = 0;
+    private static final int YetToLearnValue = 1;
+    private static final int WithHintsValue = 2;
+    private static final int AlmostLearnedValue = 3;
+    private static final int LearnedValue = 4;
 
-    public static int Upgrade(int current)
-    {
-        if (current < Learned)
-        {
-            return current + 1;
-        }
-        return current;
+    public static Mark Unfamiliar = new Mark(UnfamiliarValue);
+    public static Mark YetToLearn = new Mark(YetToLearnValue);
+    public static Mark WithHints = new Mark(WithHintsValue);
+    public static Mark AlmostLearned = new Mark(AlmostLearnedValue);
+    public static Mark Learned = new Mark(LearnedValue);
+
+    public void upgrade() {
+	if (mValue < LearnedValue) {
+	    mValue += 1;
+	}
     }
 
-    public static int Downgrade(int current)
-    {
-        if (current > YetToLearn)
-        {
-            return current - 1;
-        }
-        return current;
+    public void downgrade() {
+	if (mValue > YetToLearnValue) {
+	    mValue -= 1;
+	}
     }
 
-    public static int UpdateToTestResult(int current, Test.Result result)
-    {
-        int updated = current;
-        switch (result)
-        {
-            case Test.Result.Passed:
-                if (current == YetToLearn)
-                    updated = AlmostLearned;
-                else
-                    updated = Upgrade(current);
-                break;
+    public void updateToTestResult(TestResult result) {
+	int oldValue = mValue;
+	switch (result) {
+	    case Passed:
+		if (mValue == YetToLearnValue)
+		    mValue = AlmostLearnedValue;
+		else
+		    upgrade();
+		break;
 
-            case Test.PassedWithHints:
-                updated = WithHints;
-                break;
+	    case PassedWithHints:
+		mValue = WithHintsValue;
+		break;
 
-            case Test.Failed:
-                updated = YetToLearn;
-                break;
+	    case Failed:
+		mValue = YetToLearnValue;
+		break;
 
-            default:
-                Log.e("Mark", String.format("Unexpected test result %s in Mark::updateToTestResult", result));
-                break;
-        }
-        Log.d("Mark", String.format("Mark changed from %d to %d", current, updated));
-        return updated;
+	    default:
+		Log.e("Mark",
+			String.format(
+				"Unexpected test result %s in Mark::updateToTestResult",
+				result));
+		break;
+	}
+	Log.d("Mark",
+		String.format("Mark changed from %d to %d", oldValue, mValue));
     }
 
-    public static String ToString(int mark)
-    {
-        switch (mark)
-        {
-            case YetToLearn:
-                return "learning";
-            case WithHints:
-                return "hints needed";
-            case AlmostLearned:
-                return "well known";
-            case Learned:
-                return "learned";
-            default:
-                return "<none>";
-        }
+    public String toString() {
+	switch (mValue) {
+	    case YetToLearnValue:
+		return "learning";
+	    case WithHintsValue:
+		return "hints needed";
+	    case AlmostLearnedValue:
+		return "well known";
+	    case LearnedValue:
+		return "learned";
+	    default:
+		return "<none>";
+	}
     }
 }
