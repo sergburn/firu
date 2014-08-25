@@ -1,40 +1,53 @@
 package com.burnevsky.firu;
 
+import java.io.File;
+import java.util.List;
+
+import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.WordBase;
+
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.SearchView;
 
-
-public class SearchActivity 
-	extends Activity 
-	implements SearchView.OnQueryTextListener {
+public class SearchActivity extends Activity implements SearchView.OnQueryTextListener
+{
+    Dictionary mDict;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         SearchView searchWord = (SearchView) findViewById(R.id.searchWord);
         searchWord.setOnQueryTextListener(this);
+
+        mDict = Dictionary.open("dictionary.sqlite", this);
+        Log.i("firu", "totalWordCount: " + String.valueOf(mDict.getTotalWords()));
     }
 
-
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.search_activity_actions, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_settings)
+        {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -43,15 +56,24 @@ public class SearchActivity
     @Override
     public boolean onQueryTextSubmit(String query)
     {
-    	Log.i("firu", "onQueryTextSubmit: " + query);
-    	return true;
+        Log.i("firu", "onQueryTextSubmit: " + query);
+        
+        List<WordBase> words = mDict.searchWords(query, 20);
+
+        ArrayAdapter<WordBase> adapter = new ArrayAdapter<WordBase>(this,
+                android.R.layout.simple_list_item_1, words);
+        
+        ListView listView = (ListView) findViewById(R.id.listView1);
+        listView.setAdapter(adapter);
+        
+
+        return true;
     }
 
     @Override
     public boolean onQueryTextChange(String newText)
     {
-    	Log.i("firu", "onQueryTextChange: " + newText);
-    	return false;
+        Log.i("firu", "onQueryTextChange: " + newText);
+        return false;
     }
 }
-
