@@ -1,4 +1,4 @@
-package com.burnevsky.firu;
+package com.burnevsky.firu.model;
 
 import java.util.List;
 

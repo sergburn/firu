@@ -1,4 +1,6 @@
-package com.burnevsky.firu;
+package com.burnevsky.firu.model;
+
+import com.burnevsky.firu.model.test.TestResult;
 
 import android.util.Log;
 
