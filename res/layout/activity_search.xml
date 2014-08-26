@@ -20,10 +20,18 @@
 
     </SearchView>
 
+    <TextView
+        android1:id="@+id/laCount"
+        android1:layout_width="wrap_content"
+        android1:layout_height="wrap_content"
+        android1:layout_gravity="center_horizontal"
+        android1:textAppearance="?android:attr/textAppearanceSmall" />
+
     <ListView
-        android1:id="@+id/listView1"
+        android1:id="@+id/wordList"
         android1:layout_width="match_parent"
-        android1:layout_height="wrap_content" >
+        android1:layout_height="fill_parent" >
+
     </ListView>
 
 </LinearLayout>
