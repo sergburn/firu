@@ -169,6 +169,21 @@ public class Dictionary
         return list;
     }
 
+    public long countWords(String startsWith)
+    {
+        Cursor c = mDatabase.query("words", 
+                new String[] { "count(*)" },
+                "text LIKE '" + startsWith + "%'", // most probably should use collated index
+                 null, null, null, null, null);
+        long count = 0;
+        boolean next = c.moveToFirst();
+        if (next)
+        {
+            count = c.getInt(0);
+        }
+        return count;
+    }
+
     public List<Translation> getTranslations(WordBase w)
     {
         return null;

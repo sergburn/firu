@@ -62,7 +62,6 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         @Override
         protected void onPostExecute(List<WordBase> result)
         {
-            mCountText.setText("Found " + result.size() + " words");
             ArrayAdapter<WordBase> adapter = new ArrayAdapter<WordBase>(mSelfContext, android.R.layout.simple_list_item_1, result);
             mWordsListView.setAdapter(adapter);
             mSearchTask = null;
@@ -74,8 +73,24 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mSearchTask = null;
         }
     };
+
+    class DictionaryCounter extends AsyncTask<String, Void, Long>
+    {
+        @Override
+        protected Long doInBackground(String... param)
+        {
+            return mDict.countWords(param[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Long result)
+        {
+            mCountText.setText("Found " + result + " words");
+        }
+    };
     
     DictionarySearch mSearchTask = null;
+    DictionaryCounter mCountTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -124,6 +139,8 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             mSearchTask = new DictionarySearch();
             mSearchTask.execute(query);
+            
+            new DictionaryCounter().execute(query);
         }
         else
         {
