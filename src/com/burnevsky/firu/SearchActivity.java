@@ -7,22 +7,29 @@ import com.burnevsky.firu.model.WordBase;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-public class SearchActivity extends Activity implements SearchView.OnQueryTextListener
+public class SearchActivity extends Activity implements SearchView.OnQueryTextListener, OnItemClickListener
 {
+    private final static int MAX_WORDS_IN_RESULT = 20;
+    public final static String EXTRA_MESSAGE = "com.burnevsk.firu.MESSAGE";
+
     Context mSelfContext = null;
     Dictionary mDict = null;
-    private final int MAX_WORDS_IN_RESULT = 20;
     ListView mWordsListView = null;
+    
     TextView mCountText = null;
 
     class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
@@ -101,6 +108,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         searchWord.setOnQueryTextListener(this);
 
         mWordsListView = (ListView) findViewById(R.id.wordList);
+        mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
         
         mSelfContext = this;
@@ -159,5 +167,20 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mCountText.setText("Total count " + mDict.getTotalWords() + " words");
         }
         return false;
+    }
+    
+    /** Called when the user clicks the Send button */
+    public void showTranslation(AdapterView<?> parent, View view, int position, long id) {
+        // Do something in response to button
+        Intent intent = new Intent(this, TranslationsActivity.class);
+        intent.putExtra(EXTRA_MESSAGE, "");
+        startActivity(intent);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+    {
+        // TODO Auto-generated method stub
+        showTranslation(parent, view, position, id);
     }
 }

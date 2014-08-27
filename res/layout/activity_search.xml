@@ -30,7 +30,7 @@
     <ListView
         android1:id="@+id/wordList"
         android1:layout_width="match_parent"
-        android1:layout_height="fill_parent" >
+        android1:layout_height="fill_parent">
 
     </ListView>
 
