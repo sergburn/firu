@@ -1,5 +1,6 @@
 package com.burnevsky.firu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
@@ -24,12 +25,11 @@ import android.widget.TextView;
 public class SearchActivity extends Activity implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
-    public final static String EXTRA_MESSAGE = "com.burnevsk.firu.MESSAGE";
 
     Context mSelfContext = null;
     Dictionary mDict = null;
     ListView mWordsListView = null;
-    
+
     TextView mCountText = null;
 
     class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
@@ -55,6 +55,9 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mDict = result;
             Log.i("firu", "totalWordCount: " + String.valueOf(mDict.getTotalWords()));
             mCountText.setText("Total count " + String.valueOf(mDict.getTotalWords()) + " words");
+
+            FiruApplication app = (FiruApplication) getApplicationContext(); 
+            app.mDict = result;
         }
     };
 
@@ -69,11 +72,12 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         @Override
         protected void onPostExecute(List<WordBase> result)
         {
-            ArrayAdapter<WordBase> adapter = new ArrayAdapter<WordBase>(mSelfContext, android.R.layout.simple_list_item_1, result);
+            ArrayAdapter<WordBase> adapter = new ArrayAdapter<WordBase>(mSelfContext,
+                    android.R.layout.simple_list_item_1, result);
             mWordsListView.setAdapter(adapter);
             mSearchTask = null;
         }
-        
+
         @Override
         protected void onCancelled(List<WordBase> result)
         {
@@ -95,7 +99,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mCountText.setText("Found " + result + " words");
         }
     };
-    
+
     DictionarySearch mSearchTask = null;
     DictionaryCounter mCountTask = null;
 
@@ -110,7 +114,6 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mWordsListView = (ListView) findViewById(R.id.wordList);
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
-        
         mSelfContext = this;
 
         new DictionaryOpener("dictionary.sqlite", this).execute();
@@ -147,10 +150,9 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             mSearchTask = new DictionarySearch();
             mSearchTask.execute(query);
-            
+
             new DictionaryCounter().execute(query);
-        }
-        else
+        } else
         {
             Log.i("firu", "Another search is running or pending");
         }
@@ -168,12 +170,15 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         }
         return false;
     }
-    
+
     /** Called when the user clicks the Send button */
-    public void showTranslation(AdapterView<?> parent, View view, int position, long id) {
-        // Do something in response to button
+    public void showTranslation(AdapterView<?> parent, View view, int position, long id)
+    {
+        WordBase word = (WordBase) parent.getItemAtPosition(position);
+
         Intent intent = new Intent(this, TranslationsActivity.class);
-        intent.putExtra(EXTRA_MESSAGE, "");
+        intent.putExtra(TranslationsActivity.INTENT_EXTRA_WORD, word);
+
         startActivity(intent);
     }
 

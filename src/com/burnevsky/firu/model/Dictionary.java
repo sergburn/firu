@@ -127,6 +127,13 @@ public class Dictionary
             mTargetLang = targetLang;
         }
 
+        // For internal use by Model only
+        Translation(int id, WordBase w, String ts, String targetLang)
+        {
+            super(id, w, ts);
+            mTargetLang = targetLang;
+        }
+
         public String getTargetLang()
         {
             return mTargetLang;
@@ -184,9 +191,21 @@ public class Dictionary
         return count;
     }
 
-    public List<Translation> getTranslations(WordBase w)
+    public List<TranslationBase> getTranslations(WordBase w)
     {
-        return null;
+        List<TranslationBase> list = new LinkedList<TranslationBase>();
+        Cursor c = mDatabase.query("translations", 
+                new String[] { "_id", "text", "word_id" },
+                "word_id = " + w.getID(),
+                 null, null, null, null, null);
+        boolean next = c.moveToFirst();
+        while (next)
+        {
+            Translation t = new Translation(c.getInt(0), w, c.getString(1), Description.SourceLanguage);
+            list.add(t);
+            next = c.moveToNext();
+        }
+        return list;
     }
 
 }
