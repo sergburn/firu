@@ -1,5 +1,6 @@
 package com.burnevsky.firu;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -115,8 +116,16 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
         mSelfContext = this;
-
-        new DictionaryOpener("dictionary.sqlite", this).execute();
+        
+        FiruApplication app = (FiruApplication) getApplicationContext();
+        if (app.mDictPathExists)
+        {
+            new DictionaryOpener(app.mDictPath + File.separator + "dictionary.sqlite", this).execute();
+        }
+        else
+        {
+            new DictionaryOpener("dictionary.sqlite", this).execute();
+        }
     }
 
     @Override
