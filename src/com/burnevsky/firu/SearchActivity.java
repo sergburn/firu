@@ -145,6 +145,10 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         int id = item.getItemId();
         if (id == R.id.action_settings)
         {
+            Intent intent = new Intent(this, TrainerActivity.class);
+            //intent.putExtra(TrainerActivity.INTENT_EXTRA_WORD, word);
+
+            startActivity(intent);
             return true;
         }
         return super.onOptionsItemSelected(item);

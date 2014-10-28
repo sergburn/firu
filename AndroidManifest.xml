@@ -18,20 +18,28 @@
         android:name="FiruApplication">
         <activity
             android:name=".SearchActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:label="@string/app_name">
         </activity>
         <activity
             android:name=".TranslationsActivity"
-            android:label="@string/title_activity_translations"
+            android:label="@string/app_name"
             android:parentActivityName=".SearchActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.burnevsky.firu.SearchActivity" />
+        </activity>
+        <activity
+            android:name=".TrainerActivity"
+            android:label="@string/app_name"
+            android:parentActivityName=".SearchActivity"
+            android:windowSoftInputMode="stateHidden|adjustResize" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.burnevsky.firu.TrainerActivity" />
         </activity>
     </application>
 </manifest>

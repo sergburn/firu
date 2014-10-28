@@ -20,7 +20,6 @@ import android.widget.TextView;
 
 public class TranslationsActivity extends Activity
 {
-    public final static String INTENT_EXTRA_DICT = "com.burnevsk.firu.dict";
     public final static String INTENT_EXTRA_WORD = "com.burnevsk.firu.word";
 
     Context mSelfContext = null;
