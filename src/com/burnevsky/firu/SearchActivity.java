@@ -1,3 +1,27 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Sergey Burnevsky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *******************************************************************************/
+
 package com.burnevsky.firu;
 
 import java.io.File;
@@ -5,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
-import com.burnevsky.firu.model.WordBase;
+import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Word;
 
 import android.app.Activity;
 import android.content.Context;
@@ -29,6 +54,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
 
     Context mSelfContext = null;
     Dictionary mDict = null;
+    Vocabulary mVoc = null;
     ListView mWordsListView = null;
 
     TextView mCountText = null;
@@ -62,25 +88,53 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         }
     };
 
-    class DictionarySearch extends AsyncTask<String, Void, List<WordBase>>
+    class VocabularyOpener extends AsyncTask<Void, Void, Vocabulary>
+    {
+        private String mDbName = null;
+        private Context mContext = null;
+
+        public VocabularyOpener(String dbName, Context context)
+        {
+            mDbName = dbName;
+            mContext = context;
+        }
+
+        @Override
+        protected Vocabulary doInBackground(Void... voids)
+        {
+            return Vocabulary.open(mDbName, mContext);
+        }
+
+        @Override
+        protected void onPostExecute(Vocabulary result)
+        {
+            mVoc = result;
+            Log.i("firu", "totalWordCount: " + String.valueOf(mVoc.getTotalWords()));
+
+            FiruApplication app = (FiruApplication) getApplicationContext(); 
+            app.mVoc = result;
+        }
+    };
+
+    class DictionarySearch extends AsyncTask<String, Void, List<Word>>
     {
         @Override
-        protected List<WordBase> doInBackground(String... param)
+        protected List<Word> doInBackground(String... param)
         {
             return mDict.searchWords(param[0], MAX_WORDS_IN_RESULT);
         }
 
         @Override
-        protected void onPostExecute(List<WordBase> result)
+        protected void onPostExecute(List<Word> result)
         {
-            ArrayAdapter<WordBase> adapter = new ArrayAdapter<WordBase>(mSelfContext,
+            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(mSelfContext,
                     android.R.layout.simple_list_item_1, result);
             mWordsListView.setAdapter(adapter);
             mSearchTask = null;
         }
 
         @Override
-        protected void onCancelled(List<WordBase> result)
+        protected void onCancelled(List<Word> result)
         {
             mSearchTask = null;
         }
@@ -126,6 +180,8 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             new DictionaryOpener("dictionary.sqlite", this).execute();
         }
+        
+        new VocabularyOpener("vocabulary.sqlite", this);
     }
 
     @Override
@@ -187,7 +243,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     /** Called when the user clicks the Send button */
     public void showTranslation(AdapterView<?> parent, View view, int position, long id)
     {
-        WordBase word = (WordBase) parent.getItemAtPosition(position);
+        Word word = (Word) parent.getItemAtPosition(position);
 
         Intent intent = new Intent(this, TranslationsActivity.class);
         intent.putExtra(TranslationsActivity.INTENT_EXTRA_WORD, word);

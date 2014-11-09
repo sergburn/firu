@@ -1,3 +1,27 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Sergey Burnevsky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *******************************************************************************/
+
 package com.burnevsky.firu;
 
 import java.util.ArrayList;
@@ -27,7 +51,7 @@ import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextWatcher;
 
-import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryBase;
 import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.test.TestResult;
@@ -36,7 +60,7 @@ import com.burnevsky.firu.model.test.VocabularyTest;
 public class TrainerActivity extends Activity
 {
     Context mSelfContext = null;
-    Dictionary mDict = null;
+    DictionaryBase mDict = null;
     int mKeyBoardHeight = 0;
     View mLayout = null;
     TextView mMarkText = null;

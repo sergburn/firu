@@ -22,61 +22,80 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model;
 
-public class VocabularyTest
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class DictionaryEntry extends Object implements Parcelable
 {
-    protected static final int KMaxHints = 3; 
-    protected int mHints = KMaxHints;
-    protected TestResult mResult = TestResult.Incomplete;
+    protected long mID = 0;
+    protected String mText;
+    protected String mLang;
 
-    public TestResult getResult()
+    public DictionaryEntry()
     {
-        return mResult;
+        super();
     }
 
-    public int getHintsLeft()
+    // For internal use by Model only
+    DictionaryEntry(String text, String targetLang)
     {
-        return mHints;
+        mText = text;
+        mLang = targetLang;
     }
 
-    /** @return Whether test is finished or continues. */
-    protected boolean revokeHint()
+    // For internal use by Model only
+    DictionaryEntry(long id, String text, String targetLang)
     {
-        assert mResult == TestResult.Incomplete;
+        this(text, targetLang);
+        mID = id;
+    }
 
-        if (mHints > 0)
-        {
-            --mHints;
-            return true;
-        }
-        else
-        {
-            finalizeTest(false);
-            return false;
-        }
+    public long getID()
+    {
+        return mID;
+    }
+
+    public String getText()
+    {
+        return mText;
+    }
+
+    public String getLang()
+    {
+        return mLang;
+    }
+
+    public int getLangCode()
+    {
+        return LangUtil.lang2Int(mLang);
+    }
+
+    @Override
+    public String toString()
+    {
+        return getText();
     }
     
-    protected void finalizeTest(boolean passed)
+    @Override
+    public int describeContents()
     {
-        assert mResult == TestResult.Incomplete;
-
-        if (!passed)
-        {
-            mHints = 0;
-            mResult = TestResult.Failed;
-        }
-        else
-        {
-            mResult = (mHints < KMaxHints) ? TestResult.PassedWithHints : TestResult.Passed;
-        }
+        return 0;
     }
-    
-    protected void ensureIncomplete() throws TestAlreadyCompleteException
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
     {
-        if (!mResult.equals(TestResult.Incomplete))
-        {
-            throw new TestAlreadyCompleteException();
-        }
+        dest.writeLong(mID);
+        dest.writeString(mText);
+        dest.writeString(mLang);
+    }
+
+    protected DictionaryEntry(Parcel in)
+    {
+        mID = in.readLong();
+        mText = in.readString();
+        mLang = in.readString();
     }
 }

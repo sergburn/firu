@@ -22,19 +22,57 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model;
 
-public enum TestResult {
-    
-    Incomplete,
-    
-    // adds 1 to current rate
-    Passed,
-    
-    // doesn't change rate if 1 or 2, demotes rate 3 to 2
-    PassedWithHints,
-    
-    // sets current rate 1.
-    Failed;
-    
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+/**
+ * 
+ */
+public abstract class DictionaryBase implements IDictionary
+{
+    protected SQLiteOpenHelper mDbOpener = null;
+    protected SQLiteDatabase mDatabase = null;
+    protected int mTotalWords = 0;
+
+    public DictionaryBase()
+    {
+        super();
+    }
+
+    @Override
+    public int getTotalWords()
+    {
+        return mTotalWords;
+    }
+
+    @Override
+    public int countWords(String startsWith)
+    {
+        Cursor c = mDatabase.query("words", 
+                new String[] { "count(*)" },
+                "text LIKE '" + startsWith + "%'", // most probably should use collated index
+                 null, null, null, null, null);
+        
+        if (!c.isAfterLast() && c.moveToFirst())
+        {
+            return c.getInt(0);
+        }
+        return 0;
+    }
+
+    public int countWords()
+    {
+        Cursor c = mDatabase.query("words", 
+                new String[] { "count(*)" },
+                null, null, null, null, null, null);
+        
+        if (!c.isAfterLast() && c.moveToFirst())
+        {
+            return c.getInt(0);
+        }
+        return 0;
+    }
 }

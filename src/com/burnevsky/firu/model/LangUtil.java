@@ -22,19 +22,55 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model;
 
-public enum TestResult {
-    
-    Incomplete,
-    
-    // adds 1 to current rate
-    Passed,
-    
-    // doesn't change rate if 1 or 2, demotes rate 3 to 2
-    PassedWithHints,
-    
-    // sets current rate 1.
-    Failed;
-    
+import android.util.Log;
+
+public class LangUtil
+{
+    public static int lang2Int(String lang)
+    {
+        int code = 0;
+        byte[] bytes = null;
+        try
+        {
+            bytes = lang.getBytes("UTF-8");
+            Log.d("firu.model", String.format("LangUtil.lang2Int: '%s' -> %d", lang, code));
+        }
+        catch (Exception e)
+        {
+            Log.d("firu.model", "LangUtil.lang2Int: exception " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
+
+        for (int i = 0; i < Math.min(4, bytes.length); i++)
+        {
+            code |= bytes[i];
+            code <<= 8;
+        }
+        return code;
+    }
+
+    public static String int2Lang(int code)
+    {
+        byte[] bytes = new byte[4];
+        for (int i = 3; i >= 0; --i)
+        {
+            bytes[i] = (byte) code;
+            code >>= 8;
+        }
+        try
+        {
+            String lang = new String(bytes, "UTF-8");
+            Log.d("firu.model", String.format("LangUtil.int2Lang: %d -> '%s'", code, lang));
+            return lang;
+        }
+        catch (Exception e)
+        {
+            Log.d("firu.model", "LangUtil.lang2Int: exception " + e.getMessage());
+            e.printStackTrace();
+            return "";
+        }
+    }
 }

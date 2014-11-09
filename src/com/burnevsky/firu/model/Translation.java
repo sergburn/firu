@@ -22,19 +22,63 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model;
 
-public enum TestResult {
-    
-    Incomplete,
-    
-    // adds 1 to current rate
-    Passed,
-    
-    // doesn't change rate if 1 or 2, demotes rate 3 to 2
-    PassedWithHints,
-    
-    // sets current rate 1.
-    Failed;
-    
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Translation extends DictionaryEntry
+{
+    long mWordID;
+
+    public Translation(long wordId, String text, String targetLang)
+    {
+        super(text, targetLang);
+        mWordID = wordId;
+    }
+
+    public Translation(Word w, String text, String targetLang)
+    {
+        this(w.getID(), text, targetLang);
+    }
+
+    // For internal use by Model only
+    Translation(long id, long wordId, String text, String targetLang)
+    {
+        super(id, text, targetLang);
+        mWordID = wordId;
+    }
+
+    public long getWordID()
+    {
+        return mWordID;
+    }
+
+    // Parcelable
+
+    public static final Parcelable.Creator<Translation> CREATOR = new Parcelable.Creator<Translation>()
+    {
+        public Translation createFromParcel(Parcel in)
+        {
+            return new Translation(in);
+        }
+
+        public Translation[] newArray(int size)
+        {
+            return new Translation[size];
+        }
+    };
+
+    private Translation(Parcel in)
+    {
+        super(in);
+        mWordID = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        super.writeToParcel(dest, flags);
+        dest.writeLong(mWordID);
+    }
 }
