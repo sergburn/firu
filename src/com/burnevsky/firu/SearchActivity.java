@@ -140,16 +140,16 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         }
     };
 
-    class DictionaryCounter extends AsyncTask<String, Void, Long>
+    class DictionaryCounter extends AsyncTask<String, Void, Integer>
     {
         @Override
-        protected Long doInBackground(String... param)
+        protected Integer doInBackground(String... param)
         {
             return mDict.countWords(param[0]);
         }
 
         @Override
-        protected void onPostExecute(Long result)
+        protected void onPostExecute(Integer result)
         {
             mCountText.setText("Found " + result + " words");
         }
@@ -181,7 +181,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             new DictionaryOpener("dictionary.sqlite", this).execute();
         }
         
-        new VocabularyOpener("vocabulary.sqlite", this);
+        new VocabularyOpener("vocabulary.sqlite", this).execute();
     }
 
     @Override
@@ -221,7 +221,8 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mSearchTask.execute(query);
 
             new DictionaryCounter().execute(query);
-        } else
+        }
+        else
         {
             Log.i("firu", "Another search is running or pending");
         }

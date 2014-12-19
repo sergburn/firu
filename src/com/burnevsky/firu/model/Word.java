@@ -31,7 +31,7 @@ import android.os.Parcelable;
 
 public class Word extends DictionaryEntry
 {
-    private List<Translation> mTranslations;
+    public List<Translation> translations;
 
     public Word(String word, String sourceLang)
     {
@@ -44,18 +44,13 @@ public class Word extends DictionaryEntry
         super(id, word, sourceLang);
     }
 
-    public List<Translation> getTranslations()
-    {
-        return null;
-    }
-
     // Parcelable
 
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
         super.writeToParcel(dest, flags);
-        dest.writeList(mTranslations);
+        dest.writeList(translations);
     }
 
     public static final Parcelable.Creator<Word> CREATOR = new Parcelable.Creator<Word>()
@@ -74,6 +69,6 @@ public class Word extends DictionaryEntry
     private Word(Parcel in)
     {
         super(in);
-        in.readList(mTranslations, null);
+        in.readList(translations, null);
     }
 }
