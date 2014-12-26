@@ -51,9 +51,9 @@ public class TranslationsActivity extends Activity
 {
     public final static String INTENT_EXTRA_WORD = "com.burnevsk.firu.word";
 
+    FiruApplication mApp = null;
     Context mSelfContext = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
+
     Word mWord = null, mVocWord = null;
 
     TextView mWordView = null;
@@ -66,7 +66,8 @@ public class TranslationsActivity extends Activity
         @Override
         protected List<Translation> doInBackground(Word... param)
         {
-            return mDict.getTranslations(param[0]);
+            if (mApp.mDict == null) return null;
+            return mApp.mDict.getTranslations(param[0]);
         }
 
         @Override
@@ -84,7 +85,8 @@ public class TranslationsActivity extends Activity
         @Override
         protected Word doInBackground(Word... param)
         {
-            return mVoc.findWord(param[0].getText(), param[0].getLangCode());
+            if (mApp.mVoc == null) return null;
+            return mApp.mVoc.findWord(param[0].getText(), param[0].getLangCode());
         }
 
         @Override
@@ -100,12 +102,14 @@ public class TranslationsActivity extends Activity
         @Override
         protected Word doInBackground(Void... param)
         {
+            if (mApp.mVoc == null) return null;
             try
             {
-                return mVoc.addWord(mWord, mWord.translations);
+                return mApp.mVoc.addWord(mWord, mWord.translations);
             }
             catch (Exception e)
             {
+                e.printStackTrace();
                 return null;
             }
         }
@@ -123,7 +127,8 @@ public class TranslationsActivity extends Activity
         @Override
         protected Boolean doInBackground(Void... param)
         {
-            return mVoc.removeWord(mVocWord);
+            if (mApp.mVoc == null) return false;
+            return mApp.mVoc.removeWord(mVocWord);
         }
 
         @Override
@@ -149,9 +154,7 @@ public class TranslationsActivity extends Activity
         mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important);
         mSelfContext = this;
 
-        FiruApplication app = (FiruApplication) getApplicationContext(); 
-        mDict = app.mDict;
-        mVoc = app.mVoc;
+        mApp = (FiruApplication) getApplicationContext(); 
         
         Intent intent = getIntent();
         mWord = intent.getParcelableExtra(INTENT_EXTRA_WORD);

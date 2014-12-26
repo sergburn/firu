@@ -25,6 +25,11 @@
 package com.burnevsky.firu;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +38,14 @@ import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,81 +56,60 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SearchActivity extends Activity implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
 
+    final Handler mHandler = new Handler();
     Context mSelfContext = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
+    FiruApplication mApp = null;
+    
     ListView mWordsListView = null;
-
     TextView mCountText = null;
 
-    class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
+    private void openDictionary()
     {
-        private String mDbName = null;
-        private Context mContext = null;
-
-        public DictionaryOpener(String dbName, Context context)
+        mApp.openDictionary(mSelfContext, new FiruApplication.OnOpenListener()
         {
-            mDbName = dbName;
-            mContext = context;
-        }
-
-        @Override
-        protected Dictionary doInBackground(Void... voids)
-        {
-            return Dictionary.open(mDbName, mContext);
-        }
-
-        @Override
-        protected void onPostExecute(Dictionary result)
-        {
-            mDict = result;
-            Log.i("firu", "totalWordCount: " + String.valueOf(mDict.getTotalWords()));
-            mCountText.setText("Total count " + String.valueOf(mDict.getTotalWords()) + " words");
-
-            FiruApplication app = (FiruApplication) getApplicationContext(); 
-            app.mDict = result;
-        }
-    };
-
-    class VocabularyOpener extends AsyncTask<Void, Void, Vocabulary>
+            @Override
+            public void onOpen()
+            {
+                if (mApp.mDict != null)
+                {
+                    showTotalWordsCount();
+                }
+                else
+                {
+                    finish();
+                }
+            }
+        });
+    }
+    
+    FiruApplication.OnOpenListener mVocabularyOpenListener = new FiruApplication.OnOpenListener()
     {
-        private String mDbName = null;
-        private Context mContext = null;
-
-        public VocabularyOpener(String dbName, Context context)
-        {
-            mDbName = dbName;
-            mContext = context;
-        }
-
         @Override
-        protected Vocabulary doInBackground(Void... voids)
+        public void onOpen()
         {
-            return Vocabulary.open(mDbName, mContext);
+            if (mApp.mDict != null)
+            {
+                Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mApp.mVoc.getTotalWords()) + "words", Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                finish();
+            }
         }
-
-        @Override
-        protected void onPostExecute(Vocabulary result)
-        {
-            mVoc = result;
-            Log.i("firu", "totalWordCount: " + String.valueOf(mVoc.getTotalWords()));
-
-            FiruApplication app = (FiruApplication) getApplicationContext(); 
-            app.mVoc = result;
-        }
-    };
-
+    }; 
+    
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
     {
         @Override
         protected List<Word> doInBackground(String... param)
         {
-            return mDict.searchWords(param[0], MAX_WORDS_IN_RESULT);
+            return mApp.mDict.searchWords(param[0], MAX_WORDS_IN_RESULT);
         }
 
         @Override
@@ -145,7 +133,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         @Override
         protected Integer doInBackground(String... param)
         {
-            return mDict.countWords(param[0]);
+            return mApp.mDict.countWords(param[0]);
         }
 
         @Override
@@ -163,6 +151,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        
         SearchView searchWord = (SearchView) findViewById(R.id.searchWord);
         searchWord.setOnQueryTextListener(this);
 
@@ -171,17 +160,35 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mCountText = (TextView) findViewById(R.id.laCount);
         mSelfContext = this;
         
-        FiruApplication app = (FiruApplication) getApplicationContext();
-        if (app.mDictPathExists)
+        mApp = (FiruApplication) getApplicationContext();
+
+        // TODO: this code should be in some "main" UI, unless this SearchActivity is always 1st window shown to user
+        
+        if (mApp.mDict == null)
         {
-            new DictionaryOpener(app.mDictPath + File.separator + "dictionary.sqlite", this).execute();
+            openDictionary();
         }
         else
         {
-            new DictionaryOpener("dictionary.sqlite", this).execute();
+            showTotalWordsCount();
         }
         
-        new VocabularyOpener("vocabulary.sqlite", this).execute();
+        if (mApp.mVoc == null)
+        {
+            mApp.openVocabulary(mSelfContext, mVocabularyOpenListener);
+        }
+    }
+    
+    private void showTotalWordsCount()
+    {
+        if (mApp.mDict != null)
+        {
+            mCountText.setText("Total count " + String.valueOf(mApp.mDict.getTotalWords()) + " words");
+        }
+        else
+        {
+            mCountText.setText("Dictionary not open");
+        }
     }
 
     @Override
@@ -207,6 +214,22 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             startActivity(intent);
             return true;
         }
+        if (id == R.id.action_import_voc)
+        {
+            mApp.importVocabulary(mSelfContext, mVocabularyOpenListener);
+            return true;
+        }
+        if (id == R.id.action_backup_voc)
+        {
+            mApp.exportVocabulary(mSelfContext);
+            return true;
+        }
+        if (id == R.id.action_reset_voc)
+        {
+            mApp.mVoc.clearAll();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -232,11 +255,10 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     @Override
     public boolean onQueryTextChange(String newText)
     {
-        Log.i("firu", "onQueryTextChange: " + newText);
         if (newText == null || newText.isEmpty())
         {
             mWordsListView.setAdapter(null);
-            mCountText.setText("Total count " + mDict.getTotalWords() + " words");
+            showTotalWordsCount();
         }
         return false;
     }

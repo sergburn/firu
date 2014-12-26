@@ -6,6 +6,9 @@
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
     <string name="search_box_hint">Start entering word</string>
-    <string name="title_activity_translations">TranslationsActivity</string>
+    <string name="title_activity_translations">Translations</string>
+    <string name="action_import_voc">Import vocabulary</string>
+    <string name="action_backup_voc">Backup vocabulary</string>
+    <string name="action_reset_voc">Reset vocabulary</string>
 
 </resources>

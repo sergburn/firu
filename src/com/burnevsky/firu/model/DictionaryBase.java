@@ -33,7 +33,6 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public abstract class DictionaryBase implements IDictionary
 {
-    protected SQLiteOpenHelper mDbOpener = null;
     protected SQLiteDatabase mDatabase = null;
     protected int mTotalWords = 0;
 
@@ -51,6 +50,8 @@ public abstract class DictionaryBase implements IDictionary
     @Override
     public int countWords(String startsWith)
     {
+        if (mDatabase == null) return 0;
+        
         Cursor c = mDatabase.query("words", 
                 new String[] { "count(*)" },
                 "text LIKE '" + startsWith + "%'", // most probably should use collated index
@@ -65,6 +66,8 @@ public abstract class DictionaryBase implements IDictionary
 
     public int countWords()
     {
+        if (mDatabase == null) return 0;
+
         Cursor c = mDatabase.query("words", 
                 new String[] { "count(*)" },
                 null, null, null, null, null, null);

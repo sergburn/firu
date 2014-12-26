@@ -35,7 +35,7 @@ import android.util.Log;
 
 public class Dictionary extends DictionaryBase
 {
-    public Information Description;
+    public Information Meta;
 
     public class Information
     {
@@ -46,72 +46,56 @@ public class Dictionary extends DictionaryBase
         public String TargetLanguage;
     }
 
-    Dictionary(String connectionString)
-    {
-    }
-
-    public static Dictionary open(String connectionString, Context context)
+    public Dictionary(String connectionString, Context context)
     {
         Log.i("firu", "connectionString: " + connectionString);
 
-        Dictionary self = new Dictionary(connectionString);
-
-        self.mDbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
+        SQLiteOpenHelper dbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
         {
             @Override
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
             {
-                // TODO Auto-generated method stub
-
             }
 
             @Override
             public void onCreate(SQLiteDatabase db)
             {
-                // TODO Auto-generated method stub
-
             }
         };
 
-        self.mDatabase = self.mDbOpener.getReadableDatabase();
+        mDatabase = dbOpener.getReadableDatabase();
 
-        self.mTotalWords = self.countWords();
-
-        Cursor c = self.mDatabase.query("info", new String[] { "source", "sourceFormat", "name", "src_lang", "trg_lang" },
+        Cursor c = mDatabase.query("info", 
+                new String[] { "source", "sourceFormat", "name", "src_lang", "trg_lang" },
                 null, null, null, null, null);
 
         if (!c.isLast() && c.moveToFirst())
         {
-            self.Description = self.new Information();
-            self.Description.OriginalFile = c.getString(0);
-            self.Description.OriginalFormat = c.getString(1);
-            self.Description.Name = c.getString(2);
-            self.Description.SourceLanguage = c.getString(3);
-            self.Description.TargetLanguage = c.getString(4);
+            Meta = new Information();
+            Meta.OriginalFile = c.getString(0);
+            Meta.OriginalFormat = c.getString(1);
+            Meta.Name = c.getString(2);
+            Meta.SourceLanguage = LangUtil.int2Lang(c.getInt(3));
+            Meta.TargetLanguage = LangUtil.int2Lang(c.getInt(4));
         }
 
-        return self;
+        mTotalWords = countWords();
     }
-
-    public int getTotalTranslations()
-    {
-        return 0;
-    }
-
+    
     @Override
     public List<Word> searchWords(String startsWith, int numMaximum)
     {
         List<Word> list = new LinkedList<Word>();
         Cursor c = mDatabase.query("words", 
                 new String[] { "_id", "text" },
-                "text LIKE '" + startsWith + "%'", // most probably should use collated index
+                "text LIKE '" + startsWith + "%'", // SQLite can't use indexes with collation, so this is binary match
                  null, null, null, 
                  "text ASC",
                  String.valueOf(numMaximum));
         boolean next = c.moveToFirst();
         while (next)
         {
-            Word w = new Word(c.getLong(0), c.getString(1), Description.SourceLanguage);
+            Word w = new Word(c.getLong(0), c.getString(1), Meta.SourceLanguage);
             list.add(w);
             next = c.moveToNext();
         }
@@ -128,7 +112,7 @@ public class Dictionary extends DictionaryBase
         boolean next = c.moveToFirst();
         while (next)
         {
-            Translation t = new Translation(c.getLong(0), w.getID(), c.getString(1), Description.TargetLanguage);
+            Translation t = new Translation(c.getLong(0), w.getID(), c.getString(1), Meta.TargetLanguage);
             list.add(t);
             next = c.moveToNext();
         }

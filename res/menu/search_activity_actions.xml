@@ -5,14 +5,22 @@
 
     <item
         android:id="@+id/action_settings"
+        android:icon="@drawable/ic_action_settings"
         android:orderInCategory="100"
         android:showAsAction="ifRoom"
         android:title="@string/action_settings"/>
-    
     <item
-        android:id="@+id/action_search"
-        android:icon="@drawable/ic_action_search_dark"
-        android:title="@string/action_search"
-        android:showAsAction="ifRoom"/>
+        android:id="@+id/action_import_voc"
+        android:showAsAction="never"
+        android:title="@string/action_import_voc"/>
+    <item
+        android:id="@+id/action_backup_voc"
+        android:showAsAction="never"
+        android:title="@string/action_backup_voc"/>
+    <item
+        android:id="@+id/action_reset_voc"
+        android:showAsAction="never"
+        android:title="@string/action_reset_voc">
+    </item>
 
 </menu>

@@ -28,6 +28,8 @@ import android.util.Log;
 
 public class LangUtil
 {
+    static final int LANG_CODE_LENGTH = 2;
+    
     public static int lang2Int(String lang)
     {
         int code = 0;
@@ -35,7 +37,6 @@ public class LangUtil
         try
         {
             bytes = lang.getBytes("UTF-8");
-            Log.d("firu.model", String.format("LangUtil.lang2Int: '%s' -> %d", lang, code));
         }
         catch (Exception e)
         {
@@ -44,26 +45,31 @@ public class LangUtil
             return 0;
         }
 
-        for (int i = 0; i < Math.min(4, bytes.length); i++)
+        for (int i = 0; i < LANG_CODE_LENGTH; i++)
         {
-            code |= bytes[i];
             code <<= 8;
+            if (i < bytes.length)
+            {
+                code |= bytes[i];
+            }
         }
+        Log.d("firu.model", String.format("LangUtil.lang2Int: '%s' -> %x", lang, code));
         return code;
     }
 
-    public static String int2Lang(int code)
+    public static String int2Lang(final int code)
     {
-        byte[] bytes = new byte[4];
-        for (int i = 3; i >= 0; --i)
+        int code2 = code;
+        byte[] bytes = new byte[LANG_CODE_LENGTH];
+        for (int i = LANG_CODE_LENGTH; i > 0; --i)
         {
-            bytes[i] = (byte) code;
-            code >>= 8;
+            bytes[i-1] = (byte) code2;
+            code2 >>= 8;
         }
         try
         {
             String lang = new String(bytes, "UTF-8");
-            Log.d("firu.model", String.format("LangUtil.int2Lang: %d -> '%s'", code, lang));
+            Log.d("firu.model", String.format("LangUtil.int2Lang: %x -> '%s'", code, lang));
             return lang;
         }
         catch (Exception e)
