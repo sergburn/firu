@@ -38,21 +38,13 @@ import android.util.Log;
 
 public class Vocabulary extends DictionaryBase
 {
-    public Vocabulary(String connectionString)
+    public Vocabulary(String connectionString, Context context)
     {
-    }
-
-    public static Vocabulary open(String connectionString, Context context)
-    {
-        Vocabulary self = new Vocabulary(connectionString);
-
-        self.mDbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
+        SQLiteOpenHelper dbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
         {
             @Override
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
             {
-                // TODO Auto-generated method stub
-
             }
 
             @Override
@@ -77,11 +69,9 @@ public class Vocabulary extends DictionaryBase
             };
         };
 
-        self.mDatabase = self.mDbOpener.getWritableDatabase();
+        mDatabase = dbOpener.getWritableDatabase();
         
-        self.mTotalWords = self.countWords();
-
-        return self;
+        mTotalWords = countWords();
     }
 
     public class MarkedTranslation extends Translation
@@ -190,13 +180,12 @@ public class Vocabulary extends DictionaryBase
 
     public Word addWord(Word dictWord, List<Translation> translations) throws Exception
     {
-        long word_id = 0;
-        
         if (translations.size() < 1)
         {
             throw new InvalidParameterException("Attempt to add word without translations");
         }
         
+        long word_id = 0;
         mDatabase.beginTransaction();
         try
         {
@@ -282,6 +271,27 @@ public class Vocabulary extends DictionaryBase
         catch (SQLiteConstraintException e)
         {
             Log.d("firu.model", "Exception in updateMarks: " + e.getMessage());
+            throw e;
+        }
+        finally
+        {
+            mDatabase.endTransaction();
+        }
+    }
+    
+    public void clearAll()
+    {
+        mDatabase.beginTransaction();
+        try 
+        {
+            mDatabase.delete("translations", null, null);
+            mDatabase.delete("words", null, null);
+            
+            mDatabase.setTransactionSuccessful();
+        }
+        catch (SQLiteConstraintException e)
+        {
+            Log.d("firu.model", "Exception in clearAll: " + e.getMessage());
             throw e;
         }
         finally
