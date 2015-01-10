@@ -24,13 +24,6 @@
 
 package com.burnevsky.firu;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
@@ -38,13 +31,10 @@ import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
@@ -64,34 +54,29 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
 
     final Handler mHandler = new Handler();
     Context mSelfContext = null;
-    FiruApplication mApp = null;
     
     ListView mWordsListView = null;
     TextView mCountText = null;
-
-    private void openDictionary()
-    {
-        mApp.openDictionary(mSelfContext, new FiruApplication.OnOpenListener()
-        {
-            @Override
-            public void onOpen()
-            {
-                if (mApp.mDict != null)
-                {
-                    showTotalWordsCount();
-                }
-                else
-                {
-                    finish();
-                }
-            }
-        });
-    }
     
-    FiruApplication.OnOpenListener mVocabularyOpenListener = new FiruApplication.OnOpenListener()
+    DictionarySearch mSearchTask = null;
+    DictionaryCounter mCountTask = null;
+
+    FiruApplication mApp = null;
+    Dictionary mDict = null;
+    Vocabulary mVoc = null;
+    FiruApplication.ModelListener mModelListener = null;
+   
+    class ModelListener implements FiruApplication.ModelListener
     {
         @Override
-        public void onOpen()
+        public void onVocabularyOpen(Vocabulary voc)
+        {
+            mVoc = voc;
+            Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
+        }
+        
+        @Override
+        public void onVocabularyReset(Vocabulary voc)
         {
             if (mApp.mDict != null)
             {
@@ -102,22 +87,48 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
                 finish();
             }
         }
-    }; 
+
+        @Override
+        public void onVocabularyClose(Vocabulary voc)
+        {
+            mVoc = null;
+        }
+        
+        @Override
+        public void onDictionaryOpen(Dictionary dict)
+        {
+            mDict = dict;
+            showTotalWordsCount();
+        }
+        
+        @Override
+        public void onDictionaryClose(Dictionary dict)
+        {
+            mDict = null;
+            showTotalWordsCount();
+        }
+    }
     
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
     {
         @Override
         protected List<Word> doInBackground(String... param)
         {
-            return mApp.mDict.searchWords(param[0], MAX_WORDS_IN_RESULT);
+            return (mDict != null) ? mDict.searchWords(param[0], MAX_WORDS_IN_RESULT) : null;
         }
 
         @Override
         protected void onPostExecute(List<Word> result)
         {
-            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(mSelfContext,
-                    android.R.layout.simple_list_item_1, result);
-            mWordsListView.setAdapter(adapter);
+            if (result != null)
+            {
+                ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(mSelfContext, android.R.layout.simple_list_item_1, result);
+                mWordsListView.setAdapter(adapter);
+            }
+            else
+            {
+                mWordsListView.setAdapter(null);
+            }
             mSearchTask = null;
         }
 
@@ -133,7 +144,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         @Override
         protected Integer doInBackground(String... param)
         {
-            return mApp.mDict.countWords(param[0]);
+            return (mDict != null) ? mDict.countWords(param[0]) : 0;
         }
 
         @Override
@@ -142,9 +153,6 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mCountText.setText("Found " + result + " words");
         }
     };
-
-    DictionarySearch mSearchTask = null;
-    DictionaryCounter mCountTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -160,30 +168,17 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mCountText = (TextView) findViewById(R.id.laCount);
         mSelfContext = this;
         
+        mModelListener = new ModelListener();
         mApp = (FiruApplication) getApplicationContext();
-
-        // TODO: this code should be in some "main" UI, unless this SearchActivity is always 1st window shown to user
-        
-        if (mApp.mDict == null)
-        {
-            openDictionary();
-        }
-        else
-        {
-            showTotalWordsCount();
-        }
-        
-        if (mApp.mVoc == null)
-        {
-            mApp.openVocabulary(mSelfContext, mVocabularyOpenListener);
-        }
+        mApp.subscribeDictionary(mSelfContext, mModelListener);
+        mApp.subscribeVocabulary(mSelfContext, mModelListener);
     }
     
     private void showTotalWordsCount()
     {
-        if (mApp.mDict != null)
+        if (mDict != null)
         {
-            mCountText.setText("Total count " + String.valueOf(mApp.mDict.getTotalWords()) + " words");
+            mCountText.setText("Total count " + String.valueOf(mDict.getTotalWords()) + " words");
         }
         else
         {

@@ -24,7 +24,6 @@
 
 package com.burnevsky.firu;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
@@ -42,8 +41,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -51,31 +49,71 @@ public class TranslationsActivity extends Activity
 {
     public final static String INTENT_EXTRA_WORD = "com.burnevsk.firu.word";
 
-    FiruApplication mApp = null;
+    TextView mWordView = null;
+    ListView mTransView = null;
+    Drawable mStarredIcon = null, mUnstarredIcon = null;
     Context mSelfContext = null;
 
     Word mWord = null, mVocWord = null;
 
-    TextView mWordView = null;
-    ListView mTransView = null;
     ImageButton mStarBtn = null;
-    Drawable mStarredIcon = null, mUnstarredIcon = null;
+    FiruApplication mApp = null;
+    Dictionary mDict = null;
+    Vocabulary mVoc = null;
+    FiruApplication.ModelListener mModelListener = null;
 
+    class ModelListener implements FiruApplication.ModelListener
+    {
+        @Override
+        public void onVocabularyOpen(Vocabulary voc)
+        {
+            mVoc = voc;
+            new VocabularyMatch().execute(mWord);
+            // keep StarBtn disabled until we have result on vocabulary match
+        }
+        
+        @Override
+        public void onVocabularyReset(Vocabulary voc)
+        {
+        }
+        
+        @Override
+        public void onVocabularyClose(Vocabulary voc)
+        {
+            mVoc = null;
+        }
+        
+        @Override
+        public void onDictionaryOpen(Dictionary dict)
+        {
+            mDict = dict;
+            new DictionaryTranslations().execute(mWord);
+        }
+        
+        @Override
+        public void onDictionaryClose(Dictionary dict)
+        {
+            mDict = null;
+        }
+    }
+    
     class DictionaryTranslations extends AsyncTask<Word, Void, List<Translation>>
     {
         @Override
         protected List<Translation> doInBackground(Word... param)
         {
-            if (mApp.mDict == null) return null;
-            return mApp.mDict.getTranslations(param[0]);
+            return (mDict != null) ? mDict.getTranslations(param[0]) : null;
         }
 
         @Override
         protected void onPostExecute(List<Translation> result)
         {
             mWord.translations = result;
-            ArrayAdapter<Translation> adapter = new ArrayAdapter<Translation>(mSelfContext,
-                    android.R.layout.simple_list_item_1, result);
+            ArrayAdapter<Translation> adapter = null;
+            if (result != null)
+            {
+                adapter = new ArrayAdapter<Translation>(mSelfContext, android.R.layout.simple_list_item_1, result);
+            }
             mTransView.setAdapter(adapter);
         }
     };
@@ -85,14 +123,14 @@ public class TranslationsActivity extends Activity
         @Override
         protected Word doInBackground(Word... param)
         {
-            if (mApp.mVoc == null) return null;
-            return mApp.mVoc.findWord(param[0].getText(), param[0].getLangCode());
+            return (mVoc != null) ? mVoc.findWord(param[0].getText(), param[0].getLangCode()) : null;
         }
 
         @Override
         protected void onPostExecute(Word word)
         {
             mVocWord = word;
+            mStarBtn.setEnabled(mVoc != null);
             updateStarButton(mVocWord != null);
         }
     };
@@ -102,10 +140,10 @@ public class TranslationsActivity extends Activity
         @Override
         protected Word doInBackground(Void... param)
         {
-            if (mApp.mVoc == null) return null;
+            if (mVoc == null) return null;
             try
             {
-                return mApp.mVoc.addWord(mWord, mWord.translations);
+                return mVoc.addWord(mWord, mWord.translations);
             }
             catch (Exception e)
             {
@@ -127,8 +165,7 @@ public class TranslationsActivity extends Activity
         @Override
         protected Boolean doInBackground(Void... param)
         {
-            if (mApp.mVoc == null) return false;
-            return mApp.mVoc.removeWord(mVocWord);
+            return (mVoc != null) ? mVoc.removeWord(mVocWord) : true;
         }
 
         @Override
@@ -149,19 +186,20 @@ public class TranslationsActivity extends Activity
         setContentView(R.layout.activity_translations);
         mWordView = (TextView) findViewById(R.id.laWord);
         mStarBtn = (ImageButton) findViewById(R.id.btnStar); 
+        mStarBtn.setEnabled(false); // until vocabulary is open
         mTransView = (ListView) findViewById(R.id.listTranslations);
         mStarredIcon = getResources().getDrawable(R.drawable.ic_action_important);
         mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important);
         mSelfContext = this;
 
-        mApp = (FiruApplication) getApplicationContext(); 
+        mApp = (FiruApplication) getApplicationContext();
+        mModelListener = new ModelListener();
+        mApp.subscribeDictionary(mSelfContext, mModelListener);
+        mApp.subscribeVocabulary(mSelfContext, mModelListener);
         
         Intent intent = getIntent();
         mWord = intent.getParcelableExtra(INTENT_EXTRA_WORD);
         mWordView.setText(mWord.getText());
-
-        new DictionaryTranslations().execute(mWord);
-        new VocabularyMatch().execute(mWord);
         
         mStarBtn.setOnClickListener(new View.OnClickListener()
         {

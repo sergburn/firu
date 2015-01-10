@@ -47,11 +47,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextWatcher;
 
+import com.burnevsky.firu.SearchActivity.DictionaryCounter;
+import com.burnevsky.firu.SearchActivity.DictionarySearch;
+import com.burnevsky.firu.SearchActivity.ModelListener;
+import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryBase;
+import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.test.TestResult;
@@ -60,7 +66,6 @@ import com.burnevsky.firu.model.test.VocabularyTest;
 public class TrainerActivity extends Activity
 {
     Context mSelfContext = null;
-    DictionaryBase mDict = null;
     int mKeyBoardHeight = 0;
     View mLayout = null;
     TextView mMarkText = null;
@@ -73,6 +78,45 @@ public class TrainerActivity extends Activity
     final int NON_WRONG_ANSWER_LENGTH = Integer.MAX_VALUE; 
     int mWrongGuessLength = NON_WRONG_ANSWER_LENGTH;
     List<ImageView> mImgLives = new ArrayList<ImageView>();
+    
+    FiruApplication mApp = null;
+    Dictionary mDict = null;
+    Vocabulary mVoc = null;
+    FiruApplication.ModelListener mModelListener = null;
+    
+    class ModelListener implements FiruApplication.ModelListener
+    {
+        @Override
+        public void onVocabularyOpen(Vocabulary voc)
+        {
+            mVoc = voc;
+            // build new test and start it
+        }
+        
+        @Override
+        public void onVocabularyReset(Vocabulary voc)
+        {
+            // TODO: cancel test (however this event should never happen during test)
+        }
+
+        @Override
+        public void onVocabularyClose(Vocabulary voc)
+        {
+            mVoc = null;
+        }
+        
+        @Override
+        public void onDictionaryOpen(Dictionary dict)
+        {
+            mDict = dict;
+        }
+        
+        @Override
+        public void onDictionaryClose(Dictionary dict)
+        {
+            mDict = null;
+        }
+    }
     
     class GuessValidator implements TextWatcher, TextView.OnEditorActionListener
     {
@@ -187,8 +231,10 @@ public class TrainerActivity extends Activity
         // (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         // imm.showSoftInput(mLayout, InputMethodManager.SHOW_FORCED);
 
-        FiruApplication app = (FiruApplication) getApplicationContext();
-        mDict = app.mDict;
+        mModelListener = new ModelListener();
+        mApp = (FiruApplication) getApplicationContext();
+        mApp.subscribeDictionary(mSelfContext, mModelListener);
+        mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
         Intent intent = getIntent();
     }

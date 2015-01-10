@@ -30,6 +30,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Vocabulary;
@@ -52,13 +57,23 @@ public class FiruApplication extends Application
 
     final Handler mHandler = new Handler();
 
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-
-    File mDictFile = null;
+    private Dictionary mDict = null;
+    private Vocabulary mVoc = null;
     
-    File mLocalVocFile = null;
-    File mBackupVocFile = null;
+    private enum ModelEvent
+    {
+        MODEL_EVENT_NONE,
+        MODEL_EVENT_DICT_OPEN,
+        MODEL_EVENT_DICT_CLOSE,
+        MODEL_EVENT_VOC_OPEN,
+        MODEL_EVENT_VOC_CLOSE,
+        MODEL_EVENT_VOC_RESET,
+    }
+    
+    private File mDictFile = null;
+    
+    private File mLocalVocFile = null;
+    private File mBackupVocFile = null;
     
 /*    
     static {
@@ -66,13 +81,100 @@ public class FiruApplication extends Application
     }
 */
     
-    public interface OnOpenListener 
+    public interface ModelListener 
     {
-        void onOpen();
+        void onDictionaryOpen(Dictionary dict);
+        void onDictionaryClose(Dictionary dict);
+        
+        void onVocabularyOpen(Vocabulary voc);
+        void onVocabularyReset(Vocabulary voc);
+        void onVocabularyClose(Vocabulary voc);
     }
-
     
-    boolean checkPath(File p, String header)
+    private class ModelListenersManager
+    {
+        // alias
+        private class ModelListenerRef extends WeakReference<ModelListener>
+        {
+            public ModelListenerRef(ModelListener r)
+            {
+                super(r);
+            }
+        }
+
+        private List<ModelListenerRef> mListeners = null;
+        
+        ModelListenersManager()
+        {
+            mListeners = new ArrayList<ModelListenerRef>();
+        }
+        
+        void addListener(final ModelListener listener)
+        {
+            assert listener != null;
+            for (Iterator<ModelListenerRef> iter = mListeners.iterator(); iter.hasNext();)
+            {
+                ModelListener l = iter.next().get();
+                if (l == null)
+                {
+                    iter.remove();
+                }
+                else if (l == listener)
+                {
+                    return;
+                }
+            }
+            mListeners.add(new ModelListenerRef(listener));
+        }
+
+        void notifyListener(ModelListener listener, ModelEvent event)
+        {
+            switch (event)
+            {
+                case MODEL_EVENT_DICT_OPEN:
+                    listener.onDictionaryOpen(mDict);
+                    break;
+                case MODEL_EVENT_DICT_CLOSE:
+                    listener.onDictionaryClose(mDict);
+                    break;
+                case MODEL_EVENT_VOC_OPEN:
+                    listener.onVocabularyOpen(mVoc);
+                    break;
+                case MODEL_EVENT_VOC_RESET:
+                    listener.onVocabularyReset(mVoc);
+                    break;
+                case MODEL_EVENT_VOC_CLOSE:
+                    listener.onVocabularyClose(mVoc);
+                    break;
+                default:
+                    if (BuildConfig.DEBUG)
+                    {
+                        throw new InvalidParameterException();
+                    }
+                    break;
+            }
+        }
+        
+        void notifyAllListeners(ModelEvent event)
+        {
+            for (Iterator<ModelListenerRef> iter = mListeners.iterator(); iter.hasNext();)
+            {
+                ModelListener listener = iter.next().get();
+                if (listener != null)
+                {
+                    notifyListener(listener, event);
+                }
+                else
+                {
+                    iter.remove();
+                }
+            }
+        }
+    }
+    
+    private ModelListenersManager mModelListeners = new ModelListenersManager();
+    
+    boolean checkPath(File p, final String header)
     {
         boolean exists = p.exists(); 
         Log.i("firu", "Path to " + header + ": '" + p.getAbsolutePath() + (exists ? "' exists" : "' invalid"));
@@ -118,20 +220,34 @@ public class FiruApplication extends Application
         return true;
     }
     
-    public void openDictionary(Context toastContext, OnOpenListener listener)
+    public void subscribeDictionary(Context toastContext, final ModelListener listener)
     {
-        new DictionaryOpener(toastContext, listener).execute();
+        mModelListeners.addListener(listener);
+        
+        if (mDict == null)
+        {
+            new DictionaryOpener(toastContext).execute();
+        }
+        else
+        {
+            mHandler.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    mModelListeners.notifyListener(listener, ModelEvent.MODEL_EVENT_DICT_OPEN);
+                }
+            }); 
+        }
     }
     
-    public class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
+    private class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
     {
         Context mToastContext = null;
-        OnOpenListener mListener = null;
         
-        DictionaryOpener(Context toastContext, OnOpenListener listener)
+        DictionaryOpener(Context toastContext)
         {
             mToastContext = toastContext;
-            mListener = listener;
         }
         
         @Override
@@ -147,33 +263,59 @@ public class FiruApplication extends Application
             {
                 mDict = result;
                 Log.i("firu", "Dictionary: totalWordCount: " + String.valueOf(mDict.getTotalWords()));
+                mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_DICT_OPEN);
             }
-            else if (!mDictFile.exists())
+            else if (mToastContext != null)
             {
-                Toast.makeText(mToastContext, "Dictionary not found", Toast.LENGTH_SHORT).show();
+                if (!mDictFile.exists())
+                {
+                    Toast.makeText(mToastContext, "Dictionary not found", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(mToastContext, "Can't open Dictionary", Toast.LENGTH_SHORT).show();
+                }
             }
-            else
-            {
-                Toast.makeText(mToastContext, "Can't open Dictionary", Toast.LENGTH_SHORT).show();
-            }
-            mListener.onOpen();
         }
-    };
-
-    public void openVocabulary(Context toastContext, OnOpenListener listener)
+    }
+    
+    private void closeDictionary()
     {
-        new VocabularyOpener(toastContext, listener).execute();
+        if (mDict != null)
+        {
+            mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_DICT_CLOSE);
+            mDict = null;
+        }
+    }
+
+    public void subscribeVocabulary(Context toastContext, final ModelListener listener)
+    {
+        mModelListeners.addListener(listener);
+        
+        if (mVoc == null)
+        {
+            new VocabularyOpener(toastContext).execute();
+        }
+        else
+        {
+            mHandler.post(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    mModelListeners.notifyListener(listener, ModelEvent.MODEL_EVENT_VOC_OPEN);
+                }
+            }); 
+        }
     }
     
     class VocabularyOpener extends AsyncTask<Void, Void, Vocabulary>
     {
         Context mToastContext = null;
-        OnOpenListener mListener = null;
 
-        public VocabularyOpener(Context toastContext, OnOpenListener listener)
+        public VocabularyOpener(Context toastContext)
         {
             mToastContext = toastContext;
-            mListener = listener;
         }
 
         @Override
@@ -189,14 +331,26 @@ public class FiruApplication extends Application
             {
                 mVoc = result;
                 Log.i("firu", "Vocabulary: totalWordCount: " + String.valueOf(mVoc.getTotalWords()));
+                mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_OPEN);
             }
             else
             {
-                Toast.makeText(mToastContext, "Can't open Vocabulary", Toast.LENGTH_SHORT).show();
+                if (mToastContext != null)
+                {
+                    Toast.makeText(mToastContext, "Can't open Vocabulary", Toast.LENGTH_SHORT).show();
+                }
             }
-            mListener.onOpen();
         }
-    };
+    }
+    
+    private void closeVocabulary()
+    {
+        if (mVoc != null)
+        {
+            mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_CLOSE);
+            mVoc = null;
+        }
+    }
 
     public void importVocabulary(final Context toastContext, final OnOpenListener listener)
     {
