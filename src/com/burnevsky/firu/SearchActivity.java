@@ -73,12 +73,14 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         public void onVocabularyOpen(Vocabulary voc)
         {
             mVoc = voc;
+            invalidateOptionsMenu();
             Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
         }
         
         @Override
         public void onVocabularyReset(Vocabulary voc)
         {
+            invalidateOptionsMenu();
             Toast.makeText(mSelfContext, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
         }
 
@@ -86,6 +88,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         public void onVocabularyClose(Vocabulary voc)
         {
             mVoc = null;
+            invalidateOptionsMenu();
         }
         
         @Override
@@ -185,15 +188,17 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.search_activity_actions, menu);
+        mExportVocMenu = menu.findItem(R.id.action_backup_voc); 
+        mClearVocMenu = menu.findItem(R.id.action_reset_voc); 
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        menu.findItem(R.id.action_reset_voc).setEnabled(mVoc != null);
-        menu.findItem(R.id.action_backup_voc).setEnabled(mVoc != null);
-        return true;
+        mExportVocMenu.setEnabled(mVoc != null);
+        mClearVocMenu.setEnabled(mVoc != null && mVoc.getTotalWords() > 0);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override

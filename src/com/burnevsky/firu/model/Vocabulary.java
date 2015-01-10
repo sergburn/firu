@@ -229,7 +229,7 @@ public class Vocabulary extends DictionaryBase
         {
             mDatabase.endTransaction();
         }
-        
+        mTotalWords = countWords();
         return new Word(word_id, dictWord.getText(), dictWord.getLang());
     }
     
@@ -253,6 +253,7 @@ public class Vocabulary extends DictionaryBase
         {
             mDatabase.endTransaction();
         }
+        mTotalWords = countWords();
         return ok;
     }
     
@@ -288,6 +289,7 @@ public class Vocabulary extends DictionaryBase
             mDatabase.delete("words", null, null);
             
             mDatabase.setTransactionSuccessful();
+            mTotalWords = 0;
         }
         catch (SQLiteConstraintException e)
         {
