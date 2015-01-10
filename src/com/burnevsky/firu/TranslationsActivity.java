@@ -51,12 +51,12 @@ public class TranslationsActivity extends Activity
 
     TextView mWordView = null;
     ListView mTransView = null;
+    ImageView mStarBtn = null;
     Drawable mStarredIcon = null, mUnstarredIcon = null;
     Context mSelfContext = null;
 
     Word mWord = null, mVocWord = null;
 
-    ImageButton mStarBtn = null;
     FiruApplication mApp = null;
     Dictionary mDict = null;
     Vocabulary mVoc = null;
@@ -184,12 +184,13 @@ public class TranslationsActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_translations);
+
         mWordView = (TextView) findViewById(R.id.laWord);
-        mStarBtn = (ImageButton) findViewById(R.id.btnStar); 
+        mStarBtn = (ImageView) findViewById(R.id.btnStar);
         mStarBtn.setEnabled(false); // until vocabulary is open
         mTransView = (ListView) findViewById(R.id.listTranslations);
-        mStarredIcon = getResources().getDrawable(R.drawable.ic_action_important);
-        mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important);
+        mStarredIcon = getResources().getDrawable(R.drawable.ic_action_important_dark);
+        mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important_dark);
         mSelfContext = this;
 
         mApp = (FiruApplication) getApplicationContext();
@@ -222,7 +223,7 @@ public class TranslationsActivity extends Activity
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.translations, menu);
+        getMenuInflater().inflate(R.menu.translations_activity_actions, menu);
         return true;
     }
 
@@ -244,7 +245,7 @@ public class TranslationsActivity extends Activity
     {
         mStarBtn.setImageResource(
                 isStarred ?
-                R.drawable.ic_action_important : 
-                R.drawable.ic_action_not_important);
+                R.drawable.ic_action_important_dark : 
+                R.drawable.ic_action_not_important_dark);
     }
 }
