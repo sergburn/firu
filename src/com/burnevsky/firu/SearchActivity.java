@@ -57,6 +57,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     
     ListView mWordsListView = null;
     TextView mCountText = null;
+    MenuItem mExportVocMenu, mClearVocMenu = null; 
     
     DictionarySearch mSearchTask = null;
     DictionaryCounter mCountTask = null;
@@ -78,14 +79,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         @Override
         public void onVocabularyReset(Vocabulary voc)
         {
-            if (mApp.mDict != null)
-            {
-                Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mApp.mVoc.getTotalWords()) + "words", Toast.LENGTH_SHORT).show();
-            }
-            else
-            {
-                finish();
-            }
+            Toast.makeText(mSelfContext, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -195,34 +189,41 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        menu.findItem(R.id.action_reset_voc).setEnabled(mVoc != null);
+        menu.findItem(R.id.action_backup_voc).setEnabled(mVoc != null);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings)
+        switch(item.getItemId())
         {
-            Intent intent = new Intent(this, TrainerActivity.class);
-            //intent.putExtra(TrainerActivity.INTENT_EXTRA_WORD, word);
+            case R.id.action_settings:
+                Intent intent = new Intent(this, TrainerActivity.class);
+                //intent.putExtra(TrainerActivity.INTENT_EXTRA_WORD, word);
+                startActivity(intent);
+                return true;
 
-            startActivity(intent);
-            return true;
-        }
-        if (id == R.id.action_import_voc)
-        {
-            mApp.importVocabulary(mSelfContext, mVocabularyOpenListener);
-            return true;
-        }
-        if (id == R.id.action_backup_voc)
-        {
-            mApp.exportVocabulary(mSelfContext);
-            return true;
-        }
-        if (id == R.id.action_reset_voc)
-        {
-            mApp.mVoc.clearAll();
-            return true;
+            case R.id.action_import_voc:
+                mApp.importVocabulary(mSelfContext);
+                return true;
+            
+            case R.id.action_backup_voc:
+                mApp.exportVocabulary(mSelfContext);
+                return true;
+
+            case R.id.action_reset_voc:
+                mApp.resetVocabulary(mSelfContext);
+                return true;
+
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);

@@ -352,15 +352,14 @@ public class FiruApplication extends Application
         }
     }
 
-    public void importVocabulary(final Context toastContext, final OnOpenListener listener)
+    public void importVocabulary(final Context toastContext)
     {
         final Runnable importer = new Runnable()
         {
             @Override
             public void run()
             {
-                mVoc.close();
-                mVoc = null;
+                closeVocabulary();
                 try
                 {
                     copyFile(mBackupVocFile, mLocalVocFile);
@@ -373,7 +372,7 @@ public class FiruApplication extends Application
                 }
                 finally
                 {
-                    openVocabulary(toastContext, listener);
+                    new VocabularyOpener(toastContext).execute();
                 }
             }
         };
@@ -419,6 +418,7 @@ public class FiruApplication extends Application
             {
                 try
                 {
+                    closeVocabulary();
                     copyFile(mLocalVocFile, mBackupVocFile);
                     Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
                 }
@@ -426,6 +426,10 @@ public class FiruApplication extends Application
                 {
                     e.printStackTrace();
                     Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show();
+                }
+                finally
+                {
+                    new VocabularyOpener(context).execute();
                 }
             }
         };
@@ -451,5 +455,46 @@ public class FiruApplication extends Application
         {
             mHandler.post(exporter);
         }
+    }
+
+    public void resetVocabulary(final Context context)
+    {
+        class VocabularyCleaner extends AsyncTask<Void, Void, Void>
+        {
+            @Override
+            protected Void doInBackground(Void... params)
+            {
+                if (mVoc != null) 
+                {
+                    mVoc.clearAll();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result)
+            {
+                if (mVoc != null)
+                {
+                    Log.i("firu", "Vocabulary reset");
+                    mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_RESET);
+                }
+            }
+        }
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder
+            .setTitle("Vocabulary reset")
+            .setMessage("All learning history will be lost, are you sure?")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            {
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    new VocabularyCleaner().execute();
+                }
+            } )
+            .setNegativeButton("No", null)
+            .show();
     }
 }
