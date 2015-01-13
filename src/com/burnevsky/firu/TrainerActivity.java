@@ -72,7 +72,7 @@ public class TrainerActivity extends Activity
     TextView mTransText = null;
     EditText mWordEdit = null;
     Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null;
-    Button mHintButton = null, mAnswerButton = null;
+    ImageView mHintButton = null;
 
     ReverseTest mTest = new ReverseTest();
     final int NON_WRONG_ANSWER_LENGTH = Integer.MAX_VALUE; 
@@ -186,8 +186,7 @@ public class TrainerActivity extends Activity
         mImgLives.add((ImageView) findViewById(R.id.imgLife1));
         mImgLives.add((ImageView) findViewById(R.id.imgLife2));
         mImgLives.add((ImageView) findViewById(R.id.imgLife3));
-        mHintButton = (Button) findViewById(R.id.btnHint);
-        mAnswerButton = (Button) findViewById(R.id.btnAnswer);
+        mHintButton = (ImageView) findViewById(R.id.imgHint);
         mSelfContext = this;
 
         mGoodIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -205,24 +204,21 @@ public class TrainerActivity extends Activity
             {
                 try
                 {
-                    String newText = mTest.getHint(mWordEdit.getText().toString());
-                    mWordEdit.setText(newText);
-                    mWordEdit.setSelection(newText.length());
+                    if (mTest.getHintsLeft() > 0)
+                    {
+                        String newText = mTest.getHint(mWordEdit.getText().toString());
+                        mWordEdit.setText(newText);
+                        mWordEdit.setSelection(newText.length());
+                    }
+                    else
+                    {
+                        mTest.unlockAnswer();
+                    }
                 }
                 catch (TestAlreadyCompleteException e)
                 {
                     e.printStackTrace();
                 }
-                showTestState();
-            }
-        });
-
-        mAnswerButton.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                mTest.unlockAnswer();
                 showTestState();
             }
         });
@@ -280,7 +276,6 @@ public class TrainerActivity extends Activity
         mImgLives.get(0).setVisibility((lives >= 1) ? View.VISIBLE : View.INVISIBLE);
         mImgLives.get(1).setVisibility((lives >= 2) ? View.VISIBLE : View.INVISIBLE);
         mImgLives.get(2).setVisibility((lives >= 3) ? View.VISIBLE : View.INVISIBLE);
-        mHintButton.setEnabled(lives > 0);
     }
 
     void showTestResultIcon(Drawable icon)
@@ -309,8 +304,7 @@ public class TrainerActivity extends Activity
         if (mTest.getResult() != TestResult.Incomplete)
         {
             mWordEdit.setEnabled(false);
-            mAnswerButton.setEnabled(false);
-            mHintButton.setEnabled(false);
+            mHintButton.setVisibility(View.INVISIBLE);
             mMarkText.setText(mTest.getResult().toString()); // TODO: l10n
             switch (mTest.getResult())
             {

@@ -27,7 +27,7 @@ package com.burnevsky.firu.model.test;
 public class ReverseTest extends VocabularyTest
 {
     private String mChallenge = "large";
-    private String mAnswer = "iso";
+    private String mAnswer = "isotex";
     
     public String getChallenge()
     {
@@ -59,8 +59,7 @@ public class ReverseTest extends VocabularyTest
 
         if (mAnswer.startsWith(guess))
         {
-            revokeHint();
-            if (guess.length() < mAnswer.length())
+            if (revokeHint() && (guess.length() < mAnswer.length()))
             {
                 return mAnswer.substring(0, guess.length() + 1);
             }
