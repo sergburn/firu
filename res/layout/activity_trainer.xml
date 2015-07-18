@@ -7,19 +7,11 @@
     android:orientation="vertical" >
 
     <ProgressBar
-        android:id="@+id/progressBar1"
+        android:id="@+id/pbExamProgress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:progress="78" />
-
-    <TextView
-        android:id="@+id/textMark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:text="With hints"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <RelativeLayout
         android:id="@+id/rltChallenge"
@@ -34,13 +26,22 @@
             android:src="@drawable/ic_action_help"
             tools:ignore="ContentDescription" />
 
+        <ImageView
+            android:id="@+id/imgNext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/rltLifes"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_action_next_item" />
+
         <EditText
             android:id="@+id/editWord"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@id/rltLifes"
-            android:layout_alignParentEnd="true"
+            android:layout_alignParentEnd="false"
             android:layout_toEndOf="@id/imgHint"
+            android:layout_toStartOf="@id/imgNext"
             android:ems="10"
             android:hint="guess"
             android:inputType="textNoSuggestions" >
@@ -57,14 +58,14 @@
             android:layout_alignParentTop="true"
             android:layout_alignStart="@id/editWord"
             android:gravity="start|center_vertical"
-            android:text="Large Text"
+            android:text="challenge"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <RelativeLayout
             android:id="@id/rltLifes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:layout_above="@+id/textMark"
             android:layout_alignParentEnd="true"
             android:orientation="horizontal" >
 
@@ -96,7 +97,18 @@
                 android:layout_gravity="center_vertical"
                 android:layout_toEndOf="@id/imgLife2"
                 android:src="@drawable/ic_action_favorite" />
+
         </RelativeLayout>
+
+        <TextView
+            android:id="@id/textMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:text="With hints"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
     </RelativeLayout>
 
 </LinearLayout>

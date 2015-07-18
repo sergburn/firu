@@ -178,6 +178,19 @@ public class Vocabulary extends DictionaryBase
         return null;
     }
 
+    public Word getWord(long wordId)
+    {
+        Cursor c = mDatabase.query("words", 
+                getWordSelect(),
+                "_id = " + String.valueOf(wordId),
+                 null, null, null, null, null);
+        if (c.moveToFirst())
+        {
+            return readWord(c);
+        }
+        return null;
+    }
+
     public Word addWord(Word dictWord, List<Translation> translations) throws Exception
     {
         if (translations.size() < 1)
@@ -300,5 +313,30 @@ public class Vocabulary extends DictionaryBase
         {
             mDatabase.endTransaction();
         }
+    }
+    
+    public List<MarkedTranslation> selectTranslations(Mark min, Mark max, boolean reverse)
+    {
+        List<MarkedTranslation> list = new LinkedList<MarkedTranslation>();
+        try 
+        {
+            Cursor c = mDatabase.query("translations", 
+                    getTranslationSelect(),
+                    "rmark >= " + String.valueOf(min.toInt()) + " AND rmark <= " + String.valueOf(max.toInt()),
+                     null, null, null, null, null);
+            boolean next = c.moveToFirst();
+            while (next)
+            {
+                MarkedTranslation t = readTranslation(c);
+                list.add(t);
+                next = c.moveToNext();
+            }
+        }
+        catch (Exception e)
+        {
+            Log.d("firu.model", "Exception in selectTranslations: " + e.getMessage());
+            throw e;
+        }
+        return list;
     }
 }

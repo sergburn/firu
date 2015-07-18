@@ -29,39 +29,34 @@ import java.util.List;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Rect;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.text.Editable;
-import android.text.Spannable;
-import android.text.TextWatcher;
 
-import com.burnevsky.firu.SearchActivity.DictionaryCounter;
-import com.burnevsky.firu.SearchActivity.DictionarySearch;
-import com.burnevsky.firu.SearchActivity.ModelListener;
 import com.burnevsky.firu.model.Dictionary;
-import com.burnevsky.firu.model.DictionaryBase;
+import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.test.ReverseExam;
 import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.test.TestResult;
-import com.burnevsky.firu.model.test.VocabularyTest;
 
 public class TrainerActivity extends Activity
 {
@@ -71,28 +66,39 @@ public class TrainerActivity extends Activity
     TextView mMarkText = null;
     TextView mTransText = null;
     EditText mWordEdit = null;
-    Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null;
-    ImageView mHintButton = null;
-
-    ReverseTest mTest = new ReverseTest();
-    final int NON_WRONG_ANSWER_LENGTH = Integer.MAX_VALUE; 
-    int mWrongGuessLength = NON_WRONG_ANSWER_LENGTH;
+    Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
+    ImageView mHintButton = null, mNextButton = null;
     List<ImageView> mImgLives = new ArrayList<ImageView>();
-    
+    ProgressBar mExamProgress = null;
+
+    ReverseExam mExam = null;
+    ReverseTest mTest = null;
+
+    private enum State
+    {
+        STATE_INITIAL, // mTest == null
+        STATE_MAKING_NORMAL_EXAM,
+        STATE_MAKING_REVIEW_EXAM,
+        STATE_TEST_ONGOING,
+        STATE_TEST_FINISHED,
+        STATE_EXAM_FINISHED
+    };
+    State mState = State.STATE_INITIAL;
+
     FiruApplication mApp = null;
     Dictionary mDict = null;
     Vocabulary mVoc = null;
     FiruApplication.ModelListener mModelListener = null;
-    
+
     class ModelListener implements FiruApplication.ModelListener
     {
         @Override
         public void onVocabularyOpen(Vocabulary voc)
         {
             mVoc = voc;
-            // build new test and start it
+            startNormalExam();
         }
-        
+
         @Override
         public void onVocabularyReset(Vocabulary voc)
         {
@@ -104,51 +110,145 @@ public class TrainerActivity extends Activity
         {
             mVoc = null;
         }
-        
+
         @Override
         public void onDictionaryOpen(Dictionary dict)
         {
             mDict = dict;
         }
-        
+
         @Override
         public void onDictionaryClose(Dictionary dict)
         {
             mDict = null;
         }
     }
-    
+
+    private void startNormalExam()
+    {
+        changeState(State.STATE_MAKING_NORMAL_EXAM);
+        new ReverseExamBuilder().execute(Mark.AlmostLearned);
+    }
+
+    private void startReviewExam()
+    {
+        changeState(State.STATE_MAKING_REVIEW_EXAM);
+        new ReverseExamBuilder().execute(Mark.Learned);
+    }
+
+    private void onExamUnavailable()
+    {
+        if (mState == State.STATE_MAKING_NORMAL_EXAM)
+        {
+            onNormalExamUnavailable();
+        }
+        else if (mState == State.STATE_MAKING_REVIEW_EXAM)
+        {
+            onReviewExamUnavailable();
+        }
+    }
+
+    private void onNormalExamUnavailable()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mSelfContext);
+        builder
+        .setTitle("Reverse exam")
+        .setMessage("You seem to have learned whole vocabulary!\n"
+                + "Do you want to review learned words?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        startReviewExam();
+                    }
+                } )
+                .setNegativeButton("No", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        finish();
+                    }
+                } )
+                .show();
+    }
+
+    private void onReviewExamUnavailable()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mSelfContext);
+        builder
+        .setTitle("Reverse exam")
+        .setMessage("No words found in your vocabulary.\n"
+                + "Add some before starting trainer.")
+                .setIcon(android.R.drawable.ic_dialog_info)
+                .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        finish();
+                    }
+                } )
+                .show();
+    }
+
+    class ReverseExamBuilder extends AsyncTask<Mark, Void, ReverseExam>
+    {
+        @Override
+        protected ReverseExam doInBackground(Mark... param)
+        {
+            return new ReverseExam(mVoc, param[0]);
+        }
+
+        @Override
+        protected void onPostExecute(ReverseExam exam)
+        {
+            if (exam != null)
+            {
+                if (exam.getTestsToGo() > 1)
+                {
+                    mExam = exam;
+                    startTest(exam.nextTest());
+                }
+                else
+                {
+                    onExamUnavailable();
+                }
+            }
+            else
+            {
+                Toast.makeText(mSelfContext, "Failed to make exam", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
     class GuessValidator implements TextWatcher, TextView.OnEditorActionListener
     {
+        @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after)
         {
         }
 
+        @Override
         public void onTextChanged(CharSequence s, int start, int before, int count)
         {
         }
 
+        @Override
         public void afterTextChanged(Editable s)
         {
             String input = s.toString();
-            Log.d("firu", input);
+            //Log.d("firu", input);
             if (input.length() == 0)
             {
                 mWordEdit.setCompoundDrawables(null, null, null, null);
-                mWrongGuessLength = NON_WRONG_ANSWER_LENGTH;
             }
-            else if (input.length() <= mWrongGuessLength)
+            else
             {
-                boolean correct = mTest.checkGuess(input); 
-                showInputResult(correct);
-                if (correct)
-                {
-                    mWrongGuessLength = NON_WRONG_ANSWER_LENGTH;
-                }
-                else
-                {
-                    mWrongGuessLength = input.length();
-                }
+                boolean correct = mTest.checkGuess(input);
+                showInputCorrectness(correct);
             }
         }
 
@@ -160,9 +260,16 @@ public class TrainerActivity extends Activity
 
             try
             {
-                boolean correct = mTest.checkAnswer(mWordEdit.getText().toString()); 
-                showInputResult(correct);
-                showTestState();
+                boolean correct = mTest.checkAnswer(mWordEdit.getText().toString());
+                showInputCorrectness(correct);
+                if (mTest.getResult() != TestResult.Incomplete)
+                {
+                    changeState(State.STATE_TEST_FINISHED);
+                }
+                else
+                {
+                    showTestState(); // update lives
+                }
             }
             catch (TestAlreadyCompleteException e)
             {
@@ -173,6 +280,14 @@ public class TrainerActivity extends Activity
             return false;
         }
     };
+
+    private void startTest(ReverseTest test)
+    {
+        mTest = test;
+        mTransText.setText(test.getChallenge());
+        mWordEdit.setText("");
+        changeState(State.STATE_TEST_ONGOING);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -187,11 +302,14 @@ public class TrainerActivity extends Activity
         mImgLives.add((ImageView) findViewById(R.id.imgLife2));
         mImgLives.add((ImageView) findViewById(R.id.imgLife3));
         mHintButton = (ImageView) findViewById(R.id.imgHint);
+        mNextButton = (ImageView) findViewById(R.id.imgNext);
+        mExamProgress = (ProgressBar) findViewById(R.id.pbExamProgress);
         mSelfContext = this;
 
         mGoodIcon = getResources().getDrawable(R.drawable.ic_action_good);
         mPassedIcon = getResources().getDrawable(R.drawable.ic_action_accept);
         mFailIcon = getResources().getDrawable(R.drawable.ic_action_bad);
+        mLifeIcon = getResources().getDrawable(R.drawable.ic_action_favorite);
 
         GuessValidator gv = new GuessValidator();
         mWordEdit.setOnEditorActionListener(gv);
@@ -209,17 +327,43 @@ public class TrainerActivity extends Activity
                         String newText = mTest.getHint(mWordEdit.getText().toString());
                         mWordEdit.setText(newText);
                         mWordEdit.setSelection(newText.length());
+                        showTestState();
                     }
                     else
                     {
                         mTest.unlockAnswer();
+                        changeState(State.STATE_TEST_FINISHED);
                     }
                 }
                 catch (TestAlreadyCompleteException e)
                 {
                     e.printStackTrace();
                 }
-                showTestState();
+            }
+        });
+
+        mNextButton.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                if (mTest != null && !mTest.isComplete())
+                {
+                    mTest.unlockAnswer();
+                    changeState(State.STATE_TEST_FINISHED);
+                }
+                else if (mExam != null)
+                {
+                    ReverseTest test = mExam.nextTest();
+                    if (test != null)
+                    {
+                        startTest(test);
+                    }
+                    else
+                    {
+                        changeState(State.STATE_EXAM_FINISHED);
+                    }
+                }
             }
         });
 
@@ -232,7 +376,7 @@ public class TrainerActivity extends Activity
         mApp.subscribeDictionary(mSelfContext, mModelListener);
         mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
-        Intent intent = getIntent();
+        changeState(State.STATE_INITIAL);
     }
 
     @Override
@@ -257,35 +401,6 @@ public class TrainerActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
-    void showInputResult(boolean accepted)
-    {
-        if (accepted)
-        {
-            mWordEdit.setError(null);
-            showInputValue(mGoodIcon);
-        }
-        else
-        {
-            mWordEdit.setError("wrong"); // sets special icon
-        }
-    }
-    
-    void showLifes()
-    {
-        int lives = mTest.getHintsLeft();
-        mImgLives.get(0).setVisibility((lives >= 1) ? View.VISIBLE : View.INVISIBLE);
-        mImgLives.get(1).setVisibility((lives >= 2) ? View.VISIBLE : View.INVISIBLE);
-        mImgLives.get(2).setVisibility((lives >= 3) ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    void showTestResultIcon(Drawable icon)
-    {
-        mImgLives.get(0).setVisibility(View.INVISIBLE);
-        mImgLives.get(2).setVisibility(View.INVISIBLE);
-        mImgLives.get(1).setVisibility(View.VISIBLE);
-        mImgLives.get(1).setImageDrawable(icon);
-    }
-
     @TargetApi(17)
     void showInputValue(Drawable icon)
     {
@@ -298,36 +413,122 @@ public class TrainerActivity extends Activity
             //mWordEdit.setCompoundDrawablesWithIntrinsicBounds(null, null, icon, null);
         }
     }
-    
+
+    void changeState(State newState)
+    {
+        switch (newState)
+        {
+            case STATE_INITIAL:
+            case STATE_MAKING_NORMAL_EXAM:
+            case STATE_MAKING_REVIEW_EXAM:
+                mWordEdit.setEnabled(false);
+                mHintButton.setEnabled(false);
+                mNextButton.setEnabled(false);
+                mMarkText.setVisibility(View.INVISIBLE);
+                showTestState();
+                break;
+            case STATE_TEST_ONGOING:
+                mWordEdit.setEnabled(true);
+                mHintButton.setEnabled(true);
+                mNextButton.setEnabled(true);
+                mMarkText.setVisibility(View.VISIBLE);
+                showTestState();
+                mExamProgress.setProgress(mExam.getExamProgress());
+                break;
+            case STATE_TEST_FINISHED:
+                mWordEdit.setEnabled(false);
+                mHintButton.setEnabled(false);
+                showTestState();
+                break;
+            case STATE_EXAM_FINISHED:
+                mWordEdit.setVisibility(View.INVISIBLE);
+                mHintButton.setVisibility(View.INVISIBLE);
+                mNextButton.setVisibility(View.INVISIBLE);
+                mMarkText.setVisibility(View.INVISIBLE);
+                mTransText.setText("Exam finished!");
+                showLifes(0);
+                mExamProgress.setProgress(100);
+                break;
+            default:
+                break;
+        }
+        mState = newState;
+    }
+
     void showTestState()
     {
-        if (mTest.getResult() != TestResult.Incomplete)
+        if (mTest != null)
         {
-            mWordEdit.setEnabled(false);
-            mHintButton.setVisibility(View.INVISIBLE);
-            mMarkText.setText(mTest.getResult().toString()); // TODO: l10n
-            switch (mTest.getResult())
-            {
-                case Passed:
-                    showTestResultIcon(mPassedIcon);
-                    break;
-                    
-                case PassedWithHints:
-                    showTestResultIcon(mGoodIcon);
-                    break;
-                    
-                case Failed:
-                    mWordEdit.setText(mTest.getAnswer());
-                    showTestResultIcon(mFailIcon);
-                    break;
-
-                default:
-                    break;
-            }
+            showTestResult(mTest.getResult());
         }
         else
         {
-            showLifes();
+            showTestResultIcon(null);
+        }
+    }
+
+    void showTestResult(TestResult result)
+    {
+        switch (result)
+        {
+            case Incomplete:
+                mMarkText.setText(mTest.getMark().toString());
+                showLifes(mTest.getHintsLeft());
+                return;
+
+            case Passed:
+                showTestResultIcon(mPassedIcon);
+                break;
+
+            case PassedWithHints:
+                showTestResultIcon(mGoodIcon);
+                break;
+
+            case Failed:
+                mWordEdit.setText(mTest.getAnswer());
+                showTestResultIcon(mFailIcon);
+                break;
+
+            default:
+                mMarkText.setText("");
+                return;
+        }
+        mMarkText.setText(result.toString()); // TODO: l10n
+    }
+
+    void showLifes(int lives)
+    {
+        mImgLives.get(0).setVisibility((lives >= 1) ? View.VISIBLE : View.INVISIBLE);
+        mImgLives.get(1).setImageDrawable(mLifeIcon);
+        mImgLives.get(1).setVisibility((lives >= 2) ? View.VISIBLE : View.INVISIBLE);
+        mImgLives.get(2).setVisibility((lives >= 3) ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    void showTestResultIcon(Drawable icon)
+    {
+        mImgLives.get(0).setVisibility(View.INVISIBLE);
+        mImgLives.get(2).setVisibility(View.INVISIBLE);
+        if (icon == null)
+        {
+            mImgLives.get(1).setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            mImgLives.get(1).setVisibility(View.VISIBLE);
+            mImgLives.get(1).setImageDrawable(icon);
+        }
+    }
+
+    void showInputCorrectness(boolean correct)
+    {
+        if (correct)
+        {
+            mWordEdit.setError(null);
+            showInputValue(mGoodIcon);
+        }
+        else
+        {
+            mWordEdit.setError("wrong"); // sets special icon
         }
     }
 }

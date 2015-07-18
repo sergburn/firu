@@ -113,4 +113,9 @@ public class Mark
     {
         return mValue;
     }
+    
+    public boolean lessThan(Mark other)
+    {
+        return mValue < other.toInt(); 
+    }
 }

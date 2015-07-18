@@ -26,7 +26,7 @@ package com.burnevsky.firu.model.test;
 
 public class VocabularyTest
 {
-    protected static final int KMaxHints = 3; 
+    protected static final int KMaxHints = 3;
     protected int mHints = KMaxHints;
     protected TestResult mResult = TestResult.Incomplete;
 
@@ -38,6 +38,11 @@ public class VocabularyTest
     public int getHintsLeft()
     {
         return mHints;
+    }
+
+    public boolean isComplete()
+    {
+        return !mResult.equals(TestResult.Incomplete);
     }
 
     /** @return Whether test is finished or continues. */
@@ -56,7 +61,7 @@ public class VocabularyTest
             return false;
         }
     }
-    
+
     protected void finalizeTest(boolean passed)
     {
         assert mResult == TestResult.Incomplete;
@@ -71,7 +76,7 @@ public class VocabularyTest
             mResult = (mHints < KMaxHints) ? TestResult.PassedWithHints : TestResult.Passed;
         }
     }
-    
+
     protected void ensureIncomplete() throws TestAlreadyCompleteException
     {
         if (!mResult.equals(TestResult.Incomplete))

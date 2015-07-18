@@ -24,16 +24,28 @@
 
 package com.burnevsky.firu.model.test;
 
+import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Word;
+
 public class ReverseTest extends VocabularyTest
 {
-    private String mChallenge = "large";
-    private String mAnswer = "isotex";
-    
+    private Vocabulary mVoc = null;
+    private Vocabulary.MarkedTranslation mChallenge = null;
+    private String mAnswer = null;
+
+    ReverseTest(Vocabulary vocabulary, Vocabulary.MarkedTranslation challenge, Word answer)
+    {
+        mVoc = vocabulary;
+        mAnswer = answer.getText();
+        mChallenge = challenge;
+    }
+
     public String getChallenge()
     {
-        return mChallenge;
+        return mChallenge.getText();
     }
-    
+
     public String getAnswer()
     {
         if (mResult != TestResult.Incomplete)
@@ -42,15 +54,21 @@ public class ReverseTest extends VocabularyTest
         }
         return null;
     }
-    
+
+    public Mark getMark()
+    {
+        return mChallenge.ReverseMark;
+    }
+
     public void unlockAnswer()
     {
         if (mResult == TestResult.Incomplete)
         {
             finalizeTest(false);
+            saveResult(mResult);
         }
     }
-    
+
     /** @return guess followed by the next letter in answer, if answer starts with guess and is longer;
      *          guess - otherwise */
     public String getHint(String guess) throws TestAlreadyCompleteException
@@ -85,11 +103,18 @@ public class ReverseTest extends VocabularyTest
         if (mAnswer.equals(guess))
         {
             finalizeTest(true);
+            saveResult(mResult);
             return true;
         }
         else
         {
             return revokeHint();
         }
+    }
+
+    private void saveResult(TestResult result)
+    {
+        mChallenge.ReverseMark.updateToTestResult(result);
+        mVoc.updateMarks(mChallenge);
     }
 }
