@@ -215,7 +215,7 @@ public class StatActivity extends Activity
             float portion = 0.0f;
             if (stats.ReverseMarksDistribution.containsKey(mark))
             {
-                portion = stats.ReverseMarksDistribution.get(mark) / stats.TotalTranslationsCount;
+                portion = (float) stats.ReverseMarksDistribution.get(mark) / (float) stats.TotalTranslationsCount;
             }
             if (portion > 0.01) // > 1%
             {
@@ -223,7 +223,11 @@ public class StatActivity extends Activity
             }
         }
 
-        pie.getRenderer(PieRenderer.class).setDonutSize(0.1f, PieRenderer.DonutMode.PERCENT);
+        if (pie.getRenderer(PieRenderer.class) != null) // null, if no segments added?
+        {
+            pie.getRenderer(PieRenderer.class).setDonutSize(0.1f, PieRenderer.DonutMode.PERCENT);
+        }
+        pie.redraw();
     }
     /*
     private void showXYplot()
