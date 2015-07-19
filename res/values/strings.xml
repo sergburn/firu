@@ -12,5 +12,7 @@
     <string name="action_reset_voc">Reset vocabulary</string>
     <string name="action_add_to_voc">Add to vocabulary</string>
     <string name="action_remove_from_voc">Remove from vocabulary</string>
-    
+    <string name="title_activity_stat">Statistics</string>
+    <string name="action_show_stats">Show statistics</string>
+
 </resources>

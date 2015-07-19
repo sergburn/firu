@@ -26,10 +26,6 @@ package com.burnevsky.firu;
 
 import java.util.List;
 
-import com.burnevsky.firu.model.Dictionary;
-import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Word;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -40,13 +36,17 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Word;
 
 public class SearchActivity extends Activity implements SearchView.OnQueryTextListener, OnItemClickListener
 {
@@ -54,11 +54,11 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
 
     final Handler mHandler = new Handler();
     Context mSelfContext = null;
-    
+
     ListView mWordsListView = null;
     TextView mCountText = null;
-    MenuItem mExportVocMenu, mClearVocMenu = null; 
-    
+    MenuItem mExportVocMenu, mClearVocMenu = null;
+
     DictionarySearch mSearchTask = null;
     DictionaryCounter mCountTask = null;
 
@@ -66,7 +66,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     Dictionary mDict = null;
     Vocabulary mVoc = null;
     FiruApplication.ModelListener mModelListener = null;
-   
+
     class ModelListener implements FiruApplication.ModelListener
     {
         @Override
@@ -76,7 +76,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             invalidateOptionsMenu();
             Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
         }
-        
+
         @Override
         public void onVocabularyReset(Vocabulary voc)
         {
@@ -90,14 +90,14 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             mVoc = null;
             invalidateOptionsMenu();
         }
-        
+
         @Override
         public void onDictionaryOpen(Dictionary dict)
         {
             mDict = dict;
             showTotalWordsCount();
         }
-        
+
         @Override
         public void onDictionaryClose(Dictionary dict)
         {
@@ -105,7 +105,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             showTotalWordsCount();
         }
     }
-    
+
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
     {
         @Override
@@ -156,7 +156,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        
+
         SearchView searchWord = (SearchView) findViewById(R.id.searchWord);
         searchWord.setOnQueryTextListener(this);
 
@@ -164,13 +164,13 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
         mSelfContext = this;
-        
+
         mModelListener = new ModelListener();
         mApp = (FiruApplication) getApplicationContext();
         mApp.subscribeDictionary(mSelfContext, mModelListener);
         mApp.subscribeVocabulary(mSelfContext, mModelListener);
     }
-    
+
     private void showTotalWordsCount()
     {
         if (mDict != null)
@@ -188,8 +188,8 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.search_activity_actions, menu);
-        mExportVocMenu = menu.findItem(R.id.action_backup_voc); 
-        mClearVocMenu = menu.findItem(R.id.action_reset_voc); 
+        mExportVocMenu = menu.findItem(R.id.action_backup_voc);
+        mClearVocMenu = menu.findItem(R.id.action_reset_voc);
         return true;
     }
 
@@ -211,20 +211,24 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             case R.id.action_settings:
                 Intent intent = new Intent(this, TrainerActivity.class);
-                //intent.putExtra(TrainerActivity.INTENT_EXTRA_WORD, word);
                 startActivity(intent);
                 return true;
 
             case R.id.action_import_voc:
                 mApp.importVocabulary(mSelfContext);
                 return true;
-            
+
             case R.id.action_backup_voc:
                 mApp.exportVocabulary(mSelfContext);
                 return true;
 
             case R.id.action_reset_voc:
                 mApp.resetVocabulary(mSelfContext);
+                return true;
+
+            case R.id.action_show_stats:
+                Intent intent2 = new Intent(this, StatActivity.class);
+                startActivity(intent2);
                 return true;
 
             default:

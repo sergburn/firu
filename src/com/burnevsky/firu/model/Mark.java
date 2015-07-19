@@ -24,11 +24,11 @@
 
 package com.burnevsky.firu.model;
 
-import com.burnevsky.firu.model.test.TestResult;
-
 import android.util.Log;
 
-public class Mark
+import com.burnevsky.firu.model.test.TestResult;
+
+public class Mark implements Comparable<Mark>
 {
     private int mValue;
 
@@ -92,6 +92,7 @@ public class Mark
         Log.d("Mark", String.format("Mark changed from %d to %d", oldValue, mValue));
     }
 
+    @Override
     public String toString()
     {
         switch (mValue)
@@ -108,14 +109,23 @@ public class Mark
                 return "<none>";
         }
     }
-    
+
     public int toInt()
     {
         return mValue;
     }
-    
+
     public boolean lessThan(Mark other)
     {
-        return mValue < other.toInt(); 
+        return mValue < other.mValue;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    @Override
+    public int compareTo(Mark another)
+    {
+        return mValue - another.mValue;
     }
 }
