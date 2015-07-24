@@ -16,7 +16,8 @@
     <RelativeLayout
         android:id="@+id/rltChallenge"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_weight="1" >
 
         <ImageView
             android:id="@+id/imgHint"
@@ -43,7 +44,7 @@
             android:layout_toEndOf="@id/imgHint"
             android:layout_toStartOf="@id/imgNext"
             android:ems="10"
-            android:hint="guess"
+            android:gravity="center"
             android:inputType="textNoSuggestions" >
 
             <requestFocus />
@@ -57,7 +58,7 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
             android:layout_alignStart="@id/editWord"
-            android:gravity="start|center_vertical"
+            android:gravity="center"
             android:text="challenge"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
@@ -97,7 +98,6 @@
                 android:layout_gravity="center_vertical"
                 android:layout_toEndOf="@id/imgLife2"
                 android:src="@drawable/ic_action_favorite" />
-
         </RelativeLayout>
 
         <TextView
@@ -108,7 +108,42 @@
             android:layout_centerHorizontal="true"
             android:text="With hints"
             android:textAppearance="?android:attr/textAppearanceSmall" />
-
     </RelativeLayout>
+
+    <GridLayout
+        android:id="@+id/gridKeyboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:columnCount="11"
+        android:padding="5dp"
+        android:rowCount="4" >
+
+        <Button
+            android:id="@+id/btnEnter"
+            style="?android:attr/buttonStyle"
+            android:layout_column="9"
+            android:layout_columnSpan="2"
+            android:layout_gravity="center|right"
+            android:layout_row="2"
+            android:minHeight="40dp"
+            android:minWidth="48dp"
+            android:padding="0dp"
+            android:text="OK" />
+
+        <ImageButton
+            android:id="@+id/btnBackspace"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_gravity="center|left"
+            android:layout_row="2"
+            android:adjustViewBounds="false"
+            android:minHeight="40dp"
+            android:minWidth="48dp"
+            android:padding="0dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_action_backspace" />
+
+    </GridLayout>
 
 </LinearLayout>

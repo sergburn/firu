@@ -44,7 +44,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -70,6 +73,10 @@ public class TrainerActivity extends Activity
     ImageView mHintButton = null, mNextButton = null;
     List<ImageView> mImgLives = new ArrayList<ImageView>();
     ProgressBar mExamProgress = null;
+    GridLayout mKeyboard = null;
+    ImageButton mBackspace = null;
+    Button mEnter = null;
+    ArrayList<Button> mKeys = new ArrayList<Button>();
 
     ReverseExam mExam = null;
     ReverseTest mTest = null;
@@ -154,25 +161,25 @@ public class TrainerActivity extends Activity
         builder
         .setTitle("Reverse exam")
         .setMessage("You seem to have learned whole vocabulary!\n"
-                + "Do you want to review learned words?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            + "Do you want to review learned words?")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        startReviewExam();
-                    }
-                } )
-                .setNegativeButton("No", new DialogInterface.OnClickListener()
+                    startReviewExam();
+                }
+            } )
+            .setNegativeButton("No", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        finish();
-                    }
-                } )
-                .show();
+                    finish();
+                }
+            } )
+            .show();
     }
 
     private void onReviewExamUnavailable()
@@ -181,17 +188,17 @@ public class TrainerActivity extends Activity
         builder
         .setTitle("Reverse exam")
         .setMessage("No words found in your vocabulary.\n"
-                + "Add some before starting trainer.")
-                .setIcon(android.R.drawable.ic_dialog_info)
-                .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+            + "Add some before starting trainer.")
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        finish();
-                    }
-                } )
-                .show();
+                    finish();
+                }
+            } )
+            .show();
     }
 
     class ReverseExamBuilder extends AsyncTask<Mark, Void, ReverseExam>
@@ -224,23 +231,11 @@ public class TrainerActivity extends Activity
         }
     };
 
-    class GuessValidator implements TextWatcher, TextView.OnEditorActionListener
+    class GuessValidator
     {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after)
+        public void afterTextChanged(TextView s)
         {
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count)
-        {
-        }
-
-        @Override
-        public void afterTextChanged(Editable s)
-        {
-            String input = s.toString();
-            //Log.d("firu", input);
+            String input = mWordEdit.getText().toString();
             if (input.length() == 0)
             {
                 mWordEdit.setCompoundDrawables(null, null, null, null);
@@ -252,12 +247,8 @@ public class TrainerActivity extends Activity
             }
         }
 
-        @Override
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
+        public boolean onEnter(TextView v)
         {
-            String se = (event != null) ? event.toString() : "None";
-            Log.d("firu", "EditorAction  : id " + String.valueOf(actionId) + " event " + se);
-
             try
             {
                 boolean correct = mTest.checkAnswer(mWordEdit.getText().toString());
@@ -278,6 +269,19 @@ public class TrainerActivity extends Activity
             }
 
             return false;
+        }
+    };
+
+    GuessValidator mGuessValidator = null;
+
+    private View.OnClickListener mKeyBoardListener = new OnClickListener()
+    {
+        @Override
+        public void onClick(View v)
+        {
+            Button b = (Button) v;
+            mWordEdit.append(b.getText());
+            mGuessValidator.afterTextChanged(mWordEdit);
         }
     };
 
@@ -304,6 +308,9 @@ public class TrainerActivity extends Activity
         mHintButton = (ImageView) findViewById(R.id.imgHint);
         mNextButton = (ImageView) findViewById(R.id.imgNext);
         mExamProgress = (ProgressBar) findViewById(R.id.pbExamProgress);
+        mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
+        mBackspace = (ImageButton) findViewById(R.id.btnBackspace);
+        mEnter = (Button) findViewById(R.id.btnEnter);
         mSelfContext = this;
 
         mGoodIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -311,9 +318,7 @@ public class TrainerActivity extends Activity
         mFailIcon = getResources().getDrawable(R.drawable.ic_action_bad);
         mLifeIcon = getResources().getDrawable(R.drawable.ic_action_favorite);
 
-        GuessValidator gv = new GuessValidator();
-        mWordEdit.setOnEditorActionListener(gv);
-        mWordEdit.addTextChangedListener(gv);
+        mGuessValidator = new GuessValidator();
 
         mHintButton.setOnClickListener(new OnClickListener()
         {
@@ -367,9 +372,94 @@ public class TrainerActivity extends Activity
             }
         });
 
+        mEnter.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mGuessValidator.onEnter(mWordEdit);
+            }
+        });
+
+        mBackspace.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                String s = mWordEdit.getText().toString();
+                if (s.length() > 0)
+                {
+                    mWordEdit.setText(s.substring(0, s.length()-1));
+                    mGuessValidator.afterTextChanged(mWordEdit);
+                }
+            }
+        });
+
         // InputMethodManager imm =
         // (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         // imm.showSoftInput(mLayout, InputMethodManager.SHOW_FORCED);
+
+        String lines12 = "qwertyuiopåasdfghjklöä";
+        String line3 = "__zxcvbnm__";
+
+        for (int r = 0; r < 3; r++)
+        {
+            GridLayout.Spec rowSpec = GridLayout.spec(r);
+            for (int c = 0; c < 11; c++)
+            {
+                String cap = "";
+
+                if (r < 2)
+                {
+                    cap = lines12.substring(r*11+c, r*11+c+1);
+                }
+                else if (c >= 2 && c < 9)
+                {
+                    cap = line3.substring(c, c + 1);
+                }
+
+                if (!cap.isEmpty())
+                {
+                    GridLayout.Spec colSpec = GridLayout.spec(c, GridLayout.CENTER);
+
+                    GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+
+                    Button k = new Button(mSelfContext, null, android.R.attr.buttonStyle);
+                    k.setMinHeight(128);
+                    k.setMinWidth(6);
+                    k.setMinimumHeight(128);
+                    k.setMinimumWidth(6);
+                    k.setPadding(0, 0, 0, 0);
+                    k.setOnClickListener(mKeyBoardListener);
+                    k.setText(cap);
+                    k.setTypeface(k.getTypeface(), 1); // bold
+
+                    mKeyboard.addView(k, params);
+                    mKeys.add(k);
+                }
+            }
+        }
+
+        View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
+        thisView.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
+        {
+            @Override
+            public void onLayoutChange(View v,
+                int left, int top, int right, int bottom,
+                int oldLeft, int oldTop, int oldRight, int oldBottom)
+            {
+                if (!(left == 0 && right == 0) && (left != oldLeft || right != oldRight))
+                {
+                    int size = (right - left) - mKeyboard.getPaddingLeft() - mKeyboard.getPaddingRight();
+                    int keyCellSize = size / 11;
+
+                    for (Button k : mKeys)
+                    {
+                        k.setWidth(keyCellSize);
+                    }
+                }
+            }
+        });
 
         mModelListener = new ModelListener();
         mApp = (FiruApplication) getApplicationContext();

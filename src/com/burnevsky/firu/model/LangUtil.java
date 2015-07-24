@@ -29,7 +29,7 @@ import android.util.Log;
 public class LangUtil
 {
     static final int LANG_CODE_LENGTH = 2;
-    
+
     public static int lang2Int(String lang)
     {
         int code = 0;
@@ -69,7 +69,7 @@ public class LangUtil
         try
         {
             String lang = new String(bytes, "UTF-8");
-            Log.d("firu.model", String.format("LangUtil.int2Lang: %x -> '%s'", code, lang));
+            //Log.d("firu.model", String.format("LangUtil.int2Lang: %x -> '%s'", code, lang));
             return lang;
         }
         catch (Exception e)
