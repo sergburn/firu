@@ -68,7 +68,7 @@ public class TrainerActivity extends Activity
     View mLayout = null;
     TextView mMarkText = null;
     TextView mTransText = null;
-    EditText mWordEdit = null;
+    TextView mWordText = null;
     Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
     ImageView mHintButton = null, mNextButton = null;
     List<ImageView> mImgLives = new ArrayList<ImageView>();
@@ -235,10 +235,10 @@ public class TrainerActivity extends Activity
     {
         public void afterTextChanged(TextView s)
         {
-            String input = mWordEdit.getText().toString();
+            String input = mWordText.getText().toString();
             if (input.length() == 0)
             {
-                mWordEdit.setCompoundDrawables(null, null, null, null);
+                mWordText.setCompoundDrawables(null, null, null, null);
             }
             else
             {
@@ -251,7 +251,7 @@ public class TrainerActivity extends Activity
         {
             try
             {
-                boolean correct = mTest.checkAnswer(mWordEdit.getText().toString());
+                boolean correct = mTest.checkAnswer(mWordText.getText().toString());
                 showInputCorrectness(correct);
                 if (mTest.getResult() != TestResult.Incomplete)
                 {
@@ -280,8 +280,8 @@ public class TrainerActivity extends Activity
         public void onClick(View v)
         {
             Button b = (Button) v;
-            mWordEdit.append(b.getText());
-            mGuessValidator.afterTextChanged(mWordEdit);
+            mWordText.append(b.getText());
+            mGuessValidator.afterTextChanged(mWordText);
         }
     };
 
@@ -289,8 +289,18 @@ public class TrainerActivity extends Activity
     {
         mTest = test;
         mTransText.setText(test.getChallenge());
-        mWordEdit.setText("");
+        mWordText.setText("");
         changeState(State.STATE_TEST_ONGOING);
+    }
+
+    private void setKeyboardEnabled(boolean enabled)
+    {
+        mBackspace.setEnabled(enabled);
+        mEnter.setEnabled(enabled);
+        for (Button k : mKeys)
+        {
+            k.setEnabled(enabled);
+        }
     }
 
     @Override
@@ -299,7 +309,7 @@ public class TrainerActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trainer);
         mLayout = findViewById(R.id.layoutTrainer);
-        mWordEdit = (EditText) findViewById(R.id.editWord);
+        mWordText = (TextView) findViewById(R.id.textWord);
         mTransText = (TextView) findViewById(R.id.textTrans);
         mMarkText = (TextView) findViewById(R.id.textMark);
         mImgLives.add((ImageView) findViewById(R.id.imgLife1));
@@ -329,9 +339,8 @@ public class TrainerActivity extends Activity
                 {
                     if (mTest.getHintsLeft() > 0)
                     {
-                        String newText = mTest.getHint(mWordEdit.getText().toString());
-                        mWordEdit.setText(newText);
-                        mWordEdit.setSelection(newText.length());
+                        String newText = mTest.getHint(mWordText.getText().toString());
+                        mWordText.setText(newText);
                         showTestState();
                     }
                     else
@@ -377,7 +386,7 @@ public class TrainerActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                mGuessValidator.onEnter(mWordEdit);
+                mGuessValidator.onEnter(mWordText);
             }
         });
 
@@ -386,11 +395,11 @@ public class TrainerActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                String s = mWordEdit.getText().toString();
+                String s = mWordText.getText().toString();
                 if (s.length() > 0)
                 {
-                    mWordEdit.setText(s.substring(0, s.length()-1));
-                    mGuessValidator.afterTextChanged(mWordEdit);
+                    mWordText.setText(s.substring(0, s.length()-1));
+                    mGuessValidator.afterTextChanged(mWordText);
                 }
             }
         });
@@ -511,14 +520,14 @@ public class TrainerActivity extends Activity
             case STATE_INITIAL:
             case STATE_MAKING_NORMAL_EXAM:
             case STATE_MAKING_REVIEW_EXAM:
-                mWordEdit.setEnabled(false);
+                setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
                 mMarkText.setVisibility(View.INVISIBLE);
                 showTestState();
                 break;
             case STATE_TEST_ONGOING:
-                mWordEdit.setEnabled(true);
+                setKeyboardEnabled(true);
                 mHintButton.setEnabled(true);
                 mNextButton.setEnabled(true);
                 mMarkText.setVisibility(View.VISIBLE);
@@ -526,16 +535,17 @@ public class TrainerActivity extends Activity
                 mExamProgress.setProgress(mExam.getExamProgress());
                 break;
             case STATE_TEST_FINISHED:
-                mWordEdit.setEnabled(false);
+                setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 showTestState();
                 break;
             case STATE_EXAM_FINISHED:
-                mWordEdit.setVisibility(View.INVISIBLE);
+                mKeyboard.setVisibility(View.INVISIBLE);
                 mHintButton.setVisibility(View.INVISIBLE);
                 mNextButton.setVisibility(View.INVISIBLE);
                 mMarkText.setVisibility(View.INVISIBLE);
                 mTransText.setText("Exam finished!");
+                mWordText.setVisibility(View.INVISIBLE);
                 showLifes(0);
                 mExamProgress.setProgress(100);
                 break;
@@ -575,7 +585,7 @@ public class TrainerActivity extends Activity
                 break;
 
             case Failed:
-                mWordEdit.setText(mTest.getAnswer());
+                mWordText.setText(mTest.getAnswer());
                 showTestResultIcon(mFailIcon);
                 break;
 
@@ -613,12 +623,12 @@ public class TrainerActivity extends Activity
     {
         if (correct)
         {
-            mWordEdit.setError(null);
+            mWordText.setError(null);
             showInputValue(mGoodIcon);
         }
         else
         {
-            mWordEdit.setError("wrong"); // sets special icon
+            mWordText.setError("wrong"); // sets special icon
         }
     }
 }

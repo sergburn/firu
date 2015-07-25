@@ -6,68 +6,46 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <ProgressBar
-        android:id="@+id/pbExamProgress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:progress="78" />
-
     <RelativeLayout
         android:id="@+id/rltChallenge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1" >
 
-        <ImageView
-            android:id="@+id/imgHint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/rltLifes"
-            android:src="@drawable/ic_action_help"
-            tools:ignore="ContentDescription" />
-
-        <ImageView
-            android:id="@+id/imgNext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/rltLifes"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_action_next_item" />
-
-        <EditText
-            android:id="@+id/editWord"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/rltLifes"
-            android:layout_alignParentEnd="false"
-            android:layout_toEndOf="@id/imgHint"
-            android:layout_toStartOf="@id/imgNext"
-            android:ems="10"
-            android:gravity="center"
-            android:inputType="textNoSuggestions" >
-
-            <requestFocus />
-        </EditText>
-
         <TextView
             android:id="@+id/textTrans"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/editWord"
-            android:layout_alignParentEnd="true"
+            android:layout_above="@+id/textWord"
             android:layout_alignParentTop="true"
-            android:layout_alignStart="@id/editWord"
             android:gravity="center"
             android:text="challenge"
             android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@id/textWord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/pbExamProgress"
+            android:layout_alignParentEnd="false"
+            android:ems="10"
+            android:gravity="center"
+            android:text="guess"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <ProgressBar
+            android:id="@id/pbExamProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/rltLifes"
+            android:progress="78" />
 
         <RelativeLayout
             android:id="@id/rltLifes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_above="@+id/textMark"
-            android:layout_alignParentEnd="true"
             android:orientation="horizontal" >
 
             <ImageView
@@ -100,6 +78,22 @@
                 android:src="@drawable/ic_action_favorite" />
         </RelativeLayout>
 
+        <ImageView
+            android:id="@+id/imgHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/rltLifes"
+            android:src="@drawable/ic_action_help"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/imgNext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/rltLifes"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_action_forward" />
+
         <TextView
             android:id="@id/textMark"
             android:layout_width="wrap_content"
@@ -108,6 +102,9 @@
             android:layout_centerHorizontal="true"
             android:text="With hints"
             android:textAppearance="?android:attr/textAppearanceSmall" />
+
+     
+
     </RelativeLayout>
 
     <GridLayout
