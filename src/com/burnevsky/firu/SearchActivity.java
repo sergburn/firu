@@ -239,8 +239,9 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     }
 
     @Override
-    public boolean onQueryTextSubmit(String query)
+    public boolean onQueryTextSubmit(String _query)
     {
+        String query = _query.trim();
         Log.i("firu", "onQueryTextSubmit: " + query);
 
         if (mSearchTask == null)
