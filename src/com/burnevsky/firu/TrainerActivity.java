@@ -65,7 +65,7 @@ import com.burnevsky.firu.model.test.TestResult;
 public class TrainerActivity extends Activity
 {
     private Context mSelfContext = null;
-    private TextView mMarkText = null;
+    private TextView mOldMarkText = null, mNewMarkText = null, mTestResultText = null;
     private TextView mTransText = null;
     private TextView mWordText = null;
     private Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
@@ -325,7 +325,9 @@ public class TrainerActivity extends Activity
         setContentView(R.layout.activity_trainer);
         mWordText = (TextView) findViewById(R.id.textWord);
         mTransText = (TextView) findViewById(R.id.textTrans);
-        mMarkText = (TextView) findViewById(R.id.textMark);
+        mOldMarkText = (TextView) findViewById(R.id.textOldMark);
+        mNewMarkText = (TextView) findViewById(R.id.textNewMark);
+        mTestResultText = (TextView) findViewById(R.id.textTestResult);
         mImgLives.add((ImageView) findViewById(R.id.imgLife1));
         mImgLives.add((ImageView) findViewById(R.id.imgLife2));
         mImgLives.add((ImageView) findViewById(R.id.imgLife3));
@@ -485,27 +487,33 @@ public class TrainerActivity extends Activity
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
-                mMarkText.setVisibility(View.INVISIBLE);
+                mOldMarkText.setVisibility(View.INVISIBLE);
+                mNewMarkText.setVisibility(View.INVISIBLE);
+                mTestResultText.setVisibility(View.INVISIBLE);
                 showTestState();
                 break;
             case STATE_TEST_ONGOING:
                 setKeyboardEnabled(true);
                 mHintButton.setEnabled(true);
                 mNextButton.setEnabled(true);
-                mMarkText.setVisibility(View.VISIBLE);
+                mOldMarkText.setVisibility(View.VISIBLE);
                 showTestState();
                 mExamProgress.setProgress(mExam.getExamProgress());
                 break;
             case STATE_TEST_FINISHED:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
+                mNewMarkText.setVisibility(View.VISIBLE);
+                mTestResultText.setVisibility(View.VISIBLE);
                 showTestState();
                 break;
             case STATE_EXAM_FINISHED:
                 mKeyboard.setVisibility(View.INVISIBLE);
                 mHintButton.setVisibility(View.INVISIBLE);
                 mNextButton.setVisibility(View.INVISIBLE);
-                mMarkText.setVisibility(View.INVISIBLE);
+                mOldMarkText.setVisibility(View.INVISIBLE);
+                mNewMarkText.setVisibility(View.INVISIBLE);
+                mTestResultText.setVisibility(View.INVISIBLE);
                 mTransText.setText("Exam finished!");
                 mWordText.setVisibility(View.INVISIBLE);
                 showLifes(0);
@@ -534,28 +542,31 @@ public class TrainerActivity extends Activity
         switch (result)
         {
             case Incomplete:
-                mMarkText.setText(mTest.getMark().toString());
+                mOldMarkText.setText(mTest.getMark().toString());
                 showLifes(mTest.getHintsLeft());
                 return;
 
             case Passed:
+                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mPassedIcon);
                 break;
 
             case PassedWithHints:
+                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mGoodIcon);
                 break;
 
             case Failed:
                 mWordText.setText(mTest.getAnswer());
+                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mFailIcon);
                 break;
 
             default:
-                mMarkText.setText("");
+                assert false;
                 return;
         }
-        mMarkText.setText(result.toString()); // TODO: l10n
+        mTestResultText.setText(result.toString()); // TODO: l10n
     }
 
     void showLifes(int lives)

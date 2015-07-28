@@ -6,83 +6,44 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <RelativeLayout
-        android:id="@+id/rltChallenge"
+    <TextView
+        android:id="@+id/textTrans"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" >
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="challenge"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@+id/textTrans"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/textWord"
-            android:layout_alignParentTop="true"
-            android:gravity="center"
-            android:text="challenge"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+    <TextView
+        android:id="@+id/textWord"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="false"
+        android:layout_weight="1"
+        android:ems="10"
+        android:gravity="center"
+        android:text="guess"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <TextView
-            android:id="@id/textWord"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/pbExamProgress"
-            android:layout_alignParentEnd="false"
-            android:ems="10"
-            android:gravity="center"
-            android:text="guess"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+    <ProgressBar
+        android:id="@+id/pbExamProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:progress="78" />
 
-        <ProgressBar
-            android:id="@id/pbExamProgress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/rltLifes"
-            android:progress="78" />
-
-        <RelativeLayout
-            android:id="@id/rltLifes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@+id/textMark"
-            android:orientation="horizontal" >
-
-            <ImageView
-                android:id="@+id/imgLife2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center_vertical"
-                android:src="@drawable/ic_action_favorite" />
-
-            <ImageView
-                android:id="@+id/imgLife1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@id/imgLife2"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center_vertical"
-                android:layout_toStartOf="@id/imgLife2"
-                android:src="@drawable/ic_action_favorite" />
-
-            <ImageView
-                android:id="@+id/imgLife3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@id/imgLife2"
-                android:layout_centerVertical="true"
-                android:layout_gravity="center_vertical"
-                android:layout_toEndOf="@id/imgLife2"
-                android:src="@drawable/ic_action_favorite" />
-        </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/rltIcons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
 
         <ImageView
             android:id="@+id/imgHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/rltLifes"
+            android:layout_alignParentStart="true"
             android:src="@drawable/ic_action_help"
             tools:ignore="ContentDescription" />
 
@@ -90,30 +51,73 @@
             android:id="@+id/imgNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/rltLifes"
             android:layout_alignParentEnd="true"
             android:src="@drawable/ic_action_forward" />
 
-        <TextView
-            android:id="@id/textMark"
+        <ImageView
+            android:id="@+id/imgLife2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:text="With hints"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_action_favorite" />
+
+        <ImageView
+            android:id="@+id/imgLife1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/imgLife2"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_toStartOf="@id/imgLife2"
+            android:src="@drawable/ic_action_favorite" />
+
+        <ImageView
+            android:id="@+id/imgLife3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/imgLife2"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_toEndOf="@id/imgLife2"
+            android:src="@drawable/ic_action_favorite" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rltMarks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/textTestResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Passed with hints"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-     
+        <TextView
+            android:id="@+id/textOldMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="Learning" />
 
+        <TextView
+            android:id="@+id/textNewMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:gravity="end"
+            android:text="With hints" />
     </RelativeLayout>
 
     <GridLayout
         android:id="@+id/gridKeyboard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:columnCount="11"
-        android:padding="5dp"
         android:rowCount="4" >
 
         <Button
@@ -127,7 +131,6 @@
             android:minWidth="48dp"
             android:padding="0dp"
             android:text="OK" />
-
     </GridLayout>
 
 </LinearLayout>
