@@ -36,6 +36,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -63,23 +64,23 @@ import com.burnevsky.firu.model.test.TestResult;
 
 public class TrainerActivity extends Activity
 {
-    Context mSelfContext = null;
-    int mKeyBoardHeight = 0;
-    View mLayout = null;
-    TextView mMarkText = null;
-    TextView mTransText = null;
-    TextView mWordText = null;
-    Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
-    ImageView mHintButton = null, mNextButton = null;
-    List<ImageView> mImgLives = new ArrayList<ImageView>();
-    ProgressBar mExamProgress = null;
-    GridLayout mKeyboard = null;
-    ImageButton mBackspace = null;
-    Button mEnter = null;
-    ArrayList<Button> mKeys = new ArrayList<Button>();
+    private Context mSelfContext = null;
+    private TextView mMarkText = null;
+    private TextView mTransText = null;
+    private TextView mWordText = null;
+    private Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
+    private ImageView mHintButton = null, mNextButton = null;
+    private List<ImageView> mImgLives = new ArrayList<ImageView>();
+    private ProgressBar mExamProgress = null;
+    private GridLayout mKeyboard = null;
+    private Button mEnter = null;
+    private ArrayList<Button> mKeys = new ArrayList<Button>();
 
-    ReverseExam mExam = null;
-    ReverseTest mTest = null;
+    private ReverseExam mExam = null;
+    private ReverseTest mTest = null;
+    private boolean mErrorState;
+
+    private final long TRAINER_CORRECTION_DELAY = 750;
 
     private enum State
     {
@@ -235,7 +236,7 @@ public class TrainerActivity extends Activity
     {
         public void afterTextChanged(TextView s)
         {
-            String input = mWordText.getText().toString();
+            final String input = mWordText.getText().toString();
             if (input.length() == 0)
             {
                 mWordText.setCompoundDrawables(null, null, null, null);
@@ -244,6 +245,21 @@ public class TrainerActivity extends Activity
             {
                 boolean correct = mTest.checkGuess(input);
                 showInputCorrectness(correct);
+                if (!correct)
+                {
+                    new Handler().postDelayed(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if (mErrorState)
+                            {
+                                mWordText.setText(input.substring(0, input.length() - 1));
+                                afterTextChanged(mWordText);
+                            }
+                        }
+                    }, TRAINER_CORRECTION_DELAY);
+                }
             }
         }
 
@@ -295,7 +311,6 @@ public class TrainerActivity extends Activity
 
     private void setKeyboardEnabled(boolean enabled)
     {
-        mBackspace.setEnabled(enabled);
         mEnter.setEnabled(enabled);
         for (Button k : mKeys)
         {
@@ -308,7 +323,6 @@ public class TrainerActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trainer);
-        mLayout = findViewById(R.id.layoutTrainer);
         mWordText = (TextView) findViewById(R.id.textWord);
         mTransText = (TextView) findViewById(R.id.textTrans);
         mMarkText = (TextView) findViewById(R.id.textMark);
@@ -319,7 +333,6 @@ public class TrainerActivity extends Activity
         mNextButton = (ImageView) findViewById(R.id.imgNext);
         mExamProgress = (ProgressBar) findViewById(R.id.pbExamProgress);
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
-        mBackspace = (ImageButton) findViewById(R.id.btnBackspace);
         mEnter = (Button) findViewById(R.id.btnEnter);
         mSelfContext = this;
 
@@ -335,24 +348,7 @@ public class TrainerActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                try
-                {
-                    if (mTest.getHintsLeft() > 0)
-                    {
-                        String newText = mTest.getHint(mWordText.getText().toString());
-                        mWordText.setText(newText);
-                        showTestState();
-                    }
-                    else
-                    {
-                        mTest.unlockAnswer();
-                        changeState(State.STATE_TEST_FINISHED);
-                    }
-                }
-                catch (TestAlreadyCompleteException e)
-                {
-                    e.printStackTrace();
-                }
+                useHint();
             }
         });
 
@@ -361,23 +357,7 @@ public class TrainerActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                if (mTest != null && !mTest.isComplete())
-                {
-                    mTest.unlockAnswer();
-                    changeState(State.STATE_TEST_FINISHED);
-                }
-                else if (mExam != null)
-                {
-                    ReverseTest test = mExam.nextTest();
-                    if (test != null)
-                    {
-                        startTest(test);
-                    }
-                    else
-                    {
-                        changeState(State.STATE_EXAM_FINISHED);
-                    }
-                }
+                nextTest();
             }
         });
 
@@ -389,24 +369,6 @@ public class TrainerActivity extends Activity
                 mGuessValidator.onEnter(mWordText);
             }
         });
-
-        mBackspace.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                String s = mWordText.getText().toString();
-                if (s.length() > 0)
-                {
-                    mWordText.setText(s.substring(0, s.length()-1));
-                    mGuessValidator.afterTextChanged(mWordText);
-                }
-            }
-        });
-
-        // InputMethodManager imm =
-        // (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        // imm.showSoftInput(mLayout, InputMethodManager.SHOW_FORCED);
 
         String lines12 = "qwertyuiopåasdfghjklöä";
         String line3 = "__zxcvbnm__";
@@ -629,6 +591,53 @@ public class TrainerActivity extends Activity
         else
         {
             mWordText.setError("wrong"); // sets special icon
+        }
+        mErrorState = !correct;
+    }
+
+    /**
+     * 
+     */
+    private void nextTest()
+    {
+        if (mTest != null && !mTest.isComplete())
+        {
+            mTest.unlockAnswer();
+            changeState(State.STATE_TEST_FINISHED);
+        }
+        else if (mExam != null)
+        {
+            ReverseTest test = mExam.nextTest();
+            if (test != null)
+            {
+                startTest(test);
+            }
+            else
+            {
+                changeState(State.STATE_EXAM_FINISHED);
+            }
+        }
+    }
+
+    private void useHint()
+    {
+        try
+        {
+            if (mTest.getHintsLeft() > 0)
+            {
+                String newText = mTest.getHint(mWordText.getText().toString());
+                mWordText.setText(newText);
+                showTestState();
+            }
+            else
+            {
+                mTest.unlockAnswer();
+                changeState(State.STATE_TEST_FINISHED);
+            }
+        }
+        catch (TestAlreadyCompleteException e)
+        {
+            e.printStackTrace();
         }
     }
 }

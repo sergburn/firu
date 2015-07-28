@@ -128,19 +128,6 @@
             android:padding="0dp"
             android:text="OK" />
 
-        <ImageButton
-            android:id="@+id/btnBackspace"
-            android:layout_column="0"
-            android:layout_columnSpan="2"
-            android:layout_gravity="center|left"
-            android:layout_row="2"
-            android:adjustViewBounds="false"
-            android:minHeight="40dp"
-            android:minWidth="48dp"
-            android:padding="0dp"
-            android:scaleType="center"
-            android:src="@drawable/ic_action_backspace" />
-
     </GridLayout>
 
 </LinearLayout>
