@@ -38,11 +38,11 @@ import com.burnevsky.firu.model.Word;
 
 public class ReverseExam
 {
-    static final int K_NUM_TESTS = 5;
+    static final int K_NUM_TESTS = 7;
 
     private Vocabulary mVoc = null;
     List<Word> mChallenges = null;
-    private int mCurrentTest = 0;
+    private int mCurrentTest = -1;
 
     public ReverseExam(Vocabulary voc, Mark maxMark)
     {
@@ -52,11 +52,12 @@ public class ReverseExam
         List<Vocabulary.MarkedTranslation> toLearnItems = voc.selectTranslations(Mark.YetToLearn, maxMark, true);
 
         if ((toLearnItems.size() >= K_NUM_TESTS) ||                             // normal test
-                (!maxMark.lessThan(Mark.Learned) && toLearnItems.size() > 0))       // review test
+            (!maxMark.lessThan(Mark.Learned) && toLearnItems.size() > 0))       // review test
         {
+            Random rand = new Random();
             for (int i = 0; (i < K_NUM_TESTS) && (toLearnItems.size()) > 0; i++)
             {
-                int k = new Random().nextInt(toLearnItems.size());
+                int k = rand.nextInt(toLearnItems.size());
                 Vocabulary.MarkedTranslation t = toLearnItems.get(k);
                 Word w = voc.getWord(t.getWordID());
                 w.translations = new ArrayList<Translation>();
@@ -68,9 +69,14 @@ public class ReverseExam
         else
         {
             Log.d("firu", String.format(
-                    "Too few (%1$d) translations with marks in range (%2$s, %3$s)",
-                    toLearnItems.size(), Mark.YetToLearn, maxMark));
+                "Too few (%1$d) translations with marks in range (%2$s, %3$s)",
+                toLearnItems.size(), Mark.YetToLearn, maxMark));
         }
+    }
+
+    public int getTestsCount()
+    {
+        return mChallenges.size();
     }
 
     public int getTestsToGo()

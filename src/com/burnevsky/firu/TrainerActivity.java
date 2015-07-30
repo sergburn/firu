@@ -38,6 +38,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
+import android.text.Layout;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -50,7 +51,9 @@ import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,16 +74,17 @@ public class TrainerActivity extends Activity
     private Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
     private ImageView mHintButton = null, mNextButton = null;
     private List<ImageView> mImgLives = new ArrayList<ImageView>();
-    private ProgressBar mExamProgress = null;
+    private TextView mExamProgress = null;
     private GridLayout mKeyboard = null;
     private Button mEnter = null;
     private ArrayList<Button> mKeys = new ArrayList<Button>();
+    private RelativeLayout mMarksGroup = null;
 
     private ReverseExam mExam = null;
     private ReverseTest mTest = null;
     private boolean mErrorState;
 
-    private final long TRAINER_CORRECTION_DELAY = 750;
+    private final long TRAINER_CORRECTION_DELAY = 500;
 
     private enum State
     {
@@ -333,9 +337,10 @@ public class TrainerActivity extends Activity
         mImgLives.add((ImageView) findViewById(R.id.imgLife3));
         mHintButton = (ImageView) findViewById(R.id.imgHint);
         mNextButton = (ImageView) findViewById(R.id.imgNext);
-        mExamProgress = (ProgressBar) findViewById(R.id.pbExamProgress);
+        mExamProgress = (TextView) findViewById(R.id.textProgress);
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
         mEnter = (Button) findViewById(R.id.btnEnter);
+        mMarksGroup = (RelativeLayout) findViewById(R.id.rltMarks);
         mSelfContext = this;
 
         mGoodIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -487,37 +492,34 @@ public class TrainerActivity extends Activity
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
-                mOldMarkText.setVisibility(View.INVISIBLE);
-                mNewMarkText.setVisibility(View.INVISIBLE);
-                mTestResultText.setVisibility(View.INVISIBLE);
+                mMarksGroup.setVisibility(View.INVISIBLE);
                 showTestState();
+                showExamProgress(false);
                 break;
             case STATE_TEST_ONGOING:
                 setKeyboardEnabled(true);
                 mHintButton.setEnabled(true);
                 mNextButton.setEnabled(true);
-                mOldMarkText.setVisibility(View.VISIBLE);
+                mMarksGroup.setVisibility(View.INVISIBLE);
                 showTestState();
-                mExamProgress.setProgress(mExam.getExamProgress());
+                showExamProgress(true);
                 break;
             case STATE_TEST_FINISHED:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
-                mNewMarkText.setVisibility(View.VISIBLE);
-                mTestResultText.setVisibility(View.VISIBLE);
+                mMarksGroup.setVisibility(View.VISIBLE);
                 showTestState();
+                showExamProgress(true);
                 break;
             case STATE_EXAM_FINISHED:
                 mKeyboard.setVisibility(View.INVISIBLE);
                 mHintButton.setVisibility(View.INVISIBLE);
                 mNextButton.setVisibility(View.INVISIBLE);
-                mOldMarkText.setVisibility(View.INVISIBLE);
-                mNewMarkText.setVisibility(View.INVISIBLE);
-                mTestResultText.setVisibility(View.INVISIBLE);
+                mMarksGroup.setVisibility(View.INVISIBLE);
                 mTransText.setText("Exam finished!");
-                mWordText.setVisibility(View.INVISIBLE);
+                mWordText.setText("");
                 showLifes(0);
-                mExamProgress.setProgress(100);
+                showExamProgress(false);
                 break;
             default:
                 break;
@@ -542,7 +544,7 @@ public class TrainerActivity extends Activity
         switch (result)
         {
             case Incomplete:
-                mOldMarkText.setText(mTest.getMark().toString());
+                mOldMarkText.setText(mTest.getMark().toString()); // although it is invisible until test is over
                 showLifes(mTest.getHintsLeft());
                 return;
 
@@ -650,5 +652,15 @@ public class TrainerActivity extends Activity
         {
             e.printStackTrace();
         }
+    }
+
+    private void showExamProgress(boolean isVisible)
+    {
+        if (mExam != null)
+        {
+            int currentTest = mExam.getTestsCount() - mExam.getTestsToGo();
+            mExamProgress.setText(String.valueOf(currentTest + 1) + "/" + String.valueOf(mExam.getTestsCount()));
+        }
+        mExamProgress.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     }
 }
