@@ -33,7 +33,7 @@ import android.util.Log;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Vocabulary.MarkedTranslation;
+import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Word;
 
 public class ReverseExam
@@ -41,15 +41,15 @@ public class ReverseExam
     static final int K_NUM_TESTS = 7;
 
     private Vocabulary mVoc = null;
-    List<Word> mChallenges = null;
-    private int mCurrentTest = -1;
+    ArrayList<Word> mChallenges = null;
+    private int mNextTest = 0;
 
     public ReverseExam(Vocabulary voc, Mark maxMark)
     {
         mVoc = voc;
         mChallenges = new ArrayList<Word>();
 
-        List<Vocabulary.MarkedTranslation> toLearnItems = voc.selectTranslations(Mark.YetToLearn, maxMark, true);
+        List<MarkedTranslation> toLearnItems = voc.selectTranslations(Mark.YetToLearn, maxMark, true);
 
         if ((toLearnItems.size() >= K_NUM_TESTS) ||                             // normal test
             (!maxMark.lessThan(Mark.Learned) && toLearnItems.size() > 0))       // review test
@@ -58,7 +58,7 @@ public class ReverseExam
             for (int i = 0; (i < K_NUM_TESTS) && (toLearnItems.size()) > 0; i++)
             {
                 int k = rand.nextInt(toLearnItems.size());
-                Vocabulary.MarkedTranslation t = toLearnItems.get(k);
+                MarkedTranslation t = toLearnItems.get(k);
                 Word w = voc.getWord(t.getWordID());
                 w.translations = new ArrayList<Translation>();
                 w.translations.add(t);
@@ -81,14 +81,14 @@ public class ReverseExam
 
     public int getTestsToGo()
     {
-        return mChallenges.size() - mCurrentTest;
+        return mChallenges.size() - mNextTest;
     }
 
     public int getExamProgress()
     {
         if (mChallenges.size() > 0)
         {
-            return mCurrentTest * 100 / mChallenges.size();
+            return mNextTest * 100 / mChallenges.size();
         }
         else
         {
@@ -98,9 +98,9 @@ public class ReverseExam
 
     public ReverseTest nextTest()
     {
-        if (getTestsToGo() > 1)
+        if (getTestsToGo() > 0)
         {
-            Word w = mChallenges.get(++mCurrentTest);
+            Word w = mChallenges.get(mNextTest++);
             MarkedTranslation t = (MarkedTranslation) w.translations.get(0);
             ReverseTest test = new ReverseTest(mVoc, t, w);
             return test;
@@ -109,5 +109,10 @@ public class ReverseExam
         {
             return null;
         }
+    }
+
+    public ArrayList<Word> getResults()
+    {
+        return new ArrayList<Word>(mChallenges.subList(0, mNextTest));
     }
 }

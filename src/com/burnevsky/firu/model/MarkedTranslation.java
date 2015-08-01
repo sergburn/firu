@@ -27,60 +27,55 @@ package com.burnevsky.firu.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Translation extends DictionaryEntry
+public class MarkedTranslation extends Translation
 {
-    long mWordID;
+    public Mark ForwardMark = Mark.YetToLearn;
+    public Mark ReverseMark = Mark.YetToLearn;
 
-    public Translation(long wordId, String text, String targetLang)
+    public MarkedTranslation(Word w, String text, String targetLang)
     {
-        super(text, targetLang);
-        mWordID = wordId;
+        super(w, text, targetLang);
     }
 
-    public Translation(Word w, String text, String targetLang)
+    MarkedTranslation(long id, long wordId, String text, String targetLang)
     {
-        this(w.getID(), text, targetLang);
+        super(id, wordId, text, targetLang);
     }
 
-    // For internal use by Model only
-    Translation(long id, long wordId, String text, String targetLang)
+    public MarkedTranslation(Translation trans)
     {
-        super(id, text, targetLang);
-        mWordID = wordId;
-    }
-
-    public long getWordID()
-    {
-        return mWordID;
+        super(trans.getWordID(), trans.getText(), trans.getLang());
     }
 
     // Parcelable
 
-    protected Translation(Parcel in)
+    private MarkedTranslation(Parcel in)
     {
         super(in);
-        mWordID = in.readLong();
+        ForwardMark = new Mark(in.readInt());
+        ReverseMark = new Mark(in.readInt());
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
         super.writeToParcel(dest, flags);
-        dest.writeLong(mWordID);
+        dest.writeInt(ForwardMark.toInt());
+        dest.writeInt(ReverseMark.toInt());
     }
 
-    public static final Parcelable.Creator<Translation> CREATOR = new Parcelable.Creator<Translation>()
+    public static final Parcelable.Creator<MarkedTranslation> CREATOR = new Parcelable.Creator<MarkedTranslation>()
         {
         @Override
-        public Translation createFromParcel(Parcel in)
+        public MarkedTranslation createFromParcel(Parcel in)
         {
-            return new Translation(in);
+            return new MarkedTranslation(in);
         }
 
         @Override
-        public Translation[] newArray(int size)
+        public MarkedTranslation[] newArray(int size)
         {
-            return new Translation[size];
+            return new MarkedTranslation[size];
         }
         };
 }

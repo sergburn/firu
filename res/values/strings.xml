@@ -14,5 +14,6 @@
     <string name="action_remove_from_voc">Remove from vocabulary</string>
     <string name="title_activity_stat">Statistics</string>
     <string name="action_show_stats">Show statistics</string>
+    <string name="title_activity_exam_result">Exam result</string>
 
 </resources>

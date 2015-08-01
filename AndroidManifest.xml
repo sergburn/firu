@@ -44,6 +44,10 @@
             android:name=".StatActivity"
             android:label="@string/title_activity_stat" >
         </activity>
+        <activity
+            android:name=".ExamResultActivity"
+            android:label="@string/app_name" >
+        </activity>
     </application>
 
 </manifest>

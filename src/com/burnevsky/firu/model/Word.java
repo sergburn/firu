@@ -24,6 +24,7 @@
 
 package com.burnevsky.firu.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Parcel;
@@ -53,22 +54,25 @@ public class Word extends DictionaryEntry
         dest.writeList(translations);
     }
 
-    public static final Parcelable.Creator<Word> CREATOR = new Parcelable.Creator<Word>()
+    private Word(Parcel in)
     {
+        super(in);
+        translations = new ArrayList<Translation>();
+        in.readList(translations, MarkedTranslation.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<Word> CREATOR = new Parcelable.Creator<Word>()
+        {
+        @Override
         public Word createFromParcel(Parcel in)
         {
             return new Word(in);
         }
 
+        @Override
         public Word[] newArray(int size)
         {
             return new Word[size];
         }
-    };
-
-    private Word(Parcel in)
-    {
-        super(in);
-        in.readList(translations, null);
-    }
+        };
 }

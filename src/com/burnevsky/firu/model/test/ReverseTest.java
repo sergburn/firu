@@ -25,16 +25,17 @@
 package com.burnevsky.firu.model.test;
 
 import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 public class ReverseTest extends VocabularyTest
 {
     private Vocabulary mVoc = null;
-    private Vocabulary.MarkedTranslation mChallenge = null;
+    private MarkedTranslation mChallenge = null;
     private String mAnswer = null;
 
-    ReverseTest(Vocabulary vocabulary, Vocabulary.MarkedTranslation challenge, Word answer)
+    ReverseTest(Vocabulary vocabulary, MarkedTranslation challenge, Word answer)
     {
         mVoc = vocabulary;
         mAnswer = answer.getText();
@@ -92,8 +93,8 @@ public class ReverseTest extends VocabularyTest
     {
         return (mAnswer.startsWith(guess));
     }
-    
-    /** User thinks answer is complete and finished typing by pressing Enter/Done etc. 
+
+    /** User thinks answer is complete and finished typing by pressing Enter/Done etc.
      * @return true if guess is correct. Test is then finished;
      *         false if guess is not correct. Test may become finished, if no more hints left, or continue otherwise. */
     public boolean checkAnswer(String guess) throws TestAlreadyCompleteException

@@ -32,6 +32,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -60,6 +61,7 @@ import android.widget.Toast;
 import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Word;
 import com.burnevsky.firu.model.test.ReverseExam;
 import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
@@ -219,7 +221,7 @@ public class TrainerActivity extends Activity
         {
             if (exam != null)
             {
-                if (exam.getTestsToGo() > 1)
+                if (exam.getTestsToGo() > 0)
                 {
                     mExam = exam;
                     startTest(exam.nextTest());
@@ -627,7 +629,12 @@ public class TrainerActivity extends Activity
             }
             else
             {
-                changeState(State.STATE_EXAM_FINISHED);
+                //changeState(State.STATE_EXAM_FINISHED);
+                Intent intent = new Intent(this, ExamResultActivity.class);
+                ArrayList<Word> testWords = mExam.getResults();
+                intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, testWords);
+                startActivity(intent);
+                finish();
             }
         }
     }
@@ -659,7 +666,7 @@ public class TrainerActivity extends Activity
         if (mExam != null)
         {
             int currentTest = mExam.getTestsCount() - mExam.getTestsToGo();
-            mExamProgress.setText(String.valueOf(currentTest + 1) + "/" + String.valueOf(mExam.getTestsCount()));
+            mExamProgress.setText(String.valueOf(currentTest) + "/" + String.valueOf(mExam.getTestsCount()));
         }
         mExamProgress.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     }

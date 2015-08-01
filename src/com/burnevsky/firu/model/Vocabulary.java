@@ -76,26 +76,6 @@ public class Vocabulary extends DictionaryBase
         mTotalWords = countWords();
     }
 
-    public class MarkedTranslation extends Translation
-    {
-        public Mark ForwardMark = Mark.YetToLearn;
-        public Mark ReverseMark = Mark.YetToLearn;
-
-        public MarkedTranslation(Word w, String text, String targetLang)
-        {
-            super(w, text, targetLang);
-        }
-
-        MarkedTranslation(long id, long wordId, String text, String targetLang)
-        {
-            super(id, wordId, text, targetLang);
-        }
-
-        public MarkedTranslation(Translation trans)
-        {
-            super(trans.getWordID(), trans.getText(), trans.getLang());
-        }
-    }
 
     public static class LearningStats
     {
