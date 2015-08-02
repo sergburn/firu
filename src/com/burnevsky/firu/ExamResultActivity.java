@@ -1,6 +1,8 @@
 package com.burnevsky.firu;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -48,9 +50,24 @@ public class ExamResultActivity extends Activity
         Intent intent = getIntent();
         ArrayList<Word> tests = intent.getParcelableArrayListExtra(INTENT_EXTRA_REV_EXAM);
 
+        // Put translations with worst final score to the top of the list
+        // to attract more user's attention to them
+        Word[] sortedTests = new Word[tests.size()];
+        tests.toArray(sortedTests);
+        Arrays.sort(sortedTests, new Comparator<Word>()
+            {
+            @Override
+            public int compare(Word lhs, Word rhs)
+            {
+                MarkedTranslation lt = (MarkedTranslation) lhs.translations.get(0);
+                MarkedTranslation rt = (MarkedTranslation) rhs.translations.get(0);
+                return lt.ReverseMark.toInt() - rt.ReverseMark.toInt(); // ascending order
+            }
+            });
+
         List<SortedMap<String, Object>> data = new ArrayList<SortedMap<String,Object>>();
 
-        for (Word test : tests)
+        for (Word test : sortedTests)
         {
             TreeMap<String, Object> row = new TreeMap<String, Object>();
             row.put("word", test.getText());
