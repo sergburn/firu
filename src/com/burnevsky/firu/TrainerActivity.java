@@ -86,6 +86,9 @@ public class TrainerActivity extends Activity
     private ReverseTest mTest = null;
     private boolean mErrorState;
 
+    // TODO: Settings
+    private boolean mAllowTypingMistakes = false;
+
     private final long TRAINER_CORRECTION_DELAY = 500;
 
     private enum State
@@ -249,32 +252,19 @@ public class TrainerActivity extends Activity
             }
             else
             {
-                boolean correct = mTest.checkGuess(input);
-                showInputCorrectness(correct);
-                if (!correct)
+                boolean correct = false;
+                try
                 {
-                    new Handler().postDelayed(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            if (mErrorState)
-                            {
-                                mWordText.setText(input.substring(0, input.length() - 1));
-                                afterTextChanged(mWordText);
-                            }
-                        }
-                    }, TRAINER_CORRECTION_DELAY);
+                    correct = mTest.checkGuess(input, mAllowTypingMistakes);
+                    showInputCorrectness(correct);
                 }
-            }
-        }
+                catch (TestAlreadyCompleteException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    return;
+                }
 
-        public boolean onEnter(TextView v)
-        {
-            try
-            {
-                boolean correct = mTest.checkAnswer(mWordText.getText().toString());
-                showInputCorrectness(correct);
                 if (mTest.getResult() != TestResult.Incomplete)
                 {
                     changeState(State.STATE_TEST_FINISHED);
@@ -282,15 +272,49 @@ public class TrainerActivity extends Activity
                 else
                 {
                     showTestState(); // update lives
+
+                    if (!correct)
+                    {
+                        // Automatically correct shortly: remove last wrong letter
+                        new Handler().postDelayed(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                if (mErrorState)
+                                {
+                                    mWordText.setText(input.substring(0, input.length() - 1));
+                                    afterTextChanged(mWordText);
+                                }
+                            }
+                        }, TRAINER_CORRECTION_DELAY);
+                    }
                 }
+            }
+        }
+
+        public void onEnter(TextView v)
+        {
+            try
+            {
+                boolean correct = mTest.checkAnswer(mWordText.getText().toString());
+                showInputCorrectness(correct);
             }
             catch (TestAlreadyCompleteException e)
             {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                return;
             }
 
-            return false;
+            if (mTest.getResult() != TestResult.Incomplete)
+            {
+                changeState(State.STATE_TEST_FINISHED);
+            }
+            else
+            {
+                showTestState(); // update lives
+            }
         }
     };
 
@@ -471,19 +495,6 @@ public class TrainerActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
-    @TargetApi(17)
-    void showInputValue(Drawable icon)
-    {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
-        {
-            //mWordEdit.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, icon, null);
-        }
-        else
-        {
-            //mWordEdit.setCompoundDrawablesWithIntrinsicBounds(null, null, icon, null);
-        }
-    }
-
     void changeState(State newState)
     {
         switch (newState)
@@ -511,6 +522,7 @@ public class TrainerActivity extends Activity
                 mHintButton.setEnabled(false);
                 mMarksGroup.setVisibility(View.VISIBLE);
                 showTestState();
+                showInputCorrectness(true);
                 showExamProgress(true);
                 break;
             case STATE_EXAM_FINISHED:
@@ -601,7 +613,6 @@ public class TrainerActivity extends Activity
         if (correct)
         {
             mWordText.setError(null);
-            showInputValue(mGoodIcon);
         }
         else
         {

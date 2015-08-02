@@ -87,11 +87,24 @@ public class ReverseTest extends VocabularyTest
     }
 
     /** User is still typing the answer and thinks it is not yet complete.
-     *  Even if guess is not correct, it does not affect number of hints.
+     * @parm forgiveMistakes If true, then even if guess is not correct, it does not affect number of hints.
      * @return true if guess is correct, false otherwise  */
-    public boolean checkGuess(String guess)
+    public boolean checkGuess(String guess, boolean forgiveMistakes) throws TestAlreadyCompleteException
     {
-        return (mAnswer.startsWith(guess));
+        ensureIncomplete();
+
+        if (mAnswer.startsWith(guess))
+        {
+            return true;
+        }
+        else
+        {
+            if (!forgiveMistakes)
+            {
+                revokeHint();
+            }
+            return false;
+        }
     }
 
     /** User thinks answer is complete and finished typing by pressing Enter/Done etc.
@@ -109,7 +122,8 @@ public class ReverseTest extends VocabularyTest
         }
         else
         {
-            return revokeHint();
+            revokeHint();
+            return false;
         }
     }
 
