@@ -406,6 +406,7 @@ public class TrainerActivity extends Activity
         String lines12 = "qwertyuiopåasdfghjklöä";
         String line3 = "__zxcvbnm__";
 
+        final int BUTTON_HEIGHT = 124;
         for (int r = 0; r < 3; r++)
         {
             GridLayout.Spec rowSpec = GridLayout.spec(r);
@@ -427,22 +428,26 @@ public class TrainerActivity extends Activity
                     GridLayout.Spec colSpec = GridLayout.spec(c, GridLayout.CENTER);
 
                     GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+                    params.bottomMargin = (r < 2) ? 30 : 10;
 
                     Button k = new Button(mSelfContext, null, android.R.attr.buttonStyle);
-                    k.setMinHeight(128);
-                    k.setMinWidth(6);
-                    k.setMinimumHeight(128);
-                    k.setMinimumWidth(6);
+                    k.setMinHeight(BUTTON_HEIGHT);
+                    k.setMinWidth(80);
+                    k.setMinimumHeight(BUTTON_HEIGHT);
+                    k.setMinimumWidth(80);
                     k.setPadding(0, 0, 0, 0);
                     k.setOnClickListener(mKeyBoardListener);
                     k.setText(cap);
                     k.setTypeface(k.getTypeface(), 1); // bold
+                    k.setTextSize(22); // sp
 
                     mKeyboard.addView(k, params);
                     mKeys.add(k);
                 }
             }
         }
+        mEnter.setMinHeight(BUTTON_HEIGHT);
+        mEnter.setMinimumHeight(BUTTON_HEIGHT);
 
         View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
         thisView.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
