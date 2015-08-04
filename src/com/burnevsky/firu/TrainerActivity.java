@@ -73,7 +73,7 @@ public class TrainerActivity extends Activity
     private TextView mOldMarkText = null, mNewMarkText = null, mTestResultText = null;
     private TextView mTransText = null;
     private TextView mWordText = null;
-    private Drawable mGoodIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
+    private Drawable mOkIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
     private ImageView mHintButton = null, mNextButton = null;
     private List<ImageView> mImgLives = new ArrayList<ImageView>();
     private TextView mExamProgress = null;
@@ -369,8 +369,8 @@ public class TrainerActivity extends Activity
         mMarksGroup = (RelativeLayout) findViewById(R.id.rltMarks);
         mSelfContext = this;
 
-        mGoodIcon = getResources().getDrawable(R.drawable.ic_action_good);
-        mPassedIcon = getResources().getDrawable(R.drawable.ic_action_accept);
+        mOkIcon = getResources().getDrawable(R.drawable.ic_action_accept);
+        mPassedIcon = getResources().getDrawable(R.drawable.ic_action_good);
         mFailIcon = getResources().getDrawable(R.drawable.ic_action_bad);
         mLifeIcon = getResources().getDrawable(R.drawable.ic_action_favorite);
 
@@ -574,7 +574,7 @@ public class TrainerActivity extends Activity
 
             case PassedWithHints:
                 mNewMarkText.setText(mTest.getMark().toString());
-                showTestResultIcon(mGoodIcon);
+                showTestResultIcon(mOkIcon);
                 break;
 
             case Failed:
