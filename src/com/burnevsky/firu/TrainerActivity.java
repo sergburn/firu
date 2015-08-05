@@ -54,6 +54,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,7 +71,6 @@ import com.burnevsky.firu.model.test.TestResult;
 public class TrainerActivity extends Activity
 {
     private Context mSelfContext = null;
-    private TextView mOldMarkText = null, mNewMarkText = null, mTestResultText = null;
     private TextView mTransText = null;
     private TextView mWordText = null;
     private Drawable mOkIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
@@ -80,7 +80,7 @@ public class TrainerActivity extends Activity
     private GridLayout mKeyboard = null;
     private Button mEnter = null;
     private ArrayList<Button> mKeys = new ArrayList<Button>();
-    private RelativeLayout mMarksGroup = null;
+    private RatingBar mMarkRating = null;
 
     private ReverseExam mExam = null;
     private ReverseTest mTest = null;
@@ -355,9 +355,6 @@ public class TrainerActivity extends Activity
         setContentView(R.layout.activity_trainer);
         mWordText = (TextView) findViewById(R.id.textWord);
         mTransText = (TextView) findViewById(R.id.textTrans);
-        mOldMarkText = (TextView) findViewById(R.id.textOldMark);
-        mNewMarkText = (TextView) findViewById(R.id.textNewMark);
-        mTestResultText = (TextView) findViewById(R.id.textTestResult);
         mImgLives.add((ImageView) findViewById(R.id.imgLife1));
         mImgLives.add((ImageView) findViewById(R.id.imgLife2));
         mImgLives.add((ImageView) findViewById(R.id.imgLife3));
@@ -366,7 +363,7 @@ public class TrainerActivity extends Activity
         mExamProgress = (TextView) findViewById(R.id.textProgress);
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
         mEnter = (Button) findViewById(R.id.btnEnter);
-        mMarksGroup = (RelativeLayout) findViewById(R.id.rltMarks);
+        mMarkRating = (RatingBar) findViewById(R.id.rbMark);
         mSelfContext = this;
 
         mOkIcon = getResources().getDrawable(R.drawable.ic_action_accept);
@@ -510,7 +507,7 @@ public class TrainerActivity extends Activity
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
-                mMarksGroup.setVisibility(View.INVISIBLE);
+                mMarkRating.setVisibility(View.INVISIBLE);
                 showTestState();
                 showExamProgress(false);
                 break;
@@ -518,14 +515,13 @@ public class TrainerActivity extends Activity
                 setKeyboardEnabled(true);
                 mHintButton.setEnabled(true);
                 mNextButton.setEnabled(true);
-                mMarksGroup.setVisibility(View.INVISIBLE);
+                mMarkRating.setVisibility(View.VISIBLE);
                 showTestState();
                 showExamProgress(true);
                 break;
             case STATE_TEST_FINISHED:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
-                mMarksGroup.setVisibility(View.VISIBLE);
                 showTestState();
                 showInputCorrectness(true);
                 showExamProgress(true);
@@ -534,7 +530,6 @@ public class TrainerActivity extends Activity
                 mKeyboard.setVisibility(View.INVISIBLE);
                 mHintButton.setVisibility(View.INVISIBLE);
                 mNextButton.setVisibility(View.INVISIBLE);
-                mMarksGroup.setVisibility(View.INVISIBLE);
                 mTransText.setText("Exam finished!");
                 mWordText.setText("");
                 showLifes(0);
@@ -563,23 +558,19 @@ public class TrainerActivity extends Activity
         switch (result)
         {
             case Incomplete:
-                mOldMarkText.setText(mTest.getMark().toString()); // although it is invisible until test is over
                 showLifes(mTest.getHintsLeft());
-                return;
+                break;
 
             case Passed:
-                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mPassedIcon);
                 break;
 
             case PassedWithHints:
-                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mOkIcon);
                 break;
 
             case Failed:
                 mWordText.setText(mTest.getAnswer());
-                mNewMarkText.setText(mTest.getMark().toString());
                 showTestResultIcon(mFailIcon);
                 break;
 
@@ -587,7 +578,8 @@ public class TrainerActivity extends Activity
                 assert false;
                 return;
         }
-        mTestResultText.setText(result.toString()); // TODO: l10n
+
+        mMarkRating.setRating(ExamResultActivity.markToRate(mTest.getMark()));
     }
 
     void showLifes(int lives)
@@ -626,9 +618,6 @@ public class TrainerActivity extends Activity
         mErrorState = !correct;
     }
 
-    /**
-     * 
-     */
     private void nextTest()
     {
         if (mTest != null && !mTest.isComplete())

@@ -92,7 +92,7 @@ public class ExamResultActivity extends Activity
         listView.setAdapter(mAdapter);
     }
 
-    private int markToRate(Mark mark)
+    public static int markToRate(Mark mark)
     {
         int i = mark.toInt();
         return i <= Mark.YetToLearn.toInt() ? 0 : i - 1;
