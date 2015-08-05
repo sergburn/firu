@@ -252,7 +252,7 @@ public class TrainerActivity extends Activity
             final String input = mWordText.getText().toString();
             if (input.length() == 0)
             {
-                mWordText.setCompoundDrawables(null, null, null, null);
+                showInputCorrectness(true);
             }
             else
             {
@@ -281,6 +281,8 @@ public class TrainerActivity extends Activity
                     {
                         mForgiveFurtherMistakes = true;
 
+                        setKeyboardEnabled(false);
+
                         // Automatically correct shortly: remove last wrong letter
                         new Handler().postDelayed(new Runnable()
                         {
@@ -290,6 +292,7 @@ public class TrainerActivity extends Activity
                                 if (mErrorState)
                                 {
                                     mWordText.setText(input.substring(0, input.length() - 1));
+                                    setKeyboardEnabled(true);
                                     afterTextChanged(mWordText);
                                 }
                             }
