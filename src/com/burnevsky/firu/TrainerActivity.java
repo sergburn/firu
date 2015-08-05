@@ -686,4 +686,10 @@ public class TrainerActivity extends Activity
         }
         mExamProgress.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     }
+
+    public static void startExamActivity(Activity caller)
+    {
+        Intent intent = new Intent(caller, TrainerActivity.class);
+        caller.startActivity(intent);
+    }
 }

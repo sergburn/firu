@@ -28,33 +28,20 @@ public class ExamResultActivity extends Activity
 
     private SimpleAdapter mAdapter = null;
 
+    private Word[] mSortedTests;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_exam_result);
 
-        ImageView btnNext = (ImageView) findViewById(R.id.era_imgNext);
-        btnNext.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                finish();
-
-                Intent intent = new Intent(ExamResultActivity.this, TrainerActivity.class);
-                startActivity(intent);
-            }
-        });
-
         Intent intent = getIntent();
         ArrayList<Word> tests = intent.getParcelableArrayListExtra(INTENT_EXTRA_REV_EXAM);
 
-        // Put translations with worst final score to the top of the list
-        // to attract more user's attention to them
-        Word[] sortedTests = new Word[tests.size()];
-        tests.toArray(sortedTests);
-        Arrays.sort(sortedTests, new Comparator<Word>()
+        mSortedTests = new Word[tests.size()];
+        tests.toArray(mSortedTests);
+        Arrays.sort(mSortedTests, new Comparator<Word>()
             {
             @Override
             public int compare(Word lhs, Word rhs)
@@ -67,7 +54,7 @@ public class ExamResultActivity extends Activity
 
         List<SortedMap<String, Object>> data = new ArrayList<SortedMap<String,Object>>();
 
-        for (Word test : sortedTests)
+        for (Word test : mSortedTests)
         {
             TreeMap<String, Object> row = new TreeMap<String, Object>();
             row.put("word", test.getText());
@@ -126,10 +113,17 @@ public class ExamResultActivity extends Activity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings)
+        if (id == R.id.action_moveon)
         {
+            startNextExam();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void startNextExam()
+    {
+        finish();
+        TrainerActivity.startExamActivity(this);
     }
 }

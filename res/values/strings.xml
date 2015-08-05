@@ -15,5 +15,5 @@
     <string name="title_activity_stat">Statistics</string>
     <string name="action_show_stats">Show statistics</string>
     <string name="title_activity_exam_result">Exam result</string>
-
+    <string name="action_activity_exam_next">New exam</string>
 </resources>
