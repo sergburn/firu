@@ -86,8 +86,12 @@ public class TrainerActivity extends Activity
     private ReverseTest mTest = null;
     private boolean mErrorState;
 
-    // TODO: Settings
-    private boolean mAllowTypingMistakes = false;
+    // User must enter word without typing mistakes to Pass the test
+    // (otherwise she can use try-and-error approach)
+    // However, after 1st typo takes away 1 life, which counted as 1 hint,
+    // further typos are not counted.
+    // This way typos don't let mark to upgrade to rates Well-known and Learned
+    private boolean mForgiveFurtherMistakes = false;
 
     private final long TRAINER_CORRECTION_DELAY = 500;
 
@@ -255,7 +259,7 @@ public class TrainerActivity extends Activity
                 boolean correct = false;
                 try
                 {
-                    correct = mTest.checkGuess(input, mAllowTypingMistakes);
+                    correct = mTest.checkGuess(input, mForgiveFurtherMistakes);
                     showInputCorrectness(correct);
                 }
                 catch (TestAlreadyCompleteException e)
@@ -275,6 +279,8 @@ public class TrainerActivity extends Activity
 
                     if (!correct)
                     {
+                        mForgiveFurtherMistakes = true;
+
                         // Automatically correct shortly: remove last wrong letter
                         new Handler().postDelayed(new Runnable()
                         {
@@ -336,6 +342,7 @@ public class TrainerActivity extends Activity
         mTest = test;
         mTransText.setText(test.getChallenge());
         mWordText.setText("");
+        mForgiveFurtherMistakes = false;
         changeState(State.STATE_TEST_ONGOING);
     }
 
