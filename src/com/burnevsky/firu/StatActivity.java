@@ -35,6 +35,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.androidplot.pie.PieChart;
 import com.androidplot.pie.PieRenderer;
@@ -57,6 +58,7 @@ public class StatActivity extends Activity
 {
     //    private XYPlot plot;
     private PieChart pie;
+    private TextView mTotal;
 
     Context mSelfContext = null;
     FiruApplication mApp = null;
@@ -120,6 +122,8 @@ public class StatActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stat);
+
+        mTotal = (TextView) findViewById(R.id.textTotal);
 
         mSelfContext = this;
 
@@ -225,9 +229,11 @@ public class StatActivity extends Activity
 
         if (pie.getRenderer(PieRenderer.class) != null) // null, if no segments added?
         {
-            pie.getRenderer(PieRenderer.class).setDonutSize(0.1f, PieRenderer.DonutMode.PERCENT);
+            pie.getRenderer(PieRenderer.class).setDonutSize(0.25f, PieRenderer.DonutMode.PERCENT);
         }
         pie.redraw();
+
+        mTotal.setText(String.valueOf(stats.TotalTranslationsCount));
     }
     /*
     private void showXYplot()

@@ -50,12 +50,12 @@ public abstract class DictionaryBase implements IDictionary
     public int countWords(String startsWith)
     {
         if (mDatabase == null) return 0;
-        
-        Cursor c = mDatabase.query("words", 
-                new String[] { "count(*)" },
-                "text LIKE '" + startsWith + "%'", // most probably should use collated index
-                 null, null, null, null, null);
-        
+
+        Cursor c = mDatabase.query("words",
+            new String[] { "count(*)" },
+            "text LIKE '" + startsWith + "%'", // most probably should use collated index
+            null, null, null, null, null);
+
         if (!c.isAfterLast() && c.moveToFirst())
         {
             return c.getInt(0);
@@ -67,10 +67,25 @@ public abstract class DictionaryBase implements IDictionary
     {
         if (mDatabase == null) return 0;
 
-        Cursor c = mDatabase.query("words", 
-                new String[] { "count(*)" },
-                null, null, null, null, null, null);
-        
+        Cursor c = mDatabase.query("words",
+            new String[] { "count(*)" },
+            null, null, null, null, null, null);
+
+        if (!c.isAfterLast() && c.moveToFirst())
+        {
+            return c.getInt(0);
+        }
+        return 0;
+    }
+
+    public int countTranslations()
+    {
+        if (mDatabase == null) return 0;
+
+        Cursor c = mDatabase.query("translations",
+            new String[] { "count(*)" },
+            null, null, null, null, null, null);
+
         if (!c.isAfterLast() && c.moveToFirst())
         {
             return c.getInt(0);

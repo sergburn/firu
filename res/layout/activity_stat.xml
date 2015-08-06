@@ -1,14 +1,16 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" 
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.burnevsky.firu.StatActivity" >
-<!-- 
+
+    <!--
 <com.androidplot.xy.XYPlot
     android:id="@+id/mySimpleXYPlot"
     android:layout_width="fill_parent"
@@ -34,18 +36,27 @@
     androidPlot.rangeLabelWidget.labelPaint.textSize="@dimen/range_label_font_size"
     androidPlot.title="A Simple XY Plot"
     androidPlot.titleWidget.labelPaint.textSize="@dimen/title_font_size" />
- -->
+    -->
 
-<com.androidplot.pie.PieChart
-    android:id="@+id/mySimplePieChart"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    androidPlot.pieWidget.marginBottom="25dp"
-    androidPlot.pieWidget.marginLeft="15dp"
-    androidPlot.pieWidget.marginRight="10dp"
-    androidPlot.pieWidget.marginTop="20dp"
-    androidPlot.title="Vocabulary Stats"
-    androidPlot.titleWidget.labelPaint.textSize="@dimen/title_font_size" />
+    <com.androidplot.pie.PieChart
+        android:id="@+id/mySimplePieChart"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_weight="1"
+        androidPlot.pieWidget.marginBottom="5dp"
+        androidPlot.pieWidget.marginLeft="5dp"
+        androidPlot.pieWidget.marginRight="5dp"
+        androidPlot.pieWidget.marginTop="5dp"
+        androidPlot.titleWidget.labelPaint.textSize="@dimen/title_font_size" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/textTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_weight="1"
+        android:text="234"
+        android:textColor="@color/stat_count_fg" />
+
+</RelativeLayout>
