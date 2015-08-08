@@ -38,6 +38,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.TextWatcher;
@@ -93,7 +94,8 @@ public class TrainerActivity extends Activity
     // This way typos don't let mark to upgrade to rates Well-known and Learned
     private boolean mForgiveFurtherMistakes = false;
 
-    private final long TRAINER_CORRECTION_DELAY = 500;
+    private static final long TRAINER_CORRECTION_DELAY = 500;
+    private static final long TRAINER_MAX_TYPO_DELAY = 500;
 
     private enum State
     {
@@ -247,6 +249,8 @@ public class TrainerActivity extends Activity
 
     class GuessValidator
     {
+        private long mLastClick = 0;
+
         public void afterTextChanged(TextView s)
         {
             final String input = mWordText.getText().toString();
@@ -256,10 +260,18 @@ public class TrainerActivity extends Activity
             }
             else
             {
+                long now = SystemClock.uptimeMillis();
+                boolean fastTypingDetected = (now - mLastClick) < TrainerActivity.TRAINER_MAX_TYPO_DELAY;
+                if (fastTypingDetected)
+                {
+                    Log.d("firu", "Fast typing interval: " + String.valueOf(now - mLastClick));
+                }
+                mLastClick = now;
+
                 boolean correct = false;
                 try
                 {
-                    correct = mTest.checkGuess(input, mForgiveFurtherMistakes);
+                    correct = mTest.checkGuess(input, mForgiveFurtherMistakes || fastTypingDetected);
                     showInputCorrectness(correct);
                 }
                 catch (TestAlreadyCompleteException e)
@@ -279,7 +291,17 @@ public class TrainerActivity extends Activity
 
                     if (!correct)
                     {
-                        mForgiveFurtherMistakes = true;
+                        if (!mForgiveFurtherMistakes)
+                        {
+                            if (fastTypingDetected)
+                            {
+                                Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
+                            }
+                            else
+                            {
+                                mForgiveFurtherMistakes = true; // hint was revoked
+                            }
+                        }
 
                         setKeyboardEnabled(false);
 
