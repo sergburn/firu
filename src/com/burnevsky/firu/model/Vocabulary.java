@@ -142,12 +142,12 @@ public class Vocabulary extends DictionaryBase
         return list;
     }
 
-    public List<MarkedTranslation> getTranslations(Word word)
+    public List<Translation> getTranslations(Word word)
     {
-        List<MarkedTranslation> list = new LinkedList<MarkedTranslation>();
+        List<Translation> list = new LinkedList<Translation>();
         Cursor c = mDatabase.query("translations",
             getTranslationSelect(),
-            "word_id = '" + String.valueOf(word.getID()) + "%'",
+            "word_id = " + word.getID(),
             null, null, null,
             "text ASC",
             null);

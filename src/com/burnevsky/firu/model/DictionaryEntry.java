@@ -57,6 +57,11 @@ public class DictionaryEntry extends Object implements Parcelable
         return mID;
     }
 
+    public void unlink()
+    {
+        mID = 0;
+    }
+
     public String getText()
     {
         return mText;
@@ -77,7 +82,7 @@ public class DictionaryEntry extends Object implements Parcelable
     {
         return getText();
     }
-    
+
     @Override
     public int describeContents()
     {

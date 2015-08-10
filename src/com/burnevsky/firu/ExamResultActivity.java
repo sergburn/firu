@@ -17,12 +17,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.SimpleAdapter;
 
-public class ExamResultActivity extends Activity
+public class ExamResultActivity extends Activity implements OnItemClickListener
 {
     public final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
 
@@ -90,6 +92,7 @@ public class ExamResultActivity extends Activity
 
         ListView listView = (ListView) findViewById(R.id.era_listTranslations);
         listView.setAdapter(mAdapter);
+        listView.setOnItemClickListener(this);
     }
 
     public static int markToRate(Mark mark)
@@ -119,6 +122,13 @@ public class ExamResultActivity extends Activity
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+    {
+        Word word = mSortedTests[position];
+        TranslationsActivity.showVocWord(this, word);
     }
 
     private void startNextExam()

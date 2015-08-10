@@ -27,6 +27,7 @@ package com.burnevsky.firu;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
@@ -37,6 +38,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -47,7 +49,8 @@ import android.widget.TextView;
 
 public class TranslationsActivity extends Activity
 {
-    public final static String INTENT_EXTRA_WORD = "com.burnevsk.firu.word";
+    public final static String INTENT_EXTRA_DICT_WORD = "com.burnevsk.firu.dict_word";
+    public final static String INTENT_EXTRA_VOC_WORD = "com.burnevsk.firu.voc_word";
 
     TextView mWordView = null;
     ListView mTransView = null;
@@ -55,7 +58,7 @@ public class TranslationsActivity extends Activity
     Drawable mStarredIcon = null, mUnstarredIcon = null;
     Context mSelfContext = null;
 
-    Word mWord = null, mVocWord = null;
+    Word mDictWord = null, mVocWord = null;
 
     FiruApplication mApp = null;
     Dictionary mDict = null;
@@ -68,35 +71,44 @@ public class TranslationsActivity extends Activity
         public void onVocabularyOpen(Vocabulary voc)
         {
             mVoc = voc;
-            new VocabularyMatch().execute(mWord);
-            // keep StarBtn disabled until we have result on vocabulary match
+            if (mVocWord != null)
+            {
+                new VocabularyTranslations().execute(mVocWord);
+            }
+            else if (mDictWord != null)
+            {
+                new VocabularyMatch().execute(mDictWord);
+            }
         }
-        
+
         @Override
         public void onVocabularyReset(Vocabulary voc)
         {
         }
-        
+
         @Override
         public void onVocabularyClose(Vocabulary voc)
         {
             mVoc = null;
         }
-        
+
         @Override
         public void onDictionaryOpen(Dictionary dict)
         {
             mDict = dict;
-            new DictionaryTranslations().execute(mWord);
+            if (mDictWord != null)
+            {
+                new DictionaryTranslations().execute(mDictWord);
+            }
         }
-        
+
         @Override
         public void onDictionaryClose(Dictionary dict)
         {
             mDict = null;
         }
     }
-    
+
     class DictionaryTranslations extends AsyncTask<Word, Void, List<Translation>>
     {
         @Override
@@ -108,13 +120,24 @@ public class TranslationsActivity extends Activity
         @Override
         protected void onPostExecute(List<Translation> result)
         {
-            mWord.translations = result;
-            ArrayAdapter<Translation> adapter = null;
-            if (result != null)
-            {
-                adapter = new ArrayAdapter<Translation>(mSelfContext, android.R.layout.simple_list_item_1, result);
-            }
-            mTransView.setAdapter(adapter);
+            mDictWord.translations = result;
+            fillTranslationsList(mDictWord.translations);
+        }
+    };
+
+    class VocabularyTranslations extends AsyncTask<Word, Void, List<Translation>>
+    {
+        @Override
+        protected List<Translation> doInBackground(Word... param)
+        {
+            return (mVoc != null) ? mVoc.getTranslations(param[0]) : null;
+        }
+
+        @Override
+        protected void onPostExecute(List<Translation> result)
+        {
+            mVocWord.translations = result;
+            fillTranslationsList(mVocWord.translations);
         }
     };
 
@@ -130,7 +153,7 @@ public class TranslationsActivity extends Activity
         protected void onPostExecute(Word word)
         {
             mVocWord = word;
-            mStarBtn.setEnabled(mVoc != null);
+            mStarBtn.setVisibility(mVoc != null ? View.VISIBLE : View.INVISIBLE);
             updateStarButton(mVocWord != null);
         }
     };
@@ -143,7 +166,14 @@ public class TranslationsActivity extends Activity
             if (mVoc == null) return null;
             try
             {
-                return mVoc.addWord(mWord, mWord.translations);
+                if (mDictWord != null)
+                {
+                    return mVoc.addWord(mDictWord, mDictWord.translations);
+                }
+                else
+                {
+                    return mVoc.addWord(mVocWord, mVocWord.translations);
+                }
             }
             catch (Exception e)
             {
@@ -173,9 +203,9 @@ public class TranslationsActivity extends Activity
         {
             if (removed)
             {
-                mVocWord = null;
+                mVocWord.unlink();
+                updateStarButton(false);
             }
-            updateStarButton(mVocWord != null);
         }
     };
 
@@ -187,7 +217,6 @@ public class TranslationsActivity extends Activity
 
         mWordView = (TextView) findViewById(R.id.laWord);
         mStarBtn = (ImageView) findViewById(R.id.btnStar);
-        mStarBtn.setEnabled(false); // until vocabulary is open
         mTransView = (ListView) findViewById(R.id.listTranslations);
         mStarredIcon = getResources().getDrawable(R.drawable.ic_action_important_dark);
         mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important_dark);
@@ -197,11 +226,32 @@ public class TranslationsActivity extends Activity
         mModelListener = new ModelListener();
         mApp.subscribeDictionary(mSelfContext, mModelListener);
         mApp.subscribeVocabulary(mSelfContext, mModelListener);
-        
+
         Intent intent = getIntent();
-        mWord = intent.getParcelableExtra(INTENT_EXTRA_WORD);
-        mWordView.setText(mWord.getText());
-        
+        mDictWord = intent.getParcelableExtra(INTENT_EXTRA_DICT_WORD);
+        if (mDictWord != null)
+        {
+            mWordView.setText(mDictWord.getText());
+            // translations will be loaded when dictionary is ready
+            mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary is open
+        }
+        else
+        {
+            mVocWord = intent.getParcelableExtra(INTENT_EXTRA_VOC_WORD);
+            if (mVocWord != null)
+            {
+                mWordView.setText(mVocWord.getText());
+                // translations will be loaded when vocabulary is ready
+                mStarBtn.setVisibility(View.VISIBLE); // until vocabulary is open
+                updateStarButton(true);
+            }
+            else
+            {
+                Log.d("firu", "TranslationsActivity: Unsupported intent given");
+                finish();
+            }
+        }
+
         mStarBtn.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -240,12 +290,41 @@ public class TranslationsActivity extends Activity
         }
         return super.onOptionsItemSelected(item);
     }
-    
+
     private void updateStarButton(boolean isStarred)
     {
+        /*
         mStarBtn.setImageResource(
-                isStarred ?
-                R.drawable.ic_action_important_dark : 
-                R.drawable.ic_action_not_important_dark);
+            isStarred ?
+                R.drawable.ic_action_important_dark :
+                    R.drawable.ic_action_not_important_dark);
+         */
+        mStarBtn.setImageDrawable(isStarred ? mStarredIcon : mUnstarredIcon);
+    }
+
+    private void fillTranslationsList(List<Translation> list)
+    {
+        ArrayAdapter<Translation> adapter = null;
+        if (list != null)
+        {
+            adapter = new ArrayAdapter<Translation>(mSelfContext, android.R.layout.simple_list_item_1, list);
+        }
+        mTransView.setAdapter(adapter);
+    }
+
+    public static void showDictWord(Activity caller, Word word)
+    {
+        Intent intent = new Intent(caller, TranslationsActivity.class);
+        intent.putExtra(TranslationsActivity.INTENT_EXTRA_DICT_WORD, word);
+
+        caller.startActivity(intent);
+    }
+
+    public static void showVocWord(Activity caller, Word word)
+    {
+        Intent intent = new Intent(caller, TranslationsActivity.class);
+        intent.putExtra(TranslationsActivity.INTENT_EXTRA_VOC_WORD, word);
+
+        caller.startActivity(intent);
     }
 }

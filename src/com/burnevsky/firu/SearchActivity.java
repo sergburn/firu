@@ -273,17 +273,12 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     public void showTranslation(AdapterView<?> parent, View view, int position, long id)
     {
         Word word = (Word) parent.getItemAtPosition(position);
-
-        Intent intent = new Intent(this, TranslationsActivity.class);
-        intent.putExtra(TranslationsActivity.INTENT_EXTRA_WORD, word);
-
-        startActivity(intent);
+        TranslationsActivity.showDictWord(this, word);
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        // TODO Auto-generated method stub
         showTranslation(parent, view, position, id);
     }
 }
