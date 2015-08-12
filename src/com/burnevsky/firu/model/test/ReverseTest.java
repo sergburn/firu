@@ -56,6 +56,11 @@ public class ReverseTest extends VocabularyTest
         return null;
     }
 
+    public int getAnswerLength()
+    {
+        return mAnswer.length();
+    }
+
     public Mark getMark()
     {
         return mChallenge.ReverseMark;

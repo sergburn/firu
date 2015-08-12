@@ -25,6 +25,7 @@
 package com.burnevsky.firu;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import android.annotation.TargetApi;
@@ -87,6 +88,9 @@ public class TrainerActivity extends Activity
     private ReverseTest mTest = null;
     private boolean mErrorState;
 
+    private String mInputText = null;
+    private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
+
     // User must enter word without typing mistakes to Pass the test
     // (otherwise she can use try-and-error approach)
     // However, after 1st typo takes away 1 life, which counted as 1 hint,
@@ -103,8 +107,7 @@ public class TrainerActivity extends Activity
         STATE_MAKING_NORMAL_EXAM,
         STATE_MAKING_REVIEW_EXAM,
         STATE_TEST_ONGOING,
-        STATE_TEST_FINISHED,
-        STATE_EXAM_FINISHED
+        STATE_TEST_FINISHED
     };
     State mState = State.STATE_INITIAL;
 
@@ -112,6 +115,14 @@ public class TrainerActivity extends Activity
     Dictionary mDict = null;
     Vocabulary mVoc = null;
     FiruApplication.ModelListener mModelListener = null;
+
+    // TODO: setting
+    private boolean mShowWordLength = true;
+
+    public TrainerActivity()
+    {
+        Arrays.fill(mAnswerTemplate, '\u2022');
+    }
 
     class ModelListener implements FiruApplication.ModelListener
     {
@@ -251,10 +262,9 @@ public class TrainerActivity extends Activity
     {
         private long mLastClick = 0;
 
-        public void afterTextChanged(TextView s)
+        public void afterTextChanged()
         {
-            final String input = mWordText.getText().toString();
-            if (input.length() == 0)
+            if (mInputText.length() == 0)
             {
                 showInputCorrectness(true);
             }
@@ -271,7 +281,7 @@ public class TrainerActivity extends Activity
                 boolean correct = false;
                 try
                 {
-                    correct = mTest.checkGuess(input, mForgiveFurtherMistakes || fastTypingDetected);
+                    correct = mTest.checkGuess(mInputText, mForgiveFurtherMistakes || fastTypingDetected);
                     showInputCorrectness(correct);
                 }
                 catch (TestAlreadyCompleteException e)
@@ -287,9 +297,17 @@ public class TrainerActivity extends Activity
                 }
                 else
                 {
-                    showTestState(); // update lives
+                    showTestResult(); // update lives
 
-                    if (!correct)
+                    if (correct)
+                    {
+                        if (mShowWordLength &&
+                            mInputText.length() == mTest.getAnswerLength())
+                        {
+                            onEnter();
+                        }
+                    }
+                    else
                     {
                         if (!mForgiveFurtherMistakes)
                         {
@@ -313,9 +331,8 @@ public class TrainerActivity extends Activity
                             {
                                 if (mErrorState)
                                 {
-                                    mWordText.setText(input.substring(0, input.length() - 1));
+                                    onBackspace();
                                     setKeyboardEnabled(true);
-                                    afterTextChanged(mWordText);
                                 }
                             }
                         }, TRAINER_CORRECTION_DELAY);
@@ -324,11 +341,11 @@ public class TrainerActivity extends Activity
             }
         }
 
-        public void onEnter(TextView v)
+        public void onEnter()
         {
             try
             {
-                boolean correct = mTest.checkAnswer(mWordText.getText().toString());
+                boolean correct = mTest.checkAnswer(mInputText);
                 showInputCorrectness(correct);
             }
             catch (TestAlreadyCompleteException e)
@@ -344,8 +361,15 @@ public class TrainerActivity extends Activity
             }
             else
             {
-                showTestState(); // update lives
+                showTestResult(); // update lives
             }
+        }
+
+        public void onBackspace()
+        {
+            mInputText = mInputText.substring(0, mInputText.length() - 1);
+            showAnswerText();
+            afterTextChanged();
         }
     };
 
@@ -357,8 +381,9 @@ public class TrainerActivity extends Activity
         public void onClick(View v)
         {
             Button b = (Button) v;
-            mWordText.append(b.getText());
-            mGuessValidator.afterTextChanged(mWordText);
+            mInputText += b.getText();
+            showAnswerText();
+            mGuessValidator.afterTextChanged();
         }
     };
 
@@ -366,7 +391,7 @@ public class TrainerActivity extends Activity
     {
         mTest = test;
         mTransText.setText(test.getChallenge());
-        mWordText.setText("");
+        mInputText = new String();
         mForgiveFurtherMistakes = false;
         changeState(State.STATE_TEST_ONGOING);
     }
@@ -428,7 +453,7 @@ public class TrainerActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                mGuessValidator.onEnter(mWordText);
+                mGuessValidator.onEnter();
             }
         });
 
@@ -539,33 +564,29 @@ public class TrainerActivity extends Activity
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
+                mEnter.setVisibility(View.INVISIBLE);
                 mMarkRating.setVisibility(View.INVISIBLE);
-                showTestState();
+                showAnswerText();
+                showTestResult();
                 showExamProgress(false);
                 break;
             case STATE_TEST_ONGOING:
                 setKeyboardEnabled(true);
                 mHintButton.setEnabled(true);
                 mNextButton.setEnabled(true);
+                mEnter.setVisibility(mShowWordLength ? View.INVISIBLE : View.VISIBLE);
                 mMarkRating.setVisibility(View.VISIBLE);
-                showTestState();
+                showAnswerText();
+                showTestResult();
                 showExamProgress(true);
                 break;
             case STATE_TEST_FINISHED:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
-                showTestState();
+                showAnswerText();
+                showTestResult();
                 showInputCorrectness(true);
                 showExamProgress(true);
-                break;
-            case STATE_EXAM_FINISHED:
-                mKeyboard.setVisibility(View.INVISIBLE);
-                mHintButton.setVisibility(View.INVISIBLE);
-                mNextButton.setVisibility(View.INVISIBLE);
-                mTransText.setText("Exam finished!");
-                mWordText.setText("");
-                showLifes(0);
-                showExamProgress(false);
                 break;
             default:
                 break;
@@ -573,45 +594,57 @@ public class TrainerActivity extends Activity
         mState = newState;
     }
 
-    void showTestState()
+    void showAnswerText()
     {
         if (mTest != null)
         {
-            showTestResult(mTest.getResult());
+            String word = mInputText;
+            if (mShowWordLength)
+            {
+                word += String.valueOf(mAnswerTemplate, 0, mTest.getAnswerLength() - mInputText.length());
+            }
+            mWordText.setText(word);
+        }
+        else
+        {
+            mWordText.setText("");
+        }
+    }
+
+    void showTestResult()
+    {
+        if (mTest != null)
+        {
+            switch (mTest.getResult())
+            {
+                case Incomplete:
+                    showLifes(mTest.getHintsLeft());
+                    break;
+
+                case Passed:
+                    showTestResultIcon(mPassedIcon);
+                    break;
+
+                case PassedWithHints:
+                    showTestResultIcon(mOkIcon);
+                    break;
+
+                case Failed:
+                    mWordText.setText(mTest.getAnswer());
+                    showTestResultIcon(mFailIcon);
+                    break;
+
+                default:
+                    assert false;
+                    return;
+            }
+
+            mMarkRating.setRating(ExamResultActivity.markToRate(mTest.getMark()));
         }
         else
         {
             showTestResultIcon(null);
         }
-    }
-
-    void showTestResult(TestResult result)
-    {
-        switch (result)
-        {
-            case Incomplete:
-                showLifes(mTest.getHintsLeft());
-                break;
-
-            case Passed:
-                showTestResultIcon(mPassedIcon);
-                break;
-
-            case PassedWithHints:
-                showTestResultIcon(mOkIcon);
-                break;
-
-            case Failed:
-                mWordText.setText(mTest.getAnswer());
-                showTestResultIcon(mFailIcon);
-                break;
-
-            default:
-                assert false;
-                return;
-        }
-
-        mMarkRating.setRating(ExamResultActivity.markToRate(mTest.getMark()));
     }
 
     void showLifes(int lives)
@@ -666,7 +699,6 @@ public class TrainerActivity extends Activity
             }
             else
             {
-                //changeState(State.STATE_EXAM_FINISHED);
                 Intent intent = new Intent(this, ExamResultActivity.class);
                 ArrayList<Word> testWords = mExam.getResults();
                 intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, testWords);
@@ -682,9 +714,10 @@ public class TrainerActivity extends Activity
         {
             if (mTest.getHintsLeft() > 0)
             {
-                String newText = mTest.getHint(mWordText.getText().toString());
-                mWordText.setText(newText);
-                showTestState();
+                mInputText = mTest.getHint(mInputText);
+                showAnswerText();
+                mGuessValidator.afterTextChanged();
+                showTestResult();
             }
             else
             {
