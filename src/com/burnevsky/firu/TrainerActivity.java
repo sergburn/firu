@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -36,28 +35,18 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.text.Editable;
-import android.text.Layout;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RatingBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -90,6 +79,15 @@ public class TrainerActivity extends Activity
 
     private String mInputText = null;
     private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
+
+    private static final String[] TRAINER_KEYBOARD_LINES = {
+        "qwertyuiopå",
+        "asdfghjklöä",
+        "__zxcvbnm__"
+    };
+
+    private static final int TRAINER_KEYBOARD_LINE_LENGHT = 11;
+    private static final int TRAINER_KEYBOARD_LINES_NUM = TRAINER_KEYBOARD_LINES.length;
 
     // User must enter word without typing mistakes to Pass the test
     // (otherwise she can use try-and-error approach)
@@ -262,6 +260,65 @@ public class TrainerActivity extends Activity
     {
         private long mLastClick = 0;
 
+        private boolean isTypo()
+        {
+            if (mInputText.length() == 0)
+            {
+                return false;
+            }
+
+            String subGuess = mInputText.substring(0, mInputText.length() - 1);
+            char last = mInputText.charAt(mInputText.length() - 1);
+
+            String variants = selectKeysAround(last);
+            try
+            {
+                for (char c : variants.toCharArray())
+                {
+                    if (mTest.checkGuess(subGuess + c, true))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (TestAlreadyCompleteException e)
+            {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        private String selectKeysAround(char last)
+        {
+            for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
+            {
+                for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGHT; c++)
+                {
+                    if (TRAINER_KEYBOARD_LINES[r].charAt(c) == last)
+                    {
+                        String variants = selectCharsAround(TRAINER_KEYBOARD_LINES[r], c);
+                        if (r > 0) // above
+                        {
+                            variants += selectCharsAround(TRAINER_KEYBOARD_LINES[r-1], c);
+                        }
+                        if (r < TRAINER_KEYBOARD_LINES_NUM - 1) // below
+                        {
+                            variants += selectCharsAround(TRAINER_KEYBOARD_LINES[r+1], c);
+                        }
+                        return variants;
+                    }
+                }
+            }
+            return "";
+        }
+
+        private String selectCharsAround(String line, int index)
+        {
+            int start = Math.max(0, index - 1);
+            int end = Math.min(line.length(), index + 1);
+            return line.substring(start, end);
+        }
+
         public void afterTextChanged()
         {
             if (mInputText.length() == 0)
@@ -281,12 +338,30 @@ public class TrainerActivity extends Activity
                 boolean correct = false;
                 try
                 {
-                    correct = mTest.checkGuess(mInputText, mForgiveFurtherMistakes || fastTypingDetected);
+                    if (!mForgiveFurtherMistakes)
+                    {
+                        boolean typo = fastTypingDetected && isTypo();
+                        correct = mTest.checkGuess(mInputText, typo);
+                        if (!correct)
+                        {
+                            if (typo)
+                            {
+                                Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
+                            }
+                            else
+                            {
+                                mForgiveFurtherMistakes = true; // hint was revoked
+                            }
+                        }
+                    }
+                    else
+                    {
+                        correct = mTest.checkGuess(mInputText, true); // mForgiveFurtherMistakes == true
+                    }
                     showInputCorrectness(correct);
                 }
                 catch (TestAlreadyCompleteException e)
                 {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                     return;
                 }
@@ -304,23 +379,11 @@ public class TrainerActivity extends Activity
                         if (mShowWordLength &&
                             mInputText.length() == mTest.getAnswerLength())
                         {
-                            onEnter();
+                            onEnter(); // save user one button push
                         }
                     }
                     else
                     {
-                        if (!mForgiveFurtherMistakes)
-                        {
-                            if (fastTypingDetected)
-                            {
-                                Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
-                            }
-                            else
-                            {
-                                mForgiveFurtherMistakes = true; // hint was revoked
-                            }
-                        }
-
                         setKeyboardEnabled(false);
 
                         // Automatically correct shortly: remove last wrong letter
@@ -457,32 +520,19 @@ public class TrainerActivity extends Activity
             }
         });
 
-        String lines12 = "qwertyuiopåasdfghjklöä";
-        String line3 = "__zxcvbnm__";
-
         final int BUTTON_HEIGHT = 124;
-        for (int r = 0; r < 3; r++)
+        for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
         {
             GridLayout.Spec rowSpec = GridLayout.spec(r);
-            for (int c = 0; c < 11; c++)
+            for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGHT; c++)
             {
-                String cap = "";
-
-                if (r < 2)
-                {
-                    cap = lines12.substring(r*11+c, r*11+c+1);
-                }
-                else if (c >= 2 && c < 9)
-                {
-                    cap = line3.substring(c, c + 1);
-                }
-
-                if (!cap.isEmpty())
+                char cap = TRAINER_KEYBOARD_LINES[r].charAt(c);
+                if (Character.isLetter(cap))
                 {
                     GridLayout.Spec colSpec = GridLayout.spec(c, GridLayout.CENTER);
 
                     GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
-                    params.bottomMargin = (r < 2) ? 30 : 10;
+                    params.bottomMargin = (r < TRAINER_KEYBOARD_LINES_NUM - 1) ? 30 : 10;
 
                     Button k = new Button(mSelfContext, null, android.R.attr.buttonStyle);
                     k.setMinHeight(BUTTON_HEIGHT);
@@ -491,7 +541,7 @@ public class TrainerActivity extends Activity
                     k.setMinimumWidth(80);
                     k.setPadding(0, 0, 0, 0);
                     k.setOnClickListener(mKeyBoardListener);
-                    k.setText(cap);
+                    k.setText(String.valueOf(cap));
                     k.setTypeface(k.getTypeface(), 1); // bold
                     k.setTextSize(22); // sp
 
