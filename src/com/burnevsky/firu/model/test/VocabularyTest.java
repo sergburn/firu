@@ -46,9 +46,9 @@ public class VocabularyTest
     }
 
     /** @return Whether test is finished or continues. */
-    protected boolean revokeHint()
+    public boolean revokeHint() throws TestAlreadyCompleteException
     {
-        assert mResult == TestResult.Incomplete;
+        ensureIncomplete();
 
         if (mHints > 0)
         {

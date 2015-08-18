@@ -315,7 +315,7 @@ public class TrainerActivity extends Activity
         private String selectCharsAround(String line, int index)
         {
             int start = Math.max(0, index - 1);
-            int end = Math.min(line.length(), index + 1);
+            int end = Math.min(line.length(), index + 2);
             return line.substring(start, end);
         }
 
@@ -329,34 +329,24 @@ public class TrainerActivity extends Activity
             {
                 long now = SystemClock.uptimeMillis();
                 boolean fastTypingDetected = (now - mLastClick) < TrainerActivity.TRAINER_MAX_TYPO_DELAY;
-                if (fastTypingDetected)
-                {
-                    Log.d("firu", "Fast typing interval: " + String.valueOf(now - mLastClick));
-                }
                 mLastClick = now;
 
                 boolean correct = false;
                 try
                 {
-                    if (!mForgiveFurtherMistakes)
+                    correct = mTest.checkGuess(mInputText, true); // do not revoke hint yet
+                    if (!correct && !mForgiveFurtherMistakes)
                     {
                         boolean typo = fastTypingDetected && isTypo();
-                        correct = mTest.checkGuess(mInputText, typo);
-                        if (!correct)
+                        if (typo)
                         {
-                            if (typo)
-                            {
-                                Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
-                            }
-                            else
-                            {
-                                mForgiveFurtherMistakes = true; // hint was revoked
-                            }
+                            Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
                         }
-                    }
-                    else
-                    {
-                        correct = mTest.checkGuess(mInputText, true); // mForgiveFurtherMistakes == true
+                        else
+                        {
+                            mTest.revokeHint();
+                            mForgiveFurtherMistakes = true;
+                        }
                     }
                     showInputCorrectness(correct);
                 }
