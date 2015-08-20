@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.burnevsky.firu.model.test.ReverseExam;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -40,6 +42,8 @@ import android.util.Log;
 
 public class Vocabulary extends DictionaryBase
 {
+    private static final String TAG = Vocabulary.class.getName();
+
     public Vocabulary(String connectionString, Context context)
     {
         SQLiteOpenHelper dbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
@@ -231,7 +235,7 @@ public class Vocabulary extends DictionaryBase
         }
         catch (SQLiteConstraintException e)
         {
-            Log.d("firu.model", "Exception in addWord: " + e.getMessage());
+            Log.e(TAG, "Exception in addWord: " + e.getMessage());
             throw e;
         }
         finally
@@ -255,7 +259,7 @@ public class Vocabulary extends DictionaryBase
         }
         catch (SQLiteConstraintException e)
         {
-            Log.d("firu.model", "Exception in removeWord: " + e.getMessage());
+            Log.e(TAG, "Exception in removeWord: " + e.getMessage());
             throw e;
         }
         finally
@@ -280,7 +284,7 @@ public class Vocabulary extends DictionaryBase
         }
         catch (SQLiteConstraintException e)
         {
-            Log.d("firu.model", "Exception in updateMarks: " + e.getMessage());
+            Log.e(TAG, "Exception in updateMarks: " + e.getMessage());
             throw e;
         }
         finally
@@ -302,7 +306,7 @@ public class Vocabulary extends DictionaryBase
         }
         catch (SQLiteConstraintException e)
         {
-            Log.d("firu.model", "Exception in clearAll: " + e.getMessage());
+            Log.e(TAG, "Exception in clearAll: " + e.getMessage());
             throw e;
         }
         finally
@@ -327,10 +331,12 @@ public class Vocabulary extends DictionaryBase
                 list.add(t);
                 next = c.moveToNext();
             }
+            Log.d(TAG, String.format("Loaded %d translations with marks in [%d..%d]",
+                c.getCount(), min.toInt(), max.toInt()));
         }
         catch (Exception e)
         {
-            Log.d("firu.model", "Exception in selectTranslations: " + e.getMessage());
+            Log.e(TAG, "Exception in selectTranslations: " + e.getMessage());
             throw e;
         }
         return list;
@@ -371,7 +377,7 @@ public class Vocabulary extends DictionaryBase
         }
         catch (Exception e)
         {
-            Log.d("firu.model", "Exception in collectStatistics: " + e.getMessage());
+            Log.e(TAG, "Exception in collectStatistics: " + e.getMessage());
             throw e;
         }
         return stats;

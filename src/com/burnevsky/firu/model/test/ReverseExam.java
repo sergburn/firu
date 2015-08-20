@@ -38,39 +38,57 @@ import com.burnevsky.firu.model.Word;
 
 public class ReverseExam
 {
-    static final int K_NUM_TESTS = 7;
+    private static final String TAG = ReverseExam.class.getName();
+    private static final int K_NUM_TESTS = 7;
 
     private Vocabulary mVoc = null;
     ArrayList<Word> mChallenges = null;
     private int mNextTest = 0;
 
-    public ReverseExam(Vocabulary voc, Mark maxMark)
+    public ReverseExam(Vocabulary voc)
     {
         mVoc = voc;
         mChallenges = new ArrayList<Word>();
 
-        List<MarkedTranslation> toLearnItems = voc.selectTranslations(Mark.YetToLearn, maxMark, true);
+        Random rand = new Random();
 
-        if ((toLearnItems.size() >= K_NUM_TESTS) ||                             // normal test
-            (!maxMark.lessThan(Mark.Learned) && toLearnItems.size() > 0))       // review test
+        // All target words should be unique
+        List<Long> usedWords = new ArrayList<Long>();
+
+        // First select only from translations that are not completely learned yet
+        List<MarkedTranslation> translations = voc.selectTranslations(Mark.YetToLearn, Mark.AlmostLearned, true);
+        selectTranslations(translations, rand, usedWords);
+
+        if (mChallenges.size() < K_NUM_TESTS)
         {
-            Random rand = new Random();
-            for (int i = 0; (i < K_NUM_TESTS) && (toLearnItems.size()) > 0; i++)
+            // If not enough translations, add those completely learned
+            Log.d(TAG, "Not enough unlearned translations of unique words, using learned ones");
+            translations = voc.selectTranslations(Mark.Learned, Mark.Learned, true);
+            selectTranslations(translations, rand, usedWords);
+        }
+    }
+
+    private void selectTranslations(List<MarkedTranslation> items, Random rand, List<Long> usedWords)
+    {
+        for (int i = 0; (i < K_NUM_TESTS) && (items.size()) > 0; i++)
+        {
+            int k = rand.nextInt(items.size());
+            MarkedTranslation t = items.get(k);
+
+            if (usedWords == null ||
+                !usedWords.contains(t.getWordID())) // translation of the same word
             {
-                int k = rand.nextInt(toLearnItems.size());
-                MarkedTranslation t = toLearnItems.get(k);
-                Word w = voc.getWord(t.getWordID());
+                Word w = mVoc.getWord(t.getWordID());
                 w.translations = new ArrayList<Translation>();
                 w.translations.add(t);
                 mChallenges.add(w);
-                toLearnItems.remove(k);
+
+                if (usedWords != null)
+                {
+                    usedWords.add(t.getWordID());
+                }
             }
-        }
-        else
-        {
-            Log.d("firu", String.format(
-                "Too few (%1$d) translations with marks in range (%2$s, %3$s)",
-                toLearnItems.size(), Mark.YetToLearn, maxMark));
+            items.remove(k);
         }
     }
 

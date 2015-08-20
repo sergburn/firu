@@ -102,8 +102,7 @@ public class TrainerActivity extends Activity
     private enum State
     {
         STATE_INITIAL, // mTest == null
-        STATE_MAKING_NORMAL_EXAM,
-        STATE_MAKING_REVIEW_EXAM,
+        STATE_MAKING_EXAM,
         STATE_TEST_ONGOING,
         STATE_TEST_FINISHED
     };
@@ -128,7 +127,7 @@ public class TrainerActivity extends Activity
         public void onVocabularyOpen(Vocabulary voc)
         {
             mVoc = voc;
-            startNormalExam();
+            startExam();
         }
 
         @Override
@@ -156,61 +155,16 @@ public class TrainerActivity extends Activity
         }
     }
 
-    private void startNormalExam()
+    private void startExam()
     {
-        changeState(State.STATE_MAKING_NORMAL_EXAM);
-        new ReverseExamBuilder().execute(Mark.AlmostLearned);
-    }
-
-    private void startReviewExam()
-    {
-        changeState(State.STATE_MAKING_REVIEW_EXAM);
-        new ReverseExamBuilder().execute(Mark.Learned);
+        changeState(State.STATE_MAKING_EXAM);
+        new ReverseExamBuilder().execute();
     }
 
     private void onExamUnavailable()
     {
-        if (mState == State.STATE_MAKING_NORMAL_EXAM)
-        {
-            onNormalExamUnavailable();
-        }
-        else if (mState == State.STATE_MAKING_REVIEW_EXAM)
-        {
-            onReviewExamUnavailable();
-        }
-    }
-
-    private void onNormalExamUnavailable()
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mSelfContext);
-        builder
-        .setTitle("Reverse exam")
-        .setMessage("You seem to have learned whole vocabulary!\n"
-            + "Do you want to review learned words?")
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
-            {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    startReviewExam();
-                }
-            } )
-            .setNegativeButton("No", new DialogInterface.OnClickListener()
-            {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    finish();
-                }
-            } )
-            .show();
-    }
-
-    private void onReviewExamUnavailable()
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mSelfContext);
-        builder
+        AlertDialog.Builder dialog = new AlertDialog.Builder(mSelfContext);
+        dialog
         .setTitle("Reverse exam")
         .setMessage("No words found in your vocabulary.\n"
             + "Add some before starting trainer.")
@@ -231,7 +185,7 @@ public class TrainerActivity extends Activity
         @Override
         protected ReverseExam doInBackground(Mark... param)
         {
-            return new ReverseExam(mVoc, param[0]);
+            return new ReverseExam(mVoc);
         }
 
         @Override
@@ -599,8 +553,7 @@ public class TrainerActivity extends Activity
         switch (newState)
         {
             case STATE_INITIAL:
-            case STATE_MAKING_NORMAL_EXAM:
-            case STATE_MAKING_REVIEW_EXAM:
+            case STATE_MAKING_EXAM:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
                 mNextButton.setEnabled(false);
