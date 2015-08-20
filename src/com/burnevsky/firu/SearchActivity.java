@@ -36,9 +36,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -58,6 +60,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     ListView mWordsListView = null;
     TextView mCountText = null;
     MenuItem mExportVocMenu, mClearVocMenu = null;
+    SearchView mInputText = null;
 
     DictionarySearch mSearchTask = null;
     DictionaryCounter mCountTask = null;
@@ -163,6 +166,7 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mWordsListView = (ListView) findViewById(R.id.wordList);
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
+        mInputText = (SearchView) findViewById(R.id.searchWord);
         mSelfContext = this;
 
         mModelListener = new ModelListener();
@@ -255,6 +259,13 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             Log.i("firu", "Another search is running or pending");
         }
+
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+        mInputText.clearFocus();
         return true;
     }
 
