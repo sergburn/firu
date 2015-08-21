@@ -70,6 +70,8 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     Vocabulary mVoc = null;
     FiruApplication.ModelListener mModelListener = null;
 
+    private String mSharedText;
+
     class ModelListener implements FiruApplication.ModelListener
     {
         @Override
@@ -99,6 +101,19 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             mDict = dict;
             showTotalWordsCount();
+            if (mSharedText != null)
+            {
+                // At the moment only one word search is supported
+                String words[] = mSharedText.trim().split("\\W+");
+                for (String m : words)
+                {
+                    Log.d("firu", m);
+                }
+                if (words.length > 0)
+                {
+                    mInputText.setQuery(words[0], true);
+                }
+            }
         }
 
         @Override
@@ -173,6 +188,12 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         mApp = (FiruApplication) getApplicationContext();
         mApp.subscribeDictionary(mSelfContext, mModelListener);
         mApp.subscribeVocabulary(mSelfContext, mModelListener);
+
+        Intent intent = getIntent();
+        if (intent.getAction() == Intent.ACTION_SEND)
+        {
+            mSharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        }
     }
 
     private void showTotalWordsCount()
