@@ -59,9 +59,8 @@ import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.test.TestResult;
 
-public class TrainerActivity extends Activity
+public class TrainerActivity extends FiruActivityBase
 {
-    private Context mSelfContext = null;
     private TextView mTransText = null;
     private TextView mWordText = null;
     private Drawable mOkIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
@@ -108,11 +107,6 @@ public class TrainerActivity extends Activity
     };
     State mState = State.STATE_INITIAL;
 
-    FiruApplication mApp = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-    FiruApplication.ModelListener mModelListener = null;
-
     // TODO: setting
     private boolean mShowWordLength = true;
 
@@ -121,38 +115,17 @@ public class TrainerActivity extends Activity
         Arrays.fill(mAnswerTemplate, '\u2022');
     }
 
-    class ModelListener implements FiruApplication.ModelListener
+    @Override
+    public void onVocabularyOpen(Vocabulary voc)
     {
-        @Override
-        public void onVocabularyOpen(Vocabulary voc)
-        {
-            mVoc = voc;
-            startExam();
-        }
+        super.onVocabularyOpen(voc);
+        startExam();
+    }
 
-        @Override
-        public void onVocabularyReset(Vocabulary voc)
-        {
-            // TODO: cancel test (however this event should never happen during test)
-        }
-
-        @Override
-        public void onVocabularyClose(Vocabulary voc)
-        {
-            mVoc = null;
-        }
-
-        @Override
-        public void onDictionaryOpen(Dictionary dict)
-        {
-            mDict = dict;
-        }
-
-        @Override
-        public void onDictionaryClose(Dictionary dict)
-        {
-            mDict = null;
-        }
+    @Override
+    public void onVocabularyReset(Vocabulary voc)
+    {
+        // TODO: cancel test (however this event should never happen during test)
     }
 
     private void startExam()
@@ -428,7 +401,6 @@ public class TrainerActivity extends Activity
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
         mEnter = (Button) findViewById(R.id.btnEnter);
         mMarkRating = (RatingBar) findViewById(R.id.rbMark);
-        mSelfContext = this;
 
         mOkIcon = getResources().getDrawable(R.drawable.ic_action_accept);
         mPassedIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -517,11 +489,6 @@ public class TrainerActivity extends Activity
                 }
             }
         });
-
-        mModelListener = new ModelListener();
-        mApp = (FiruApplication) getApplicationContext();
-        mApp.subscribeDictionary(mSelfContext, mModelListener);
-        mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
         changeState(State.STATE_INITIAL);
     }

@@ -54,48 +54,19 @@ import com.androidplot.xy.XYSeries;
 import com.androidplot.xy.XYStepMode;
  */
 
-public class StatActivity extends Activity
+public class StatActivity extends FiruActivityBase
 {
     //    private XYPlot plot;
     private PieChart pie;
     private TextView mTotal;
 
-    Context mSelfContext = null;
-    FiruApplication mApp = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-    FiruApplication.ModelListener mModelListener = null;
-
     Vocabulary.LearningStats mLearningStats = null;
 
-    class ModelListener implements FiruApplication.ModelListener
+    @Override
+    public void onVocabularyOpen(Vocabulary voc)
     {
-        @Override
-        public void onDictionaryOpen(Dictionary dict)
-        {
-        }
-
-        @Override
-        public void onDictionaryClose(Dictionary dict)
-        {
-        }
-
-        @Override
-        public void onVocabularyOpen(Vocabulary voc)
-        {
-            mVoc = voc;
-            new VocabularyStats().execute();
-        }
-
-        @Override
-        public void onVocabularyReset(Vocabulary voc)
-        {
-        }
-
-        @Override
-        public void onVocabularyClose(Vocabulary voc)
-        {
-        }
+        super.onVocabularyOpen(voc);
+        new VocabularyStats().execute();
     }
 
     class VocabularyStats extends AsyncTask<Void, Void, Vocabulary.LearningStats>
@@ -124,12 +95,6 @@ public class StatActivity extends Activity
         setContentView(R.layout.activity_stat);
 
         mTotal = (TextView) findViewById(R.id.textTotal);
-
-        mSelfContext = this;
-
-        mModelListener = new ModelListener();
-        mApp = (FiruApplication) getApplicationContext();
-        mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
         //showXYplot();
         //findViewById(R.id.mySimpleXYPlot).setVisibility(View.INVISIBLE);

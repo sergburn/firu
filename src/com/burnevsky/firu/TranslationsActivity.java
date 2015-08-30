@@ -47,7 +47,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class TranslationsActivity extends Activity
+public class TranslationsActivity extends FiruActivityBase
 {
     public final static String INTENT_EXTRA_DICT_WORD = "com.burnevsk.firu.dict_word";
     public final static String INTENT_EXTRA_VOC_WORD = "com.burnevsk.firu.voc_word";
@@ -56,56 +56,30 @@ public class TranslationsActivity extends Activity
     ListView mTransView = null;
     ImageView mStarBtn = null;
     Drawable mStarredIcon = null, mUnstarredIcon = null;
-    Context mSelfContext = null;
 
     Word mDictWord = null, mVocWord = null;
 
-    FiruApplication mApp = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-    FiruApplication.ModelListener mModelListener = null;
-
-    class ModelListener implements FiruApplication.ModelListener
+    @Override
+    public void onVocabularyOpen(Vocabulary voc)
     {
-        @Override
-        public void onVocabularyOpen(Vocabulary voc)
+        super.onVocabularyOpen(voc);
+        if (mVocWord != null)
         {
-            mVoc = voc;
-            if (mVocWord != null)
-            {
-                new VocabularyTranslations().execute(mVocWord);
-            }
-            else if (mDictWord != null)
-            {
-                new VocabularyMatch().execute(mDictWord);
-            }
+            new VocabularyTranslations().execute(mVocWord);
         }
-
-        @Override
-        public void onVocabularyReset(Vocabulary voc)
+        else if (mDictWord != null)
         {
+            new VocabularyMatch().execute(mDictWord);
         }
+    }
 
-        @Override
-        public void onVocabularyClose(Vocabulary voc)
+    @Override
+    public void onDictionaryOpen(Dictionary dict)
+    {
+        super.onDictionaryOpen(dict);
+        if (mDictWord != null)
         {
-            mVoc = null;
-        }
-
-        @Override
-        public void onDictionaryOpen(Dictionary dict)
-        {
-            mDict = dict;
-            if (mDictWord != null)
-            {
-                new DictionaryTranslations().execute(mDictWord);
-            }
-        }
-
-        @Override
-        public void onDictionaryClose(Dictionary dict)
-        {
-            mDict = null;
+            new DictionaryTranslations().execute(mDictWord);
         }
     }
 
@@ -220,12 +194,6 @@ public class TranslationsActivity extends Activity
         mTransView = (ListView) findViewById(R.id.listTranslations);
         mStarredIcon = getResources().getDrawable(R.drawable.ic_action_important_dark);
         mUnstarredIcon = getResources().getDrawable(R.drawable.ic_action_not_important_dark);
-        mSelfContext = this;
-
-        mApp = (FiruApplication) getApplicationContext();
-        mModelListener = new ModelListener();
-        mApp.subscribeDictionary(mSelfContext, mModelListener);
-        mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
         Intent intent = getIntent();
         mDictWord = intent.getParcelableExtra(INTENT_EXTRA_DICT_WORD);

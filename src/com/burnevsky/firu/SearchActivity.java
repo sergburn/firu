@@ -50,12 +50,11 @@ import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
-public class SearchActivity extends Activity implements SearchView.OnQueryTextListener, OnItemClickListener
+public class SearchActivity extends FiruActivityBase implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
 
     final Handler mHandler = new Handler();
-    Context mSelfContext = null;
 
     ListView mWordsListView = null;
     TextView mCountText = null;
@@ -65,63 +64,56 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     DictionarySearch mSearchTask = null;
     DictionaryCounter mCountTask = null;
 
-    FiruApplication mApp = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-    FiruApplication.ModelListener mModelListener = null;
-
     private String mSharedText;
 
-    class ModelListener implements FiruApplication.ModelListener
+    @Override
+    public void onVocabularyOpen(Vocabulary voc)
     {
-        @Override
-        public void onVocabularyOpen(Vocabulary voc)
-        {
-            mVoc = voc;
-            invalidateOptionsMenu();
-            Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
-        }
+        super.onVocabularyOpen(voc);
+        invalidateOptionsMenu();
+        Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
+    }
 
-        @Override
-        public void onVocabularyReset(Vocabulary voc)
-        {
-            invalidateOptionsMenu();
-            Toast.makeText(mSelfContext, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
-        }
+    @Override
+    public void onVocabularyReset(Vocabulary voc)
+    {
+        super.onVocabularyReset(voc);
+        invalidateOptionsMenu();
+        Toast.makeText(mSelfContext, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
+    }
 
-        @Override
-        public void onVocabularyClose(Vocabulary voc)
-        {
-            mVoc = null;
-            invalidateOptionsMenu();
-        }
+    @Override
+    public void onVocabularyClose(Vocabulary voc)
+    {
+        invalidateOptionsMenu();
+        super.onVocabularyClose(voc);
+    }
 
-        @Override
-        public void onDictionaryOpen(Dictionary dict)
+    @Override
+    public void onDictionaryOpen(Dictionary dict)
+    {
+        super.onDictionaryOpen(dict);
+        showTotalWordsCount();
+        if (mSharedText != null)
         {
-            mDict = dict;
-            showTotalWordsCount();
-            if (mSharedText != null)
+            // At the moment only one word search is supported
+            String words[] = mSharedText.trim().split("\\W+");
+            for (String m : words)
             {
-                // At the moment only one word search is supported
-                String words[] = mSharedText.trim().split("\\W+");
-                for (String m : words)
-                {
-                    Log.d("firu", m);
-                }
-                if (words.length > 0)
-                {
-                    mInputText.setQuery(words[0], true);
-                }
+                Log.d("firu", m);
+            }
+            if (words.length > 0)
+            {
+                mInputText.setQuery(words[0], true);
             }
         }
+    }
 
-        @Override
-        public void onDictionaryClose(Dictionary dict)
-        {
-            mDict = null;
-            showTotalWordsCount();
-        }
+    @Override
+    public void onDictionaryClose(Dictionary dict)
+    {
+        super.onDictionaryClose(dict);
+        showTotalWordsCount();
     }
 
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
@@ -180,19 +172,12 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        SearchView searchWord = (SearchView) findViewById(R.id.searchWord);
-        searchWord.setOnQueryTextListener(this);
+        mInputText = (SearchView) findViewById(R.id.searchWord);
+        mInputText.setOnQueryTextListener(this);
 
         mWordsListView = (ListView) findViewById(R.id.wordList);
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) findViewById(R.id.laCount);
-        mInputText = (SearchView) findViewById(R.id.searchWord);
-        mSelfContext = this;
-
-        mModelListener = new ModelListener();
-        mApp = (FiruApplication) getApplicationContext();
-        mApp.subscribeDictionary(mSelfContext, mModelListener);
-        mApp.subscribeVocabulary(mSelfContext, mModelListener);
 
         Intent intent = getIntent();
         if (intent.getAction() == Intent.ACTION_SEND)
