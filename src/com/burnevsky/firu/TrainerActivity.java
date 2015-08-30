@@ -553,6 +553,7 @@ public class TrainerActivity extends Activity
         switch (newState)
         {
             case STATE_INITIAL:
+                mTransText.setText("");
             case STATE_MAKING_EXAM:
                 setKeyboardEnabled(false);
                 mHintButton.setEnabled(false);
