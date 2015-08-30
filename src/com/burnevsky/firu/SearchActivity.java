@@ -139,6 +139,11 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
             {
                 ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(mSelfContext, android.R.layout.simple_list_item_1, result);
                 mWordsListView.setAdapter(adapter);
+
+                if (result.size() > 0)
+                {
+                    hideKeyboard();
+                }
             }
             else
             {
@@ -280,13 +285,6 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
         {
             Log.i("firu", "Another search is running or pending");
         }
-
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-        mInputText.clearFocus();
         return true;
     }
 
@@ -312,5 +310,15 @@ public class SearchActivity extends Activity implements SearchView.OnQueryTextLi
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
         showTranslation(parent, view, position, id);
+    }
+
+    private void hideKeyboard()
+    {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+        mInputText.clearFocus();
     }
 }
