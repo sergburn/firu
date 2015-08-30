@@ -40,6 +40,7 @@ public class ReverseExam
 {
     private static final String TAG = ReverseExam.class.getName();
     private static final int K_NUM_TESTS = 7;
+    private static final int K_NUM_UNLEARNED = 5;
 
     private Vocabulary mVoc = null;
     ArrayList<Word> mChallenges = null;
@@ -55,22 +56,32 @@ public class ReverseExam
         // All target words should be unique
         List<Long> usedWords = new ArrayList<Long>();
 
-        // First select only from translations that are not completely learned yet
+        // First select from translations that are not completely learned yet
         List<MarkedTranslation> translations = voc.selectTranslations(Mark.YetToLearn, Mark.AlmostLearned, true);
-        selectTranslations(translations, rand, usedWords);
+        selectTranslations(translations, K_NUM_UNLEARNED, rand, usedWords);
 
-        if (mChallenges.size() < K_NUM_TESTS)
+        // Next select some unlearned words
+        translations = voc.selectTranslations(Mark.Learned, Mark.Learned, true);
+        selectTranslations(translations, K_NUM_TESTS, rand, usedWords);
+
+        // Now shuffle them
+        for (int i = mChallenges.size() - 1; i > 0; i--)
         {
-            // If not enough translations, add those completely learned
-            Log.d(TAG, "Not enough unlearned translations of unique words, using learned ones");
-            translations = voc.selectTranslations(Mark.Learned, Mark.Learned, true);
-            selectTranslations(translations, rand, usedWords);
+            int j = rand.nextInt(i+1);
+
+            // swap
+            if (i != j)
+            {
+                Word w = mChallenges.get(i);
+                mChallenges.set(i, mChallenges.get(j));
+                mChallenges.set(j, w);
+            }
         }
     }
 
-    private void selectTranslations(List<MarkedTranslation> items, Random rand, List<Long> usedWords)
+    private void selectTranslations(List<MarkedTranslation> items, int maxCount, Random rand, List<Long> usedWords)
     {
-        for (int i = 0; (i < K_NUM_TESTS) && (items.size()) > 0; i++)
+        while (mChallenges.size() < maxCount && items.size() > 0)
         {
             int k = rand.nextInt(items.size());
             MarkedTranslation t = items.get(k);
