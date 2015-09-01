@@ -52,7 +52,7 @@ public class ReverseExam
         mChallenges = new ArrayList<Word>();
 
         Random rand = new Random();
-
+        /*
         // All target words should be unique
         List<Long> usedWords = new ArrayList<Long>();
 
@@ -60,9 +60,17 @@ public class ReverseExam
         List<MarkedTranslation> translations = voc.selectTranslations(Mark.YetToLearn, Mark.AlmostLearned, true);
         selectTranslations(translations, K_NUM_UNLEARNED, rand, usedWords);
 
-        // Next select some unlearned words
+        // Next select some learned words
         translations = voc.selectTranslations(Mark.Learned, Mark.Learned, true);
         selectTranslations(translations, K_NUM_TESTS, rand, usedWords);
+         */
+        // First select words with translations that are not completely learned yet
+        List<Word> unlearned = voc.selectWordsByMarks(Mark.YetToLearn, Mark.AlmostLearned);
+        selectWords(unlearned, K_NUM_UNLEARNED, rand);
+
+        // Next select some learned words
+        List<Word> learned = voc.selectWordsByMarks(Mark.Learned, Mark.Learned);
+        selectWords(learned, K_NUM_TESTS, rand);
 
         // Now shuffle them
         for (int i = mChallenges.size() - 1; i > 0; i--)
@@ -78,7 +86,7 @@ public class ReverseExam
             }
         }
     }
-
+    /*
     private void selectTranslations(List<MarkedTranslation> items, int maxCount, Random rand, List<Long> usedWords)
     {
         while (mChallenges.size() < maxCount && items.size() > 0)
@@ -100,6 +108,22 @@ public class ReverseExam
                 }
             }
             items.remove(k);
+        }
+    }
+     */
+    private void selectWords(List<Word> words, int maxCount, Random rand)
+    {
+        while (mChallenges.size() < maxCount && words.size() > 0)
+        {
+            int k = rand.nextInt(words.size());
+            Word w = words.get(k);
+
+            int j = rand.nextInt(w.translations.size());
+            w.translations = w.translations.subList(j, j+1);
+
+            mChallenges.add(w);
+
+            words.remove(k);
         }
     }
 
