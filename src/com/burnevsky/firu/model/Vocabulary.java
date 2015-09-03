@@ -146,12 +146,12 @@ public class Vocabulary extends DictionaryBase
         return list;
     }
 
-    public List<Translation> getTranslations(Word word)
+    public List<Translation> getTranslations(final Word word)
     {
         return getTranslations(word, Mark.YetToLearn, Mark.Learned);
     }
 
-    public List<Translation> getTranslations(Word word, Mark min, Mark max)
+    public List<Translation> getTranslations(final Word word, final Mark min, final Mark max)
     {
         List<Translation> list = new LinkedList<Translation>();
         Cursor c = mDatabase.query("translations",
@@ -348,7 +348,7 @@ public class Vocabulary extends DictionaryBase
         return list;
     }
 
-    public List<Word> selectWordsByMarks(Mark min, Mark max)
+    public List<Word> selectWordsByMarks(final Mark min, final Mark max)
     {
         List<Word> list = new LinkedList<Word>();
         try
@@ -363,7 +363,6 @@ public class Vocabulary extends DictionaryBase
             while (next)
             {
                 Word w = readWord(c);
-                w.translations = getTranslations(w, min, max);
                 list.add(w);
                 next = c.moveToNext();
             }

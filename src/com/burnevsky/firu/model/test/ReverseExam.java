@@ -25,6 +25,7 @@
 package com.burnevsky.firu.model.test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -65,26 +66,13 @@ public class ReverseExam
         selectTranslations(translations, K_NUM_TESTS, rand, usedWords);
          */
         // First select words with translations that are not completely learned yet
-        List<Word> unlearned = voc.selectWordsByMarks(Mark.YetToLearn, Mark.AlmostLearned);
-        selectWords(unlearned, K_NUM_UNLEARNED, rand);
+        selectWords(Mark.YetToLearn, Mark.AlmostLearned, K_NUM_UNLEARNED, rand);
 
         // Next select some learned words
-        List<Word> learned = voc.selectWordsByMarks(Mark.Learned, Mark.Learned);
-        selectWords(learned, K_NUM_TESTS, rand);
+        selectWords(Mark.Learned, Mark.Learned, K_NUM_TESTS, rand);
 
         // Now shuffle them
-        for (int i = mChallenges.size() - 1; i > 0; i--)
-        {
-            int j = rand.nextInt(i+1);
-
-            // swap
-            if (i != j)
-            {
-                Word w = mChallenges.get(i);
-                mChallenges.set(i, mChallenges.get(j));
-                mChallenges.set(j, w);
-            }
-        }
+        Collections.shuffle(mChallenges, rand);
     }
     /*
     private void selectTranslations(List<MarkedTranslation> items, int maxCount, Random rand, List<Long> usedWords)
@@ -111,18 +99,34 @@ public class ReverseExam
         }
     }
      */
-    private void selectWords(List<Word> words, int maxCount, Random rand)
+    private void selectWords(final Mark min, final Mark max, final int maxCount, Random rand)
     {
+        List<Word> words = mVoc.selectWordsByMarks(min, max);
+
         while (mChallenges.size() < maxCount && words.size() > 0)
         {
             int k = rand.nextInt(words.size());
             Word w = words.get(k);
 
-            int j = rand.nextInt(w.translations.size());
-            w.translations = w.translations.subList(j, j+1);
+            boolean exists = false;
+            for (Word c : mChallenges)
+            {
+                if (c.getID() == w.getID())
+                {
+                    exists = true;
+                    break;
+                }
+            }
 
-            mChallenges.add(w);
+            if (!exists)
+            {
+                List<Translation> translations = mVoc.getTranslations(w, min, max);
 
+                int j = rand.nextInt(translations.size());
+                w.translations = translations.subList(j, j+1);
+
+                mChallenges.add(w);
+            }
             words.remove(k);
         }
     }
