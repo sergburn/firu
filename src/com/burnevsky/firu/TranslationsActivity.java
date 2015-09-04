@@ -27,13 +27,11 @@ package com.burnevsky.firu;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
-import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;

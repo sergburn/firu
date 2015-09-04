@@ -27,10 +27,9 @@ package com.burnevsky.firu.model;
 import java.security.InvalidParameterException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-
-import com.burnevsky.firu.model.test.ReverseExam;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -175,7 +174,7 @@ public class Vocabulary extends DictionaryBase
     {
         Cursor c = mDatabase.query("words",
             getWordSelect(),
-            "(lower(text) LIKE '" + text.toLowerCase() + "') AND " + "(lang = " + langCode + ")",
+            "(lower(text) LIKE '" + text.toLowerCase(Locale.US) + "') AND " + "(lang = " + langCode + ")",
             null, null, null, null, String.valueOf(1));
         if (c.moveToFirst())
         {
@@ -210,7 +209,7 @@ public class Vocabulary extends DictionaryBase
         {
             Cursor c = mDatabase.query("words",
                 new String[] { "_id" },
-                "(lower(text) LIKE '" + dictWord.getText().toLowerCase() + "') AND " +
+                "(lower(text) LIKE '" + dictWord.getText().toLowerCase(Locale.US) + "') AND " +
                     "(lang = " + dictWord.getLangCode() + ")",
                     null, null, null, null, String.valueOf(1));
             boolean next = c.moveToFirst();

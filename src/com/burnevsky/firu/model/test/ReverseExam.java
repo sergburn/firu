@@ -29,16 +29,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import android.util.Log;
-
 import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Word;
 
 public class ReverseExam
 {
+    @SuppressWarnings("unused")
     private static final String TAG = ReverseExam.class.getName();
     private static final int K_NUM_TESTS = 7;
     private static final int K_NUM_UNLEARNED = 5;
