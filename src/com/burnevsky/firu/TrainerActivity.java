@@ -30,7 +30,6 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -38,13 +37,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.GridLayout;
+import android.support.v7.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -445,7 +444,7 @@ public class TrainerActivity extends FiruActivityBase
                 char cap = TRAINER_KEYBOARD_LINES[r].charAt(c);
                 if (Character.isLetter(cap))
                 {
-                    GridLayout.Spec colSpec = GridLayout.spec(c, GridLayout.CENTER);
+                    GridLayout.Spec colSpec = GridLayout.spec(c, 1.0f);
 
                     GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
                     params.bottomMargin = (r < TRAINER_KEYBOARD_LINES_NUM - 1) ? 30 : 10;
@@ -460,6 +459,7 @@ public class TrainerActivity extends FiruActivityBase
                     k.setText(String.valueOf(cap));
                     k.setTypeface(k.getTypeface(), 1); // bold
                     k.setTextSize(22); // sp
+                    k.setGravity(Gravity.CENTER);
 
                     mKeyboard.addView(k, params);
                     mKeys.add(k);
@@ -469,26 +469,7 @@ public class TrainerActivity extends FiruActivityBase
         mEnter.setMinHeight(BUTTON_HEIGHT);
         mEnter.setMinimumHeight(BUTTON_HEIGHT);
 
-        View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
-        thisView.addOnLayoutChangeListener(new View.OnLayoutChangeListener()
-        {
-            @Override
-            public void onLayoutChange(View v,
-                int left, int top, int right, int bottom,
-                int oldLeft, int oldTop, int oldRight, int oldBottom)
-            {
-                if (!(left == 0 && right == 0) && (left != oldLeft || right != oldRight))
-                {
-                    int size = (right - left) - mKeyboard.getPaddingLeft() - mKeyboard.getPaddingRight();
-                    int keyCellSize = size / 11;
-
-                    for (Button k : mKeys)
-                    {
-                        k.setWidth(keyCellSize);
-                    }
-                }
-            }
-        });
+        //View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
 
         changeState(State.STATE_INITIAL);
     }
@@ -596,7 +577,6 @@ public class TrainerActivity extends FiruActivityBase
                     break;
 
                 default:
-                    assert false;
                     return;
             }
 
