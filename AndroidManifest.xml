@@ -52,6 +52,11 @@
             android:name=".ExamResultActivity"
             android:label="@string/title_activity_exam_result" >
         </activity>
+        <activity
+            android:name=".SearchTransActivity"
+            android:label="@string/title_activity_search_trans"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustNothing" >
+        </activity>
     </application>
 
 </manifest>

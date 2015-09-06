@@ -39,6 +39,15 @@ public class Word extends DictionaryEntry
         super(word, sourceLang);
     }
 
+    public void addTranslation(Translation t)
+    {
+        if (translations == null)
+        {
+            translations = new ArrayList<Translation>();
+        }
+        translations.add(t);
+    }
+
     // For internal use by Model only
     Word(long id, String word, String sourceLang)
     {

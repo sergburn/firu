@@ -102,6 +102,42 @@ public class Dictionary extends DictionaryBase
         return list;
     }
 
+    public List<Word> searchWordsByTranslations(String matchText, int numMaximum)
+    {
+        String pattern0 = matchText + "%";
+        String pattern1 = "% " + matchText + "%";
+
+        Word w = null;
+        List<Word> list = new LinkedList<Word>();
+        Cursor c = mDatabase.rawQuery(
+            "SELECT w._id, w.text, t._id, t.word_id, t.text " +
+                "FROM words AS w JOIN translations AS t ON w._id = t.word_id " +
+                "WHERE t.text LIKE ? OR t.text LIKE ? " +
+                "ORDER BY w._id LIMIT ?;",
+                new String[] { pattern0, pattern1, String.valueOf(numMaximum) }
+            );
+        boolean next = c.moveToFirst();
+        while (next)
+        {
+            if (w == null || w.getID() != c.getLong(0))
+            {
+                if (w != null)
+                {
+                    list.add(w);
+                }
+                w = new Word(c.getLong(0), c.getString(1), Meta.SourceLanguage);
+            }
+            Translation t = new Translation(c.getLong(2), c.getLong(3), c.getString(4), Meta.TargetLanguage);
+            w.addTranslation(t);
+            next = c.moveToNext();
+        }
+        if (w != null)
+        {
+            list.add(w);
+        }
+        return list;
+    }
+
     public List<Translation> getTranslations(Word w)
     {
         List<Translation> list = new LinkedList<Translation>();

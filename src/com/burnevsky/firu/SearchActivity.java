@@ -246,6 +246,11 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
                 startActivity(intent2);
                 return true;
 
+            case R.id.action_rev_search:
+                Intent intent3 = new Intent(this, SearchTransActivity.class);
+                startActivity(intent3);
+                return true;
+
             default:
                 break;
         }
