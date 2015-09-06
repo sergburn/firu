@@ -30,6 +30,8 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -71,11 +73,6 @@ public class TrainerActivity extends FiruActivityBase
     private ArrayList<Button> mKeys = new ArrayList<Button>();
     private RatingBar mMarkRating = null;
 
-    private ReverseExam mExam = null;
-    private ReverseTest mTest = null;
-    private boolean mErrorState;
-
-    private String mInputText = null;
     private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
 
     private static final String[] TRAINER_KEYBOARD_LINES = {
@@ -87,24 +84,42 @@ public class TrainerActivity extends FiruActivityBase
     private static final int TRAINER_KEYBOARD_LINE_LENGHT = 11;
     private static final int TRAINER_KEYBOARD_LINES_NUM = TRAINER_KEYBOARD_LINES.length;
 
-    // User must enter word without typing mistakes to Pass the test
-    // (otherwise she can use try-and-error approach)
-    // However, after 1st typo takes away 1 life, which counted as 1 hint,
-    // further typos are not counted.
-    // This way typos don't let mark to upgrade to rates Well-known and Learned
-    private boolean mForgiveFurtherMistakes = false;
-
     private static final long TRAINER_CORRECTION_DELAY = 500;
     private static final long TRAINER_MAX_TYPO_DELAY = 500;
 
-    private enum State
+    private static class Data extends Fragment
     {
-        STATE_INITIAL, // mTest == null
-        STATE_MAKING_EXAM,
-        STATE_TEST_ONGOING,
-        STATE_TEST_FINISHED
-    };
-    State mState = State.STATE_INITIAL;
+        public ReverseExam mExam = null;
+        public ReverseTest mTest = null;
+        public boolean mErrorState;
+
+        public String mInputText = null;
+
+        // User must enter word without typing mistakes to Pass the test
+        // (otherwise she can use try-and-error approach)
+        // However, after 1st typo takes away 1 life, which counted as 1 hint,
+        // further typos are not counted.
+        // This way typos don't let mark to upgrade to rates Well-known and Learned
+        public boolean mForgiveFurtherMistakes = false;
+
+        public enum State
+        {
+            STATE_INITIAL, // mTest == null
+            STATE_MAKING_EXAM,
+            STATE_TEST_ONGOING,
+            STATE_TEST_FINISHED
+        };
+        State mState = State.STATE_INITIAL;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            setRetainInstance(true);
+        }
+    }
+
+    private Data mData = null;
 
     // TODO: setting
     private boolean mShowWordLength = true;
@@ -118,7 +133,10 @@ public class TrainerActivity extends FiruActivityBase
     public void onVocabularyOpen(Vocabulary voc)
     {
         super.onVocabularyOpen(voc);
-        startExam();
+        if (mData.mExam == null)
+        {
+            startExam();
+        }
     }
 
     @Override
@@ -129,7 +147,7 @@ public class TrainerActivity extends FiruActivityBase
 
     private void startExam()
     {
-        changeState(State.STATE_MAKING_EXAM);
+        changeState(Data.State.STATE_MAKING_EXAM);
         new ReverseExamBuilder().execute();
     }
 
@@ -140,16 +158,16 @@ public class TrainerActivity extends FiruActivityBase
         .setTitle("Reverse exam")
         .setMessage("No words found in your vocabulary.\n"
             + "Add some before starting trainer.")
-            .setIcon(android.R.drawable.ic_dialog_info)
-            .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+        .setIcon(android.R.drawable.ic_dialog_info)
+        .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
             {
-                @Override
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    finish();
-                }
-            } )
-            .show();
+                finish();
+            }
+        } )
+        .show();
     }
 
     class ReverseExamBuilder extends AsyncTask<Mark, Void, ReverseExam>
@@ -167,7 +185,7 @@ public class TrainerActivity extends FiruActivityBase
             {
                 if (exam.getTestsToGo() > 0)
                 {
-                    mExam = exam;
+                    mData.mExam = exam;
                     startTest(exam.nextTest());
                 }
                 else
@@ -188,20 +206,20 @@ public class TrainerActivity extends FiruActivityBase
 
         private boolean isTypo()
         {
-            if (mInputText.length() == 0)
+            if (mData.mInputText.length() == 0)
             {
                 return false;
             }
 
-            String subGuess = mInputText.substring(0, mInputText.length() - 1);
-            char last = mInputText.charAt(mInputText.length() - 1);
+            String subGuess = mData.mInputText.substring(0, mData.mInputText.length() - 1);
+            char last = mData.mInputText.charAt(mData.mInputText.length() - 1);
 
             String variants = selectKeysAround(last);
             try
             {
                 for (char c : variants.toCharArray())
                 {
-                    if (mTest.checkGuess(subGuess + c, true))
+                    if (mData.mTest.checkGuess(subGuess + c, true))
                     {
                         return true;
                     }
@@ -247,7 +265,7 @@ public class TrainerActivity extends FiruActivityBase
 
         public void afterTextChanged()
         {
-            if (mInputText.length() == 0)
+            if (mData.mInputText.length() == 0)
             {
                 showInputCorrectness(true);
             }
@@ -260,8 +278,8 @@ public class TrainerActivity extends FiruActivityBase
                 boolean correct = false;
                 try
                 {
-                    correct = mTest.checkGuess(mInputText, true); // do not revoke hint yet
-                    if (!correct && !mForgiveFurtherMistakes)
+                    correct = mData.mTest.checkGuess(mData.mInputText, true); // do not revoke hint yet
+                    if (!correct && !mData.mForgiveFurtherMistakes)
                     {
                         boolean typo = fastTypingDetected && isTypo();
                         if (typo)
@@ -270,8 +288,8 @@ public class TrainerActivity extends FiruActivityBase
                         }
                         else
                         {
-                            mTest.revokeHint();
-                            mForgiveFurtherMistakes = true;
+                            mData.mTest.revokeHint();
+                            mData.mForgiveFurtherMistakes = true;
                         }
                     }
                     showInputCorrectness(correct);
@@ -282,9 +300,9 @@ public class TrainerActivity extends FiruActivityBase
                     return;
                 }
 
-                if (mTest.getResult() != TestResult.Incomplete)
+                if (mData.mTest.getResult() != TestResult.Incomplete)
                 {
-                    changeState(State.STATE_TEST_FINISHED);
+                    changeState(Data.State.STATE_TEST_FINISHED);
                 }
                 else
                 {
@@ -293,7 +311,7 @@ public class TrainerActivity extends FiruActivityBase
                     if (correct)
                     {
                         if (mShowWordLength &&
-                            mInputText.length() == mTest.getAnswerLength())
+                            mData.mInputText.length() == mData.mTest.getAnswerLength())
                         {
                             onEnter(); // save user one button push
                         }
@@ -308,7 +326,7 @@ public class TrainerActivity extends FiruActivityBase
                             @Override
                             public void run()
                             {
-                                if (mErrorState)
+                                if (mData.mErrorState)
                                 {
                                     onBackspace();
                                     setKeyboardEnabled(true);
@@ -324,7 +342,7 @@ public class TrainerActivity extends FiruActivityBase
         {
             try
             {
-                boolean correct = mTest.checkAnswer(mInputText);
+                boolean correct = mData.mTest.checkAnswer(mData.mInputText);
                 showInputCorrectness(correct);
             }
             catch (TestAlreadyCompleteException e)
@@ -334,9 +352,9 @@ public class TrainerActivity extends FiruActivityBase
                 return;
             }
 
-            if (mTest.getResult() != TestResult.Incomplete)
+            if (mData.mTest.getResult() != TestResult.Incomplete)
             {
-                changeState(State.STATE_TEST_FINISHED);
+                changeState(Data.State.STATE_TEST_FINISHED);
             }
             else
             {
@@ -346,7 +364,7 @@ public class TrainerActivity extends FiruActivityBase
 
         public void onBackspace()
         {
-            mInputText = mInputText.substring(0, mInputText.length() - 1);
+            mData.mInputText = mData.mInputText.substring(0, mData.mInputText.length() - 1);
             showAnswerText();
             afterTextChanged();
         }
@@ -360,7 +378,7 @@ public class TrainerActivity extends FiruActivityBase
         public void onClick(View v)
         {
             Button b = (Button) v;
-            mInputText += b.getText();
+            mData.mInputText += b.getText();
             showAnswerText();
             mGuessValidator.afterTextChanged();
         }
@@ -368,11 +386,10 @@ public class TrainerActivity extends FiruActivityBase
 
     private void startTest(ReverseTest test)
     {
-        mTest = test;
-        mTransText.setText(test.getChallenge());
-        mInputText = new String();
-        mForgiveFurtherMistakes = false;
-        changeState(State.STATE_TEST_ONGOING);
+        mData.mTest = test;
+        mData.mInputText = new String();
+        mData.mForgiveFurtherMistakes = false;
+        changeState(Data.State.STATE_TEST_ONGOING);
     }
 
     private void setKeyboardEnabled(boolean enabled)
@@ -471,7 +488,22 @@ public class TrainerActivity extends FiruActivityBase
 
         //View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
 
-        changeState(State.STATE_INITIAL);
+        // find the retained fragment on activity restarts
+        FragmentManager fm = getFragmentManager();
+        mData = (Data) fm.findFragmentByTag("data");
+
+        // create the fragment and data the first time
+        if (mData == null)
+        {
+            // add the fragment
+            mData = new Data();
+            fm.beginTransaction().add(mData, "data").commit();
+            changeState(Data.State.STATE_INITIAL);
+        }
+        else
+        {
+            changeState(mData.mState);
+        }
     }
 
     @Override
@@ -496,7 +528,7 @@ public class TrainerActivity extends FiruActivityBase
         return super.onOptionsItemSelected(item);
     }
 
-    void changeState(State newState)
+    void changeState(Data.State newState)
     {
         switch (newState)
         {
@@ -518,6 +550,7 @@ public class TrainerActivity extends FiruActivityBase
                 mNextButton.setEnabled(true);
                 mEnter.setVisibility(mShowWordLength ? View.INVISIBLE : View.VISIBLE);
                 mMarkRating.setVisibility(View.VISIBLE);
+                mTransText.setText(mData.mTest.getChallenge());
                 showAnswerText();
                 showTestResult();
                 showExamProgress(true);
@@ -533,17 +566,17 @@ public class TrainerActivity extends FiruActivityBase
             default:
                 break;
         }
-        mState = newState;
+        mData.mState = newState;
     }
 
     void showAnswerText()
     {
-        if (mTest != null)
+        if (mData.mTest != null)
         {
-            String word = mInputText;
+            String word = mData.mInputText;
             if (mShowWordLength)
             {
-                word += String.valueOf(mAnswerTemplate, 0, mTest.getAnswerLength() - mInputText.length());
+                word += String.valueOf(mAnswerTemplate, 0, mData.mTest.getAnswerLength() - mData.mInputText.length());
             }
             mWordText.setText(word);
         }
@@ -555,12 +588,12 @@ public class TrainerActivity extends FiruActivityBase
 
     void showTestResult()
     {
-        if (mTest != null)
+        if (mData.mTest != null)
         {
-            switch (mTest.getResult())
+            switch (mData.mTest.getResult())
             {
                 case Incomplete:
-                    showLifes(mTest.getHintsLeft());
+                    showLifes(mData.mTest.getHintsLeft());
                     break;
 
                 case Passed:
@@ -572,7 +605,7 @@ public class TrainerActivity extends FiruActivityBase
                     break;
 
                 case Failed:
-                    mWordText.setText(mTest.getAnswer());
+                    mWordText.setText(mData.mTest.getAnswer());
                     showTestResultIcon(mFailIcon);
                     break;
 
@@ -580,7 +613,7 @@ public class TrainerActivity extends FiruActivityBase
                     return;
             }
 
-            mMarkRating.setRating(ExamResultActivity.markToRate(mTest.getMark()));
+            mMarkRating.setRating(ExamResultActivity.markToRate(mData.mTest.getMark()));
         }
         else
         {
@@ -621,19 +654,19 @@ public class TrainerActivity extends FiruActivityBase
         {
             mWordText.setError("wrong"); // sets special icon
         }
-        mErrorState = !correct;
+        mData.mErrorState = !correct;
     }
 
     private void nextTest()
     {
-        if (mTest != null && !mTest.isComplete())
+        if (mData.mTest != null && !mData.mTest.isComplete())
         {
-            mTest.unlockAnswer();
-            changeState(State.STATE_TEST_FINISHED);
+            mData.mTest.unlockAnswer();
+            changeState(Data.State.STATE_TEST_FINISHED);
         }
-        else if (mExam != null)
+        else if (mData.mExam != null)
         {
-            ReverseTest test = mExam.nextTest();
+            ReverseTest test = mData.mExam.nextTest();
             if (test != null)
             {
                 startTest(test);
@@ -641,7 +674,7 @@ public class TrainerActivity extends FiruActivityBase
             else
             {
                 Intent intent = new Intent(this, ExamResultActivity.class);
-                ArrayList<Word> testWords = mExam.getResults();
+                ArrayList<Word> testWords = mData.mExam.getResults();
                 intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, testWords);
                 startActivity(intent);
                 finish();
@@ -653,17 +686,17 @@ public class TrainerActivity extends FiruActivityBase
     {
         try
         {
-            if (mTest.getHintsLeft() > 0)
+            if (mData.mTest.getHintsLeft() > 0)
             {
-                mInputText = mTest.getHint(mInputText);
+                mData.mInputText = mData.mTest.getHint(mData.mInputText);
                 showAnswerText();
                 mGuessValidator.afterTextChanged();
                 showTestResult();
             }
             else
             {
-                mTest.unlockAnswer();
-                changeState(State.STATE_TEST_FINISHED);
+                mData.mTest.unlockAnswer();
+                changeState(Data.State.STATE_TEST_FINISHED);
             }
         }
         catch (TestAlreadyCompleteException e)
@@ -674,10 +707,10 @@ public class TrainerActivity extends FiruActivityBase
 
     private void showExamProgress(boolean isVisible)
     {
-        if (mExam != null)
+        if (mData.mExam != null)
         {
-            int currentTest = mExam.getTestsCount() - mExam.getTestsToGo();
-            mExamProgress.setText(String.valueOf(currentTest) + "/" + String.valueOf(mExam.getTestsCount()));
+            int currentTest = mData.mExam.getTestsCount() - mData.mExam.getTestsToGo();
+            mExamProgress.setText(String.valueOf(currentTest) + "/" + String.valueOf(mData.mExam.getTestsCount()));
         }
         mExamProgress.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     }
