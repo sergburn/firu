@@ -24,6 +24,7 @@
 
 package com.burnevsky.firu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -47,6 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
@@ -65,35 +67,59 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     DictionaryCounter mCountTask = null;
 
     private String mSharedText;
+    private ArrayList<Word> mMatches;
 
     @Override
-    public void onVocabularyOpen(Vocabulary voc)
+    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
     {
-        super.onVocabularyOpen(voc);
+        switch (event)
+        {
+            case MODEL_EVENT_OPENED:
+                Toast.makeText(
+                    this,
+                    "Vocabulary has " + String.valueOf(voc.getTotalWords()) + " words",
+                    Toast.LENGTH_SHORT).show();
+                break;
+
+            case MODEL_EVENT_FAILURE:
+                Toast.makeText(this, "Can't open Vocabulary", Toast.LENGTH_SHORT).show();
+                break;
+
+            default:
+                break;
+        }
         invalidateOptionsMenu();
-        Toast.makeText(mSelfContext, "Vocabulary has " + String.valueOf(mVoc.getTotalWords()) + " words", Toast.LENGTH_SHORT).show();
     }
 
-    @Override
     public void onVocabularyReset(Vocabulary voc)
     {
-        super.onVocabularyReset(voc);
         invalidateOptionsMenu();
-        Toast.makeText(mSelfContext, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onVocabularyClose(Vocabulary voc)
+    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
     {
-        invalidateOptionsMenu();
-        super.onVocabularyClose(voc);
-    }
+        switch (event)
+        {
+            case MODEL_EVENT_OPENED:
+                if (mSharedText != null && mInputText.getQuery().length() == 0)
+                {
+                    searchSharedWord();
+                }
+                break;
 
-    @Override
-    public void onDictionaryOpen(Dictionary dict)
-    {
-        super.onDictionaryOpen(dict);
+            case MODEL_EVENT_FAILURE:
+                Toast.makeText(this, "Can't open Dictionary", Toast.LENGTH_SHORT).show();
+
+            default:
+                break;
+        }
         showTotalWordsCount();
+    }
+
+    private void searchSharedWord()
+    {
         if (mSharedText != null)
         {
             // At the moment only one word search is supported
@@ -109,38 +135,18 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
         }
     }
 
-    @Override
-    public void onDictionaryClose(Dictionary dict)
-    {
-        super.onDictionaryClose(dict);
-        showTotalWordsCount();
-    }
-
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
     {
         @Override
         protected List<Word> doInBackground(String... param)
         {
-            return (mDict != null) ? mDict.searchWords(param[0], MAX_WORDS_IN_RESULT) : null;
+            return (mModel.getDictionary() != null) ? mModel.getDictionary().searchWords(param[0], MAX_WORDS_IN_RESULT) : null;
         }
 
         @Override
         protected void onPostExecute(List<Word> result)
         {
-            if (result != null)
-            {
-                ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(mSelfContext, android.R.layout.simple_list_item_1, result);
-                mWordsListView.setAdapter(adapter);
-
-                if (result.size() > 0)
-                {
-                    hideKeyboard();
-                }
-            }
-            else
-            {
-                mWordsListView.setAdapter(null);
-            }
+            showMatches(result);
             mSearchTask = null;
         }
 
@@ -156,7 +162,7 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
         @Override
         protected Integer doInBackground(String... param)
         {
-            return (mDict != null) ? mDict.countWords(param[0]) : 0;
+            return (mModel.getDictionary() != null) ? mModel.getDictionary().countWords(param[0]) : 0;
         }
 
         @Override
@@ -170,6 +176,9 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        subscribeDictionary();
+        subscribeVocabulary();
+
         setContentView(R.layout.activity_search);
 
         mInputText = (SearchView) findViewById(R.id.searchWord);
@@ -188,9 +197,9 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
 
     private void showTotalWordsCount()
     {
-        if (mDict != null)
+        if (mModel.getDictionary() != null)
         {
-            mCountText.setText("Total count " + String.valueOf(mDict.getTotalWords()) + " words");
+            mCountText.setText("Total count " + String.valueOf(mModel.getDictionary().getTotalWords()) + " words");
         }
         else
         {
@@ -211,8 +220,8 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        mExportVocMenu.setEnabled(mVoc != null);
-        mClearVocMenu.setEnabled(mVoc != null && mVoc.getTotalWords() > 0);
+        mExportVocMenu.setEnabled(mModel.getVocabulary() != null);
+        mClearVocMenu.setEnabled(mModel.getVocabulary() != null && mModel.getVocabulary().getTotalWords() > 0);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -230,15 +239,15 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
                 return true;
 
             case R.id.action_import_voc:
-                mApp.importVocabulary(mSelfContext);
+                mApp.importVocabulary(this);
                 return true;
 
             case R.id.action_backup_voc:
-                mApp.exportVocabulary(mSelfContext);
+                mApp.exportVocabulary(this);
                 return true;
 
             case R.id.action_reset_voc:
-                mApp.resetVocabulary(mSelfContext);
+                mApp.resetVocabulary(this);
                 return true;
 
             case R.id.action_show_stats:
@@ -289,17 +298,10 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
         return false;
     }
 
-    /** Called when the user clicks the Send button */
-    public void showTranslation(AdapterView<?> parent, View view, int position, long id)
-    {
-        Word word = (Word) parent.getItemAtPosition(position);
-        TranslationsActivity.showDictWord(this, word);
-    }
-
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        showTranslation(parent, view, position, id);
+        TranslationsActivity.showDictWords(this, mMatches, position);
     }
 
     private void hideKeyboard()
@@ -310,5 +312,24 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
         mInputText.clearFocus();
+    }
+
+    private void showMatches(List<Word> result)
+    {
+        if (result != null)
+        {
+            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(this, android.R.layout.simple_list_item_1, result);
+            mWordsListView.setAdapter(adapter);
+
+            if (result.size() > 0)
+            {
+                hideKeyboard();
+            }
+        }
+        else
+        {
+            mWordsListView.setAdapter(null);
+        }
+        mMatches = new ArrayList<Word>(result);
     }
 }

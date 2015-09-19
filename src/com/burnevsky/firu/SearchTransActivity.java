@@ -42,6 +42,8 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        subscribeDictionary();
+
         setContentView(R.layout.activity_search_trans);
 
         mInputText = (SearchView) findViewById(R.id.sta_searchWord);
@@ -97,7 +99,10 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
         @Override
         protected List<Word> doInBackground(String... param)
         {
-            return (mDict != null) ? mDict.searchWordsByTranslations(param[0], MAX_ITEMS_IN_RESULT) : null;
+            return
+                (mModel.getDictionary() != null) ?
+                    mModel.getDictionary().searchWordsByTranslations(param[0], MAX_ITEMS_IN_RESULT) :
+                        null;
         }
 
         @Override

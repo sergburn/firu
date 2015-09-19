@@ -14,6 +14,7 @@ import com.burnevsky.firu.model.MarkedTranslation;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,7 +24,7 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.SimpleAdapter;
 
-public class ExamResultActivity extends Activity implements OnItemClickListener
+public class ExamResultActivity extends AppCompatActivity implements OnItemClickListener
 {
     public final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
 
@@ -43,7 +44,7 @@ public class ExamResultActivity extends Activity implements OnItemClickListener
         mSortedTests = new Word[tests.size()];
         tests.toArray(mSortedTests);
         Arrays.sort(mSortedTests, new Comparator<Word>()
-            {
+        {
             @Override
             public int compare(Word lhs, Word rhs)
             {
@@ -51,7 +52,7 @@ public class ExamResultActivity extends Activity implements OnItemClickListener
                 MarkedTranslation rt = (MarkedTranslation) rhs.translations.get(0);
                 return lt.ReverseMark.toInt() - rt.ReverseMark.toInt(); // ascending order
             }
-            });
+        });
 
         List<SortedMap<String, Object>> data = new ArrayList<SortedMap<String,Object>>();
 
@@ -126,8 +127,7 @@ public class ExamResultActivity extends Activity implements OnItemClickListener
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        Word word = mSortedTests[position];
-        TranslationsActivity.showVocWord(this, word);
+        TranslationsActivity.showVocWords(this, new ArrayList<Word>(Arrays.asList(mSortedTests)), position);
     }
 
     private void startNextExam()

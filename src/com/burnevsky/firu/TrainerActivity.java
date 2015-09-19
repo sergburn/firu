@@ -46,13 +46,17 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.support.v7.widget.GridLayout;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 import com.burnevsky.firu.model.test.ReverseExam;
@@ -72,6 +76,7 @@ public class TrainerActivity extends FiruActivityBase
     private Button mEnter = null;
     private ArrayList<Button> mKeys = new ArrayList<Button>();
     private RatingBar mMarkRating = null;
+    private LinearLayout mChallengeLayout;
 
     private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
 
@@ -130,19 +135,35 @@ public class TrainerActivity extends FiruActivityBase
     }
 
     @Override
-    public void onVocabularyOpen(Vocabulary voc)
+    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
     {
-        super.onVocabularyOpen(voc);
-        if (mData.mExam == null)
+        switch (event)
         {
-            startExam();
-        }
-    }
+            case MODEL_EVENT_FAILURE:
+            case MODEL_EVENT_CLOSED:
+                mData = new Data();
+                changeState(mData.mState);
 
-    @Override
-    public void onVocabularyReset(Vocabulary voc)
-    {
-        // TODO: cancel test (however this event should never happen during test)
+                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+                dialog
+                .setTitle("Reverse exam")
+                .setMessage("Vocabulary unavailable.\nCan't start exam.")
+                .setIcon(android.R.drawable.ic_dialog_info)
+                .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        finish();
+                    }
+                } )
+                .show();
+
+                break;
+
+            default:
+                break;
+        }
     }
 
     private void startExam()
@@ -153,7 +174,7 @@ public class TrainerActivity extends FiruActivityBase
 
     private void onExamUnavailable()
     {
-        AlertDialog.Builder dialog = new AlertDialog.Builder(mSelfContext);
+        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog
         .setTitle("Reverse exam")
         .setMessage("No words found in your vocabulary.\n"
@@ -175,7 +196,7 @@ public class TrainerActivity extends FiruActivityBase
         @Override
         protected ReverseExam doInBackground(Mark... param)
         {
-            return new ReverseExam(mVoc);
+            return (mModel.getVocabulary() != null) ? new ReverseExam(mModel.getVocabulary()) : null;
         }
 
         @Override
@@ -195,7 +216,7 @@ public class TrainerActivity extends FiruActivityBase
             }
             else
             {
-                Toast.makeText(mSelfContext, "Failed to make exam", Toast.LENGTH_SHORT).show();
+                Toast.makeText(TrainerActivity.this, "Failed to make exam", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -284,7 +305,7 @@ public class TrainerActivity extends FiruActivityBase
                         boolean typo = fastTypingDetected && isTypo();
                         if (typo)
                         {
-                            Toast.makeText(mSelfContext, "Typo forgiven", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TrainerActivity.this, "Typo forgiven", Toast.LENGTH_SHORT).show();
                         }
                         else
                         {
@@ -405,6 +426,7 @@ public class TrainerActivity extends FiruActivityBase
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_trainer);
         mWordText = (TextView) findViewById(R.id.textWord);
         mTransText = (TextView) findViewById(R.id.textTrans);
@@ -417,6 +439,7 @@ public class TrainerActivity extends FiruActivityBase
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
         mEnter = (Button) findViewById(R.id.btnEnter);
         mMarkRating = (RatingBar) findViewById(R.id.rbMark);
+        mChallengeLayout = (LinearLayout) findViewById(R.id.ltChallenge);
 
         mOkIcon = getResources().getDrawable(R.drawable.ic_action_accept);
         mPassedIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -452,7 +475,13 @@ public class TrainerActivity extends FiruActivityBase
             }
         });
 
-        final int BUTTON_HEIGHT = 124;
+
+        final int BUTTON_HEIGHT = 42;
+        final int BUTTON_WIDTH = 30;
+
+        final int dpHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_HEIGHT, getResources().getDisplayMetrics());
+        final int dpWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_WIDTH, getResources().getDisplayMetrics());
+
         for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
         {
             GridLayout.Spec rowSpec = GridLayout.spec(r);
@@ -464,45 +493,58 @@ public class TrainerActivity extends FiruActivityBase
                     GridLayout.Spec colSpec = GridLayout.spec(c, 1.0f);
 
                     GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+                    params.height = LayoutParams.WRAP_CONTENT;
+                    params.width = LayoutParams.WRAP_CONTENT;
                     params.bottomMargin = (r < TRAINER_KEYBOARD_LINES_NUM - 1) ? 30 : 10;
 
-                    Button k = new Button(mSelfContext, null, android.R.attr.buttonStyle);
-                    k.setMinHeight(BUTTON_HEIGHT);
-                    k.setMinWidth(80);
-                    k.setMinimumHeight(BUTTON_HEIGHT);
-                    k.setMinimumWidth(80);
+                    Button k = new Button(this, null, android.R.attr.buttonStyle);
+                    k.setMinHeight(dpHeight);
+                    k.setMinWidth(dpWidth);
+                    k.setMinimumHeight(dpHeight);
+                    k.setMinimumWidth(dpWidth);
                     k.setPadding(0, 0, 0, 0);
                     k.setOnClickListener(mKeyBoardListener);
                     k.setText(String.valueOf(cap));
                     k.setTypeface(k.getTypeface(), 1); // bold
                     k.setTextSize(22); // sp
                     k.setGravity(Gravity.CENTER);
+                    k.setAllCaps(false);
 
                     mKeyboard.addView(k, params);
                     mKeys.add(k);
                 }
             }
         }
-        mEnter.setMinHeight(BUTTON_HEIGHT);
-        mEnter.setMinimumHeight(BUTTON_HEIGHT);
+        mEnter.setMinHeight(dpHeight);
+        mEnter.setMinimumHeight(dpHeight);
 
         //View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
 
-        // find the retained fragment on activity restarts
-        FragmentManager fm = getFragmentManager();
-        mData = (Data) fm.findFragmentByTag("data");
-
-        // create the fragment and data the first time
-        if (mData == null)
+        if (mModel.getVocabulary() != null)
         {
-            // add the fragment
-            mData = new Data();
-            fm.beginTransaction().add(mData, "data").commit();
-            changeState(Data.State.STATE_INITIAL);
+            subscribeVocabulary();
+
+            // find the retained fragment on activity restarts
+            FragmentManager fm = getFragmentManager();
+            mData = (Data) fm.findFragmentByTag("data");
+
+            // create the fragment and data the first time
+            if (mData == null)
+            {
+                // add the fragment
+                mData = new Data();
+                fm.beginTransaction().add(mData, "data").commit();
+                changeState(Data.State.STATE_INITIAL);
+                startExam();
+            }
+            else
+            {
+                changeState(mData.mState);
+            }
         }
         else
         {
-            changeState(mData.mState);
+            onVocabularyEvent(null, Model.ModelEvent.MODEL_EVENT_FAILURE);
         }
     }
 

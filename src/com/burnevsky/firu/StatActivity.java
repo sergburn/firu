@@ -28,7 +28,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -62,19 +64,12 @@ public class StatActivity extends FiruActivityBase
 
     Vocabulary.LearningStats mLearningStats = null;
 
-    @Override
-    public void onVocabularyOpen(Vocabulary voc)
-    {
-        super.onVocabularyOpen(voc);
-        new VocabularyStats().execute();
-    }
-
     class VocabularyStats extends AsyncTask<Void, Void, Vocabulary.LearningStats>
     {
         @Override
         protected Vocabulary.LearningStats doInBackground(Void... param)
         {
-            return mVoc.collectStatistics();
+            return mModel.getVocabulary().collectStatistics();
         }
 
         @Override
@@ -101,6 +96,34 @@ public class StatActivity extends FiruActivityBase
 
         //showPie();
     }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+
+        if (mModel.getVocabulary() != null)
+        {
+            new VocabularyStats().execute();
+        }
+        else
+        {
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog
+            .setTitle("Vocabulary stats")
+            .setMessage("Vocabulary unavailable.")
+            .setIcon(android.R.drawable.ic_dialog_info)
+            .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
+                {
+                    finish();
+                }
+            } )
+            .show();
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)

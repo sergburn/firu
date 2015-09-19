@@ -9,4 +9,9 @@
         <!-- API 14 theme customizations can go here. -->
     </style>
 
+    <color name="challenge_bg">#DDDDDD</color>
+    <color name="trainer_bg">#FFFFFF</color>
+    <color name="stat_count_fg">#FFFFFF</color>
+    <color name="trainer_fg">#000000</color>
+    
 </resources>

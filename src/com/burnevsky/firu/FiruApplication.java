@@ -37,7 +37,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Model.ModelEvent;
+import com.burnevsky.firu.model.Model.ModelListener;
 
 import android.app.AlertDialog;
 import android.app.Application;
@@ -57,148 +60,54 @@ public class FiruApplication extends Application
 
     final Handler mHandler = new Handler();
 
-    private Dictionary mDict = null;
-    private Vocabulary mVoc = null;
-    
-    private enum ModelEvent
-    {
-        MODEL_EVENT_NONE,
-        MODEL_EVENT_DICT_OPEN,
-        MODEL_EVENT_DICT_CLOSE,
-        MODEL_EVENT_VOC_OPEN,
-        MODEL_EVENT_VOC_CLOSE,
-        MODEL_EVENT_VOC_RESET,
-    }
-    
+    Model mModel;
+
     private File mDictFile = null;
-    
+
     private File mLocalVocFile = null;
     private File mBackupVocFile = null;
-    
-/*    
+
+    /*
     static {
         System.loadLibrary("sqliteX");
     }
-*/
-    
-    public interface ModelListener 
-    {
-        void onDictionaryOpen(Dictionary dict);
-        void onDictionaryClose(Dictionary dict);
-        
-        void onVocabularyOpen(Vocabulary voc);
-        void onVocabularyReset(Vocabulary voc);
-        void onVocabularyClose(Vocabulary voc);
-    }
-    
-    private class ModelListenersManager
-    {
-        // alias
-        private class ModelListenerRef extends WeakReference<ModelListener>
-        {
-            public ModelListenerRef(ModelListener r)
-            {
-                super(r);
-            }
-        }
+     */
 
-        private List<ModelListenerRef> mListeners = null;
-        
-        ModelListenersManager()
-        {
-            mListeners = new ArrayList<ModelListenerRef>();
-        }
-        
-        void addListener(final ModelListener listener)
-        {
-            assert listener != null;
-            for (Iterator<ModelListenerRef> iter = mListeners.iterator(); iter.hasNext();)
-            {
-                ModelListener l = iter.next().get();
-                if (l == null)
-                {
-                    iter.remove();
-                }
-                else if (l == listener)
-                {
-                    return;
-                }
-            }
-            mListeners.add(new ModelListenerRef(listener));
-        }
-
-        void notifyListener(ModelListener listener, ModelEvent event)
-        {
-            switch (event)
-            {
-                case MODEL_EVENT_DICT_OPEN:
-                    listener.onDictionaryOpen(mDict);
-                    break;
-                case MODEL_EVENT_DICT_CLOSE:
-                    listener.onDictionaryClose(mDict);
-                    break;
-                case MODEL_EVENT_VOC_OPEN:
-                    listener.onVocabularyOpen(mVoc);
-                    break;
-                case MODEL_EVENT_VOC_RESET:
-                    listener.onVocabularyReset(mVoc);
-                    break;
-                case MODEL_EVENT_VOC_CLOSE:
-                    listener.onVocabularyClose(mVoc);
-                    break;
-                default:
-                    if (BuildConfig.DEBUG)
-                    {
-                        throw new InvalidParameterException();
-                    }
-                    break;
-            }
-        }
-        
-        void notifyAllListeners(ModelEvent event)
-        {
-            for (Iterator<ModelListenerRef> iter = mListeners.iterator(); iter.hasNext();)
-            {
-                ModelListener listener = iter.next().get();
-                if (listener != null)
-                {
-                    notifyListener(listener, event);
-                }
-                else
-                {
-                    iter.remove();
-                }
-            }
-        }
-    }
-    
-    private ModelListenersManager mModelListeners = new ModelListenersManager();
-    
     boolean checkPath(File p, final String header)
     {
-        boolean exists = p.exists(); 
+        boolean exists = p.exists();
         Log.i("firu", "Path to " + header + ": '" + p.getAbsolutePath() + (exists ? "' exists" : "' invalid"));
         return exists;
     }
-    
+
+    @Override
     public void onCreate()
     {
         super.onCreate();
-        
+
         File epub = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         checkPath(epub, "Downloads");
-        
+
         File firu = new File(epub.getAbsolutePath() + File.separator + FIRU_FOLDER);
         checkPath(firu, "Downloads/Firu");
-        
+
         mDictFile = new File(firu.getAbsolutePath() + File.separator + DICT_DB_NAME);
         checkPath(mDictFile, "Dictionary");
-        
+
         mBackupVocFile = new File(firu.getAbsolutePath() + File.separator + VOC_DB_NAME);
         checkPath(mBackupVocFile, "Backup Vocabulary");
 
         mLocalVocFile = getDatabasePath(VOC_DB_NAME);
         checkPath(mLocalVocFile, "Local Vocabulary");
+
+        mModel = new Model();
+        openDictionary();
+        openVocabulary();
+    }
+
+    private void openDictionary()
+    {
+        mModel.openDictionary(mDictFile.getAbsolutePath(), getApplicationContext());
     }
 
     private boolean copyFile(File src, File dst) throws IOException
@@ -219,138 +128,6 @@ public class FiruApplication extends Application
         }
         return true;
     }
-    
-    public void subscribeDictionary(Context toastContext, final ModelListener listener)
-    {
-        mModelListeners.addListener(listener);
-        
-        if (mDict == null)
-        {
-            new DictionaryOpener(toastContext).execute();
-        }
-        else
-        {
-            mHandler.post(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    mModelListeners.notifyListener(listener, ModelEvent.MODEL_EVENT_DICT_OPEN);
-                }
-            }); 
-        }
-    }
-    
-    private class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
-    {
-        Context mToastContext = null;
-        
-        DictionaryOpener(Context toastContext)
-        {
-            mToastContext = toastContext;
-        }
-        
-        @Override
-        protected Dictionary doInBackground(Void... voids)
-        {
-            return new Dictionary(mDictFile.getAbsolutePath(), getApplicationContext());
-        }
-
-        @Override
-        protected void onPostExecute(Dictionary result)
-        {
-            if (result != null)
-            {
-                mDict = result;
-                Log.i("firu", "Dictionary: totalWordCount: " + String.valueOf(mDict.getTotalWords()));
-                mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_DICT_OPEN);
-            }
-            else if (mToastContext != null)
-            {
-                if (!mDictFile.exists())
-                {
-                    Toast.makeText(mToastContext, "Dictionary not found", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    Toast.makeText(mToastContext, "Can't open Dictionary", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
-    
-    private void closeDictionary()
-    {
-        if (mDict != null)
-        {
-            mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_DICT_CLOSE);
-            mDict = null;
-        }
-    }
-
-    public void subscribeVocabulary(Context toastContext, final ModelListener listener)
-    {
-        mModelListeners.addListener(listener);
-        
-        if (mVoc == null)
-        {
-            new VocabularyOpener(toastContext).execute();
-        }
-        else
-        {
-            mHandler.post(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    mModelListeners.notifyListener(listener, ModelEvent.MODEL_EVENT_VOC_OPEN);
-                }
-            }); 
-        }
-    }
-    
-    class VocabularyOpener extends AsyncTask<Void, Void, Vocabulary>
-    {
-        Context mToastContext = null;
-
-        public VocabularyOpener(Context toastContext)
-        {
-            mToastContext = toastContext;
-        }
-
-        @Override
-        protected Vocabulary doInBackground(Void... params)
-        {
-            return new Vocabulary(mLocalVocFile.getAbsolutePath(), getApplicationContext());
-        }
-
-        @Override
-        protected void onPostExecute(Vocabulary result)
-        {
-            if (result != null)
-            {
-                mVoc = result;
-                Log.i("firu", "Vocabulary: totalWordCount: " + String.valueOf(mVoc.getTotalWords()));
-                mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_OPEN);
-            }
-            else
-            {
-                if (mToastContext != null)
-                {
-                    Toast.makeText(mToastContext, "Can't open Vocabulary", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
-    
-    private void closeVocabulary()
-    {
-        if (mVoc != null)
-        {
-            mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_CLOSE);
-            mVoc = null;
-        }
-    }
 
     public void importVocabulary(final Context toastContext)
     {
@@ -359,7 +136,7 @@ public class FiruApplication extends Application
             @Override
             public void run()
             {
-                closeVocabulary();
+                mModel.closeVocabulary();
                 try
                 {
                     copyFile(mBackupVocFile, mLocalVocFile);
@@ -372,43 +149,43 @@ public class FiruApplication extends Application
                 }
                 finally
                 {
-                    new VocabularyOpener(toastContext).execute();
+                    openVocabulary();
                 }
             }
         };
-        
+
         if (mBackupVocFile.exists())
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(toastContext);
             builder
-                .setTitle("Vocabulary replacement")
-                .setMessage("Vocabulary found on sdCard\nDo you want to import it?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            .setTitle("Vocabulary replacement")
+            .setMessage("Vocabulary found on sdCard\nDo you want to import it?")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {                            
-                        Toast.makeText(toastContext, "Copying new vocabulary", Toast.LENGTH_SHORT).show();
-                        mHandler.post(importer);
-                    }
-                } )
-                .setNegativeButton("No", new DialogInterface.OnClickListener()
+                    Toast.makeText(toastContext, "Copying new vocabulary", Toast.LENGTH_SHORT).show();
+                    mHandler.post(importer);
+                }
+            } )
+            .setNegativeButton("No", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        Toast.makeText(toastContext, "Using local vocabulary", Toast.LENGTH_SHORT).show();
-                    }
-                } )
-                .show();
+                    Toast.makeText(toastContext, "Using local vocabulary", Toast.LENGTH_SHORT).show();
+                }
+            } )
+            .show();
         }
         else
         {
             Toast.makeText(toastContext, "Vocabulary file not found", Toast.LENGTH_SHORT).show();
         }
     }
-    
+
     public void exportVocabulary(final Context context)
     {
         final Runnable exporter = new Runnable()
@@ -418,7 +195,7 @@ public class FiruApplication extends Application
             {
                 try
                 {
-                    closeVocabulary();
+                    mModel.closeVocabulary();
                     copyFile(mLocalVocFile, mBackupVocFile);
                     Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
                 }
@@ -429,27 +206,28 @@ public class FiruApplication extends Application
                 }
                 finally
                 {
-                    new VocabularyOpener(context).execute();
+                    openVocabulary();
                 }
             }
         };
-        
+
         if (mBackupVocFile.exists())
         {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder
-                .setTitle("Vocabulary backup")
-                .setMessage("Backup found on sdCard\nDo you want to overwrite it?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            .setTitle("Vocabulary backup")
+            .setMessage("Backup found on sdCard\nDo you want to overwrite it?")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+            {
+                @Override
+                public void onClick(DialogInterface dialog, int which)
                 {
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        mHandler.post(exporter);
-                    }
-                } )
-                .setNegativeButton("No", null)
-                .show();
+                    mHandler.post(exporter);
+                }
+            } )
+            .setNegativeButton("No", null)
+            .show();
         }
         else
         {
@@ -459,42 +237,25 @@ public class FiruApplication extends Application
 
     public void resetVocabulary(final Context context)
     {
-        class VocabularyCleaner extends AsyncTask<Void, Void, Void>
-        {
-            @Override
-            protected Void doInBackground(Void... params)
-            {
-                if (mVoc != null) 
-                {
-                    mVoc.clearAll();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result)
-            {
-                if (mVoc != null)
-                {
-                    Log.i("firu", "Vocabulary reset");
-                    mModelListeners.notifyAllListeners(ModelEvent.MODEL_EVENT_VOC_RESET);
-                }
-            }
-        }
-        
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder
-            .setTitle("Vocabulary reset")
-            .setMessage("All learning history will be lost, are you sure?")
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+        .setTitle("Vocabulary reset")
+        .setMessage("All learning history will be lost, are you sure?")
+        .setIcon(android.R.drawable.ic_dialog_alert)
+        .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
             {
-                public void onClick(DialogInterface dialog, int which)
-                {
-                    new VocabularyCleaner().execute();
-                }
-            } )
-            .setNegativeButton("No", null)
-            .show();
+                mModel.resetVocabulary();
+            }
+        } )
+        .setNegativeButton("No", null)
+        .show();
+    }
+
+    private void openVocabulary()
+    {
+        mModel.openVocabulary(mLocalVocFile.getAbsolutePath(), getApplicationContext());
     }
 }

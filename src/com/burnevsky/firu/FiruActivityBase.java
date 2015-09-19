@@ -2,48 +2,25 @@
 package com.burnevsky.firu;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 
-import android.app.Activity;
-import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-public class FiruActivityBase extends Activity implements FiruApplication.ModelListener
+public class FiruActivityBase extends AppCompatActivity implements Model.ModelListener
 {
     FiruApplication mApp = null;
-    Dictionary mDict = null;
-    Vocabulary mVoc = null;
-
-    Context mSelfContext = null;
+    Model mModel;
 
     @Override
-    public void onDictionaryOpen(Dictionary dict)
+    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
     {
-        mDict = dict;
     }
 
     @Override
-    public void onDictionaryClose(Dictionary dict)
+    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
     {
-        mDict = null;
-    }
-
-    @Override
-    public void onVocabularyOpen(Vocabulary voc)
-    {
-        mVoc = voc;
-    }
-
-    @Override
-    public void onVocabularyReset(Vocabulary voc)
-    {
-        mVoc = voc;
-    }
-
-    @Override
-    public void onVocabularyClose(Vocabulary voc)
-    {
-        mVoc = null;
     }
 
     @Override
@@ -51,10 +28,18 @@ public class FiruActivityBase extends Activity implements FiruApplication.ModelL
     {
         super.onCreate(savedInstanceState);
 
-        mSelfContext = this;
-
         mApp = (FiruApplication) getApplicationContext();
-        mApp.subscribeDictionary(mSelfContext, this);
-        mApp.subscribeVocabulary(mSelfContext, this);
+
+        mModel = mApp.mModel;
+    }
+
+    protected void subscribeDictionary()
+    {
+        mModel.subscribeDictionary(this);
+    }
+
+    protected void subscribeVocabulary()
+    {
+        mModel.subscribeVocabulary(this);
     }
 }

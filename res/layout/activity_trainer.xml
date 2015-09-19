@@ -39,6 +39,7 @@
     </RelativeLayout>
 
     <LinearLayout
+        android:id="@+id/ltChallenge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
@@ -55,6 +56,7 @@
             android:gravity="center"
             android:padding="3dp"
             android:text="challenge"
+            android:textColor="@color/trainer_fg"
             android:textSize="28sp" />
 
         <TextView
@@ -67,7 +69,9 @@
             android:gravity="center"
             android:padding="3dp"
             android:text="guess"
+            android:textColor="@color/trainer_fg"
             android:textSize="28sp" />
+
     </LinearLayout>
 
     <RelativeLayout
@@ -126,9 +130,9 @@
             android:src="@drawable/ic_action_favorite" />
     </RelativeLayout>
 
-    <android.support.v7.widget.GridLayout 
+    <android.support.v7.widget.GridLayout
         android:id="@+id/gridKeyboard"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:columnCount="11"
         app:rowCount="4" >
