@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.burnevsky.firu.SearchActivity" >
+    tools:context="com.burnevsky.firu.SearchFragment" >
 
     <SearchView
         android:id="@+id/sta_searchWord"

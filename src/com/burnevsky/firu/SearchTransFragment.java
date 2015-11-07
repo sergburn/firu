@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import com.burnevsky.firu.SearchFragment.OnTranslationSelectedListener;
 import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Word;
@@ -15,8 +16,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -25,7 +28,7 @@ import android.widget.SearchView;
 import android.widget.SimpleAdapter;
 import android.widget.AdapterView.OnItemClickListener;
 
-public class SearchTransActivity extends FiruActivityBase implements SearchView.OnQueryTextListener, OnItemClickListener
+public class SearchTransFragment extends FiruFragmentBase implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_ITEMS_IN_RESULT = 100;
 
@@ -38,21 +41,37 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
 
     private List<Word> mMatchWords = new ArrayList<Word>();
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
+    public interface OnWordSelectedListener
     {
-        super.onCreate(savedInstanceState);
+        void onWordSelected(List<Word> allMatches, int selection);
+    }
+
+    private OnWordSelectedListener mCallback;
+
+    SearchTransFragment(Context appContext, OnWordSelectedListener listener)
+    {
+        super(appContext);
+        mCallback = listener;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
         subscribeDictionary();
 
-        setContentView(R.layout.activity_search_trans);
+        super.onCreateView(inflater, container, savedInstanceState);
 
-        mInputText = (SearchView) findViewById(R.id.sta_searchWord);
+        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_search_trans, container, false);
+
+        mInputText = (SearchView) rootView.findViewById(R.id.sta_searchWord);
         mInputText.setOnQueryTextListener(this);
 
-        mTransList = (ListView) findViewById(R.id.sta_transList);
+        mTransList = (ListView) rootView.findViewById(R.id.sta_transList);
         mTransList.setOnItemClickListener(this);
 
-        mProgress = (ProgressBar) findViewById(R.id.sta_progress);
+        mProgress = (ProgressBar) rootView.findViewById(R.id.sta_progress);
+
+        return rootView;
     }
 
     @Override
@@ -77,20 +96,9 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu)
+    protected void hideKeyboard()
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.search_activity_actions, menu);
-        return false;
-    }
-
-    private void hideKeyboard()
-    {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
+        super.hideKeyboard();
         mInputText.clearFocus();
     }
 
@@ -133,7 +141,7 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
                 }
             }
 
-            mTransList.setAdapter(new SimpleAdapter(this, data,
+            mTransList.setAdapter(new SimpleAdapter(getActivity(), data,
                 R.layout.translation_word_list_item, mListColumns, mListFields));
 
             if (list.size() > 0)
@@ -150,6 +158,6 @@ public class SearchTransActivity extends FiruActivityBase implements SearchView.
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        TranslationsActivity.showDictWord(this, mMatchWords.get(position));
+        mCallback.onWordSelected(mMatchWords.subList(position, position+1), 0);
     }
 }

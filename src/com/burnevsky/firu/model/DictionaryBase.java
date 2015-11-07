@@ -28,12 +28,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 /**
- * 
+ *
  */
 public abstract class DictionaryBase implements IDictionary
 {
     protected SQLiteDatabase mDatabase = null;
     protected int mTotalWords = 0;
+    protected int mTotalTranslations = 0;
 
     public DictionaryBase()
     {
@@ -44,6 +45,12 @@ public abstract class DictionaryBase implements IDictionary
     public int getTotalWords()
     {
         return mTotalWords;
+    }
+
+    @Override
+    public int getTotalTranslations()
+    {
+        return mTotalTranslations;
     }
 
     @Override
@@ -63,6 +70,7 @@ public abstract class DictionaryBase implements IDictionary
         return 0;
     }
 
+    @Override
     public int countWords()
     {
         if (mDatabase == null) return 0;
@@ -78,6 +86,7 @@ public abstract class DictionaryBase implements IDictionary
         return 0;
     }
 
+    @Override
     public int countTranslations()
     {
         if (mDatabase == null) return 0;

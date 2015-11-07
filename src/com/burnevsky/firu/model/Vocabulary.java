@@ -342,7 +342,7 @@ public class Vocabulary extends DictionaryBase
         catch (Exception e)
         {
             Log.e(TAG, "Exception in selectTranslations: " + e.getMessage());
-            throw e;
+            //throw e;
         }
         return list;
     }
@@ -371,7 +371,7 @@ public class Vocabulary extends DictionaryBase
         catch (Exception e)
         {
             Log.e(TAG, "Exception in selectWordsByMarks: " + e.getMessage());
-            throw e;
+            //throw e;
         }
         return list;
     }
@@ -412,7 +412,7 @@ public class Vocabulary extends DictionaryBase
         catch (Exception e)
         {
             Log.e(TAG, "Exception in collectStatistics: " + e.getMessage());
-            throw e;
+            //throw e;
         }
         return stats;
     }

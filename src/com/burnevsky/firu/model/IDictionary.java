@@ -29,6 +29,11 @@ import java.util.List;
 public interface IDictionary
 {
     int getTotalWords();
+    int getTotalTranslations();
+
+    int countWords();
+    int countTranslations();
+
     int countWords(String startsWith);
     List<Word> searchWords(String startsWith, int numMaximum);
 }

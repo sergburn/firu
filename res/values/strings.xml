@@ -19,4 +19,6 @@
     <string name="action_rev_search">Search translations</string>
     <string name="title_activity_search_trans">Translations</string>
     <string name="search_box_trans_hint">Enter part of translation</string>
+    <string name="drawer_open">Show main menu</string>
+    <string name="drawer_close">Hide menu</string>
 </resources>

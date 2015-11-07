@@ -34,9 +34,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -52,7 +54,7 @@ import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
-public class SearchActivity extends FiruActivityBase implements SearchView.OnQueryTextListener, OnItemClickListener
+public class SearchFragment extends FiruFragmentBase implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
 
@@ -60,7 +62,6 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
 
     ListView mWordsListView = null;
     TextView mCountText = null;
-    MenuItem mExportVocMenu, mClearVocMenu = null;
     SearchView mInputText = null;
 
     DictionarySearch mSearchTask = null;
@@ -69,20 +70,32 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     private String mSharedText;
     private ArrayList<Word> mMatches;
 
+    public interface OnTranslationSelectedListener
+    {
+        void onTranslationSelected(ArrayList<Word> allMatches, int selection);
+    }
+
+    private OnTranslationSelectedListener mCallback;
+
+    SearchFragment(Context appContext, OnTranslationSelectedListener listener)
+    {
+        super(appContext);
+        mCallback = listener;
+    }
+
     @Override
     public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
     {
         switch (event)
         {
             case MODEL_EVENT_OPENED:
-                Toast.makeText(
-                    this,
+                makeToast(
                     "Vocabulary has " + String.valueOf(voc.getTotalWords()) + " words",
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT);
                 break;
 
             case MODEL_EVENT_FAILURE:
-                Toast.makeText(this, "Can't open Vocabulary", Toast.LENGTH_SHORT).show();
+                makeToast("Can't open Vocabulary", Toast.LENGTH_SHORT);
                 break;
 
             default:
@@ -94,7 +107,7 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     public void onVocabularyReset(Vocabulary voc)
     {
         invalidateOptionsMenu();
-        Toast.makeText(this, "Vocabulary is empty now", Toast.LENGTH_SHORT).show();
+        makeToast("Vocabulary is empty now", Toast.LENGTH_SHORT);
     }
 
     @Override
@@ -110,7 +123,7 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
                 break;
 
             case MODEL_EVENT_FAILURE:
-                Toast.makeText(this, "Can't open Dictionary", Toast.LENGTH_SHORT).show();
+                makeToast("Can't open Dictionary", Toast.LENGTH_SHORT);
 
             default:
                 break;
@@ -173,26 +186,29 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     };
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        super.onCreate(savedInstanceState);
         subscribeDictionary();
         subscribeVocabulary();
 
-        setContentView(R.layout.activity_search);
+        super.onCreateView(inflater, container, savedInstanceState);
 
-        mInputText = (SearchView) findViewById(R.id.searchWord);
+        ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_search, container, false);
+
+        mInputText = (SearchView) rootView.findViewById(R.id.searchWord);
         mInputText.setOnQueryTextListener(this);
 
-        mWordsListView = (ListView) findViewById(R.id.wordList);
+        mWordsListView = (ListView) rootView.findViewById(R.id.wordList);
         mWordsListView.setOnItemClickListener(this);
-        mCountText = (TextView) findViewById(R.id.laCount);
+        mCountText = (TextView) rootView.findViewById(R.id.laCount);
 
-        Intent intent = getIntent();
-        if (intent.getAction() == Intent.ACTION_SEND)
+        Bundle args = getArguments();
+        if (args != null)
         {
-            mSharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+            mSharedText = args.getString(Intent.EXTRA_TEXT);
         }
+
+        return rootView;
     }
 
     private void showTotalWordsCount()
@@ -207,65 +223,6 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.search_activity_actions, menu);
-        mExportVocMenu = menu.findItem(R.id.action_backup_voc);
-        mClearVocMenu = menu.findItem(R.id.action_reset_voc);
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu)
-    {
-        mExportVocMenu.setEnabled(mModel.getVocabulary() != null);
-        mClearVocMenu.setEnabled(mModel.getVocabulary() != null && mModel.getVocabulary().getTotalWords() > 0);
-        return super.onPrepareOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        switch(item.getItemId())
-        {
-            case R.id.action_settings:
-                Intent intent = new Intent(this, TrainerActivity.class);
-                startActivity(intent);
-                return true;
-
-            case R.id.action_import_voc:
-                mApp.importVocabulary(this);
-                return true;
-
-            case R.id.action_backup_voc:
-                mApp.exportVocabulary(this);
-                return true;
-
-            case R.id.action_reset_voc:
-                mApp.resetVocabulary(this);
-                return true;
-
-            case R.id.action_show_stats:
-                Intent intent2 = new Intent(this, StatActivity.class);
-                startActivity(intent2);
-                return true;
-
-            case R.id.action_rev_search:
-                Intent intent3 = new Intent(this, SearchTransActivity.class);
-                startActivity(intent3);
-                return true;
-
-            default:
-                break;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public boolean onQueryTextSubmit(String _query)
@@ -301,16 +258,13 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        TranslationsActivity.showDictWords(this, mMatches, position);
+        mCallback.onTranslationSelected(mMatches, position);
     }
 
-    private void hideKeyboard()
+    @Override
+    protected void hideKeyboard()
     {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
+        super.hideKeyboard();
         mInputText.clearFocus();
     }
 
@@ -318,7 +272,7 @@ public class SearchActivity extends FiruActivityBase implements SearchView.OnQue
     {
         if (result != null)
         {
-            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(this, android.R.layout.simple_list_item_1, result);
+            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(getActivity(), android.R.layout.simple_list_item_1, result);
             mWordsListView.setAdapter(adapter);
 
             if (result.size() > 0)
