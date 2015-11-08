@@ -71,7 +71,7 @@ public class Vocabulary extends DictionaryBase
                     + "lang TINYINT NOT NULL);");
 
                 db.execSQL("CREATE INDEX FK_translations_words on translations (word_id ASC);");
-            };
+            }
         };
 
         mDatabase = dbOpener.getWritableDatabase();
@@ -82,8 +82,8 @@ public class Vocabulary extends DictionaryBase
 
     public static class LearningStats
     {
-        public Map<Mark, Integer> ForwardMarksDistribution = new TreeMap<Mark, Integer>();
-        public Map<Mark, Integer> ReverseMarksDistribution = new TreeMap<Mark, Integer>();
+        public final Map<Mark, Integer> ForwardMarksDistribution = new TreeMap<>();
+        public final Map<Mark, Integer> ReverseMarksDistribution = new TreeMap<>();
         public int TotalTranslationsCount = 0;
         /*
         public LearningStats()
@@ -128,7 +128,7 @@ public class Vocabulary extends DictionaryBase
     @Override
     public List<Word> searchWords(String startsWith, int numMaximum)
     {
-        List<Word> list = new LinkedList<Word>();
+        List<Word> list = new LinkedList<>();
         Cursor c = mDatabase.query("words",
             getWordSelect(),
             "text LIKE '" + startsWith + "%'", // most probably should use collated index
@@ -152,7 +152,7 @@ public class Vocabulary extends DictionaryBase
 
     public List<Translation> getTranslations(final Word word, final Mark min, final Mark max)
     {
-        List<Translation> list = new LinkedList<Translation>();
+        List<Translation> list = new LinkedList<>();
         Cursor c = mDatabase.query("translations",
             getTranslationSelect(),
             "word_id = ? AND rmark >= ? AND rmark <= ?",
@@ -204,10 +204,11 @@ public class Vocabulary extends DictionaryBase
         }
 
         long word_id = 0;
-        mDatabase.beginTransaction();
+
+        Cursor c;
         try
         {
-            Cursor c = mDatabase.query("words",
+            c = mDatabase.query("words",
                 new String[] { "_id" },
                 "(lower(text) LIKE '" + dictWord.getText().toLowerCase(Locale.US) + "') AND " +
                     "(lang = " + dictWord.getLangCode() + ")",
@@ -246,6 +247,7 @@ public class Vocabulary extends DictionaryBase
         finally
         {
             mDatabase.endTransaction();
+            c.close();
         }
         mTotalWords = countWords();
         return new Word(word_id, dictWord.getText(), dictWord.getLang());
@@ -320,9 +322,9 @@ public class Vocabulary extends DictionaryBase
         }
     }
 
-    public List<MarkedTranslation> selectTranslations(Mark min, Mark max, boolean reverse)
+    public List<MarkedTranslation> selectTranslations(Mark min, Mark max)
     {
-        List<MarkedTranslation> list = new LinkedList<MarkedTranslation>();
+        List<MarkedTranslation> list = new LinkedList<>();
         try
         {
             Cursor c = mDatabase.query("translations",
@@ -349,7 +351,7 @@ public class Vocabulary extends DictionaryBase
 
     public List<Word> selectWordsByMarks(final Mark min, final Mark max)
     {
-        List<Word> list = new LinkedList<Word>();
+        List<Word> list = new LinkedList<>();
         try
         {
             // select distinct w.* from words as w join translations as t on w._id = t.word_id where t.rmark < 4;

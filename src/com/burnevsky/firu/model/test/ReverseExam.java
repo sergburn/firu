@@ -49,7 +49,7 @@ public class ReverseExam
     public ReverseExam(Vocabulary voc)
     {
         mVoc = voc;
-        mChallenges = new ArrayList<Word>();
+        mChallenges = new ArrayList<>();
 
         Random rand = new Random();
         /*
@@ -158,8 +158,7 @@ public class ReverseExam
         {
             Word w = mChallenges.get(mNextTest++);
             MarkedTranslation t = (MarkedTranslation) w.translations.get(0);
-            ReverseTest test = new ReverseTest(mVoc, t, w);
-            return test;
+            return new ReverseTest(mVoc, t, w);
         }
         else
         {
@@ -169,6 +168,6 @@ public class ReverseExam
 
     public ArrayList<Word> getResults()
     {
-        return new ArrayList<Word>(mChallenges.subList(0, mNextTest));
+        return new ArrayList<>(mChallenges.subList(0, mNextTest));
     }
 }

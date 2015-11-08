@@ -39,7 +39,7 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
     private ListView mTransList = null;
     private ProgressBar mProgress = null;
 
-    private List<Word> mMatchWords = new ArrayList<Word>();
+    private final List<Word> mMatchWords = new ArrayList<>();
 
     public interface OnWordSelectedListener
     {
@@ -119,20 +119,20 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
             mProgress.setVisibility(View.GONE);
             showListData(result);
         }
-    };
+    }
 
     private void showListData(List<Word> list)
     {
         mMatchWords.clear();
         if (list != null)
         {
-            List<SortedMap<String, Object>> data = new ArrayList<SortedMap<String,Object>>();
+            List<SortedMap<String, Object>> data = new ArrayList<>();
 
             for (Word w : list)
             {
                 for (Translation t : w.translations)
                 {
-                    TreeMap<String, Object> row = new TreeMap<String, Object>();
+                    TreeMap<String, Object> row = new TreeMap<>();
                     row.put("word", w.getText());
                     row.put("trans", t.getText());
                     data.add(row);

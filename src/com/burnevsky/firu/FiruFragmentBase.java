@@ -15,7 +15,7 @@ import android.widget.Toast;
 public class FiruFragmentBase extends Fragment implements Model.ModelListener
 {
     FiruApplication mApp = null;
-    Model mModel;
+    final Model mModel;
 
     FiruFragmentBase(Context appContext)
     {

@@ -5,9 +5,11 @@ import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 
+import android.annotation.SuppressLint;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+@SuppressLint("Registered")
 public class FiruActivityBase extends AppCompatActivity implements Model.ModelListener
 {
     FiruApplication mApp = null;

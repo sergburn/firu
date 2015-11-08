@@ -63,11 +63,13 @@ public abstract class DictionaryBase implements IDictionary
             "text LIKE '" + startsWith + "%'", // most probably should use collated index
             null, null, null, null, null);
 
+        int count = 0;
         if (!c.isAfterLast() && c.moveToFirst())
         {
-            return c.getInt(0);
+            count = c.getInt(0);
         }
-        return 0;
+        c.close();
+        return count;
     }
 
     @Override
@@ -79,11 +81,13 @@ public abstract class DictionaryBase implements IDictionary
             new String[] { "count(*)" },
             null, null, null, null, null, null);
 
+        int count = 0;
         if (!c.isAfterLast() && c.moveToFirst())
         {
-            return c.getInt(0);
+            count = c.getInt(0);
         }
-        return 0;
+        c.close();
+        return count;
     }
 
     @Override
@@ -95,10 +99,12 @@ public abstract class DictionaryBase implements IDictionary
             new String[] { "count(*)" },
             null, null, null, null, null, null);
 
+        int count = 0;
         if (!c.isAfterLast() && c.moveToFirst())
         {
-            return c.getInt(0);
+            count = c.getInt(0);
         }
-        return 0;
+        c.close();
+        return count;
     }
 }

@@ -58,8 +58,6 @@ import com.androidplot.xy.XYStepMode;
 
 public class StatActivity extends FiruActivityBase
 {
-    //    private XYPlot plot;
-    private PieChart pie;
     private TextView mTotal;
 
     Vocabulary.LearningStats mLearningStats = null;
@@ -81,7 +79,7 @@ public class StatActivity extends FiruActivityBase
                 showPie();
             }
         }
-    };
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -123,7 +121,7 @@ public class StatActivity extends FiruActivityBase
             } )
             .show();
         }
-    };
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
@@ -149,7 +147,7 @@ public class StatActivity extends FiruActivityBase
 
     private void showPie()
     {
-        pie = (PieChart) findViewById(R.id.mySimplePieChart);
+        PieChart pie = (PieChart) findViewById(R.id.mySimplePieChart);
 
         PieWidget pw = pie.getPieWidget();
         if (pw != null)
@@ -187,7 +185,7 @@ public class StatActivity extends FiruActivityBase
         sf4.configure(getApplicationContext(), R.xml.pie_segment_formatter);
         sf4.getFillPaint().setColor(Color.GREEN);
 
-        Map<Mark, SegmentFormatter> styles = new TreeMap<Mark, SegmentFormatter>();
+        Map<Mark, SegmentFormatter> styles = new TreeMap<>();
         styles.put(Mark.Unfamiliar, sf0);
         styles.put(Mark.YetToLearn, sf1);
         styles.put(Mark.WithHints, sf2);

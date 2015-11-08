@@ -22,7 +22,7 @@ public class Model
 
     private final Handler mHandler = new Handler();
 
-    private ModelListenersManager mModelListeners = new ModelListenersManager();
+    private final ModelListenersManager mModelListeners = new ModelListenersManager();
 
 
     public Dictionary getDictionary()
@@ -209,7 +209,7 @@ public class Model
 
         ModelListenersManager()
         {
-            mListeners = new ArrayList<ModelListenerRef>();
+            mListeners = new ArrayList<>();
         }
 
         void addListener(final ModelListener listener)

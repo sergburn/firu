@@ -43,7 +43,7 @@ public class Word extends DictionaryEntry
     {
         if (translations == null)
         {
-            translations = new ArrayList<Translation>();
+            translations = new ArrayList<>();
         }
         translations.add(t);
     }
@@ -66,7 +66,7 @@ public class Word extends DictionaryEntry
     private Word(Parcel in)
     {
         super(in);
-        translations = new ArrayList<Translation>();
+        translations = new ArrayList<>();
         in.readList(translations, MarkedTranslation.class.getClassLoader());
     }
 

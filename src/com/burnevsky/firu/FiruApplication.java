@@ -110,10 +110,10 @@ public class FiruApplication extends Application
         mModel.openDictionary(mDictFile.getAbsolutePath(), getApplicationContext());
     }
 
-    private boolean copyFile(File src, File dst) throws IOException
+    private void copyFile(File src, File dst) throws IOException
     {
         Log.d("firu", "Copying from '" + src.toString() + "' to '" + dst.toString());
-        if (!src.getAbsolutePath().toString().equals(dst.getAbsolutePath().toString()))
+        if (!src.getAbsolutePath().equals(dst.getAbsolutePath()))
         {
             InputStream is = new FileInputStream(src);
             OutputStream os = new FileOutputStream(dst);
@@ -126,7 +126,6 @@ public class FiruApplication extends Application
             is.close();
             os.close();
         }
-        return true;
     }
 
     public void importVocabulary(final Context toastContext)

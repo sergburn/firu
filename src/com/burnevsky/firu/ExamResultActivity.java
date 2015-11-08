@@ -28,8 +28,6 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
 {
     public final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
 
-    private SimpleAdapter mAdapter = null;
-
     private Word[] mSortedTests;
 
     @Override
@@ -54,11 +52,11 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
             }
         });
 
-        List<SortedMap<String, Object>> data = new ArrayList<SortedMap<String,Object>>();
+        List<SortedMap<String, Object>> data = new ArrayList<>();
 
         for (Word test : mSortedTests)
         {
-            TreeMap<String, Object> row = new TreeMap<String, Object>();
+            TreeMap<String, Object> row = new TreeMap<>();
             row.put("word", test.getText());
             MarkedTranslation mt = (MarkedTranslation) test.translations.get(0);
             row.put("trans", mt.getText());
@@ -69,21 +67,21 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
         String[] columns = {"word", "trans", "rate"};
         int[] fields = {R.id.era_textWord, R.id.era_textTrans, R.id.era_rbMark};
 
-        mAdapter = new SimpleAdapter(this, data, R.layout.marked_translation_list_item, columns, fields);
+        SimpleAdapter mAdapter = new SimpleAdapter(this, data, R.layout.marked_translation_list_item, columns, fields);
         mAdapter.setViewBinder(new SimpleAdapter.ViewBinder()
-        {
+		{
             @Override
             public boolean setViewValue(View view, Object data, String textRepresentation)
-            {
+			{
                 if (view.getId() == R.id.era_rbMark)
-                {
+				{
                     Integer rate = (Integer) data;
                     RatingBar rbMark = (RatingBar) view;
                     rbMark.setRating(rate);
                     return true;
                 }
-                else
-                {
+				else
+				{
                     return false;
                 }
             }
@@ -127,7 +125,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        TranslationsActivity.showVocWords(this, new ArrayList<Word>(Arrays.asList(mSortedTests)), position);
+        TranslationsActivity.showVocWords(this, new ArrayList<>(Arrays.asList(mSortedTests)), position);
     }
 
     private void startNextExam()

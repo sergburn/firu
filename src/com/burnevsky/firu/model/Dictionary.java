@@ -78,6 +78,7 @@ public class Dictionary extends DictionaryBase
             Meta.SourceLanguage = LangUtil.int2Lang(c.getInt(3));
             Meta.TargetLanguage = LangUtil.int2Lang(c.getInt(4));
         }
+        c.close();
 
         mTotalWords = countWords();
     }
@@ -85,7 +86,7 @@ public class Dictionary extends DictionaryBase
     @Override
     public List<Word> searchWords(String startsWith, int numMaximum)
     {
-        List<Word> list = new LinkedList<Word>();
+        List<Word> list = new LinkedList<>();
         Cursor c = mDatabase.query("words", 
                 new String[] { "_id", "text" },
                 "text LIKE '" + startsWith + "%'", // SQLite can't use indexes with collation, so this is binary match
@@ -99,6 +100,7 @@ public class Dictionary extends DictionaryBase
             list.add(w);
             next = c.moveToNext();
         }
+        c.close();
         return list;
     }
 
@@ -108,7 +110,7 @@ public class Dictionary extends DictionaryBase
         String pattern1 = "% " + matchText + "%";
 
         Word w = null;
-        List<Word> list = new LinkedList<Word>();
+        List<Word> list = new LinkedList<>();
         Cursor c = mDatabase.rawQuery(
             "SELECT w._id, w.text, t._id, t.word_id, t.text " +
                 "FROM words AS w JOIN translations AS t ON w._id = t.word_id " +
@@ -135,12 +137,13 @@ public class Dictionary extends DictionaryBase
         {
             list.add(w);
         }
+        c.close();
         return list;
     }
 
     public List<Translation> getTranslations(Word w)
     {
-        List<Translation> list = new LinkedList<Translation>();
+        List<Translation> list = new LinkedList<>();
         Cursor c = mDatabase.query("translations", 
                 new String[] { "_id", "text", "word_id" },
                 "word_id = " + w.getID(),
@@ -152,6 +155,7 @@ public class Dictionary extends DictionaryBase
             list.add(t);
             next = c.moveToNext();
         }
+        c.close();
         return list;
     }
 

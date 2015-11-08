@@ -168,7 +168,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         {
             mSearchTask = null;
         }
-    };
+    }
 
     class DictionaryCounter extends AsyncTask<String, Void, Integer>
     {
@@ -183,7 +183,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         {
             mCountText.setText("Found " + result + " words");
         }
-    };
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -272,7 +272,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
     {
         if (result != null)
         {
-            ArrayAdapter<Word> adapter = new ArrayAdapter<Word>(getActivity(), android.R.layout.simple_list_item_1, result);
+            ArrayAdapter<Word> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, result);
             mWordsListView.setAdapter(adapter);
 
             if (result.size() > 0)
@@ -284,6 +284,6 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         {
             mWordsListView.setAdapter(null);
         }
-        mMatches = new ArrayList<Word>(result);
+        mMatches = new ArrayList<>(result);
     }
 }

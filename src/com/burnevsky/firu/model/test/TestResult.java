@@ -35,6 +35,6 @@ public enum TestResult {
     PassedWithHints,
     
     // sets current rate 1.
-    Failed;
-    
+    Failed
+
 }

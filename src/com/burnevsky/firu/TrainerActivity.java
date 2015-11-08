@@ -46,7 +46,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.support.v7.widget.GridLayout;
-import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -70,11 +69,11 @@ public class TrainerActivity extends FiruActivityBase
     private TextView mWordText = null;
     private Drawable mOkIcon = null, mPassedIcon = null, mFailIcon = null, mLifeIcon = null;
     private ImageView mHintButton = null, mNextButton = null;
-    private List<ImageView> mImgLives = new ArrayList<ImageView>();
+    private final List<ImageView> mImgLives = new ArrayList<>();
     private TextView mExamProgress = null;
     private GridLayout mKeyboard = null;
     private Button mEnter = null;
-    private ArrayList<Button> mKeys = new ArrayList<Button>();
+    private final ArrayList<Button> mKeys = new ArrayList<>();
     private RatingBar mMarkRating = null;
     private LinearLayout mChallengeLayout;
 
@@ -86,7 +85,7 @@ public class TrainerActivity extends FiruActivityBase
         "__zxcvbnm__"
     };
 
-    private static final int TRAINER_KEYBOARD_LINE_LENGHT = 11;
+    private static final int TRAINER_KEYBOARD_LINE_LENGTH = 11;
     private static final int TRAINER_KEYBOARD_LINES_NUM = TRAINER_KEYBOARD_LINES.length;
 
     private static final long TRAINER_CORRECTION_DELAY = 500;
@@ -113,7 +112,8 @@ public class TrainerActivity extends FiruActivityBase
             STATE_MAKING_EXAM,
             STATE_TEST_ONGOING,
             STATE_TEST_FINISHED
-        };
+        }
+
         State mState = State.STATE_INITIAL;
 
         @Override
@@ -219,7 +219,7 @@ public class TrainerActivity extends FiruActivityBase
                 Toast.makeText(TrainerActivity.this, "Failed to make exam", Toast.LENGTH_SHORT).show();
             }
         }
-    };
+    }
 
     class GuessValidator
     {
@@ -257,7 +257,7 @@ public class TrainerActivity extends FiruActivityBase
         {
             for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
             {
-                for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGHT; c++)
+                for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGTH; c++)
                 {
                     if (TRAINER_KEYBOARD_LINES[r].charAt(c) == last)
                     {
@@ -389,11 +389,11 @@ public class TrainerActivity extends FiruActivityBase
             showAnswerText();
             afterTextChanged();
         }
-    };
+    }
 
     GuessValidator mGuessValidator = null;
 
-    private View.OnClickListener mKeyBoardListener = new OnClickListener()
+    private final View.OnClickListener mKeyBoardListener = new OnClickListener()
     {
         @Override
         public void onClick(View v)
@@ -408,7 +408,7 @@ public class TrainerActivity extends FiruActivityBase
     private void startTest(ReverseTest test)
     {
         mData.mTest = test;
-        mData.mInputText = new String();
+        mData.mInputText = "";
         mData.mForgiveFurtherMistakes = false;
         changeState(Data.State.STATE_TEST_ONGOING);
     }
@@ -485,7 +485,7 @@ public class TrainerActivity extends FiruActivityBase
         for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
         {
             GridLayout.Spec rowSpec = GridLayout.spec(r);
-            for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGHT; c++)
+            for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGTH; c++)
             {
                 char cap = TRAINER_KEYBOARD_LINES[r].charAt(c);
                 if (Character.isLetter(cap))

@@ -33,7 +33,7 @@ public class LangUtil
     public static int lang2Int(String lang)
     {
         int code = 0;
-        byte[] bytes = null;
+        byte[] bytes;
         try
         {
             bytes = lang.getBytes("UTF-8");

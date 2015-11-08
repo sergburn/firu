@@ -43,11 +43,11 @@ public class Mark implements Comparable<Mark>
     private static final int AlmostLearnedValue = 3;
     private static final int LearnedValue = 4;
 
-    public static Mark Unfamiliar = new Mark(UnfamiliarValue);
-    public static Mark YetToLearn = new Mark(YetToLearnValue);
-    public static Mark WithHints = new Mark(WithHintsValue);
-    public static Mark AlmostLearned = new Mark(AlmostLearnedValue);
-    public static Mark Learned = new Mark(LearnedValue);
+    public static final Mark Unfamiliar = new Mark(UnfamiliarValue);
+    public static final Mark YetToLearn = new Mark(YetToLearnValue);
+    public static final Mark WithHints = new Mark(WithHintsValue);
+    public static final Mark AlmostLearned = new Mark(AlmostLearnedValue);
+    public static final Mark Learned = new Mark(LearnedValue);
 
     public void upgrade()
     {

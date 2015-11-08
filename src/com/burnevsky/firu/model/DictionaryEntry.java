@@ -24,10 +24,12 @@
 
 package com.burnevsky.firu.model;
 
+import android.annotation.SuppressLint;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class DictionaryEntry extends Object implements Parcelable
+@SuppressLint("ParcelCreator")
+public class DictionaryEntry implements Parcelable
 {
     protected long mID = 0;
     protected String mText;

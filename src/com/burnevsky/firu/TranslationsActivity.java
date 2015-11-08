@@ -57,7 +57,7 @@ public class TranslationsActivity extends FiruActivityBase
     private final static String INTENT_EXTRA_VOC_WORD = "com.burnevsk.firu.voc_word";
     private final static String INTENT_EXTRA_WORD_IDX = "com.burnevsk.firu.word_idx";
 
-    private List<Word> mWordList = new ArrayList<Word>();
+    private List<Word> mWordList = new ArrayList<>();
     private int mWordIndex = 0;
     private boolean mFromDict = false;
 
@@ -65,11 +65,11 @@ public class TranslationsActivity extends FiruActivityBase
 
     private ViewPager mPager;
     private TranslationsPagerAdapter mPagerAdapter;
-    private List<TranslationsFragment> mFragments = new ArrayList<TranslationsFragment>();
+    private List<TranslationsFragment> mFragments = new ArrayList<>();
 
     abstract class TranslationsTask<Params, Progress, Result> extends AsyncTask<Params, Progress, Result>
     {
-        protected TranslationsFragment mFragment;
+        protected final TranslationsFragment mFragment;
 
         TranslationsTask(TranslationsFragment fragment)
         {
@@ -96,7 +96,7 @@ public class TranslationsActivity extends FiruActivityBase
         {
             mFragment.onDictionaryTranslations(result);
         }
-    };
+    }
 
     class VocabularyTranslations extends TranslationsTask<Word, Void, List<Translation>>
     {
@@ -116,7 +116,7 @@ public class TranslationsActivity extends FiruActivityBase
         {
             mFragment.onVocabularyTranslations(result);
         }
-    };
+    }
 
     class VocabularyMatch extends TranslationsTask<Word, Void, Word>
     {
@@ -136,7 +136,7 @@ public class TranslationsActivity extends FiruActivityBase
         {
             mFragment.onVocabuaryMatch(word);
         }
-    };
+    }
 
     class VocabularyAdd extends TranslationsTask<Word, Void, Word>
     {
@@ -166,7 +166,7 @@ public class TranslationsActivity extends FiruActivityBase
         {
             mFragment.onVocabularyAdd(word);
         }
-    };
+    }
 
     class VocabularyRemove extends TranslationsTask<Word, List<Translation>, Boolean>
     {
@@ -179,7 +179,7 @@ public class TranslationsActivity extends FiruActivityBase
         protected Boolean doInBackground(Word... param)
         {
             Word w = param[0];
-            return (mModel.getVocabulary() != null) ? mModel.getVocabulary().removeWord(w) : true;
+            return (mModel.getVocabulary() == null) || mModel.getVocabulary().removeWord(w);
         }
 
         @Override
@@ -190,7 +190,7 @@ public class TranslationsActivity extends FiruActivityBase
                 mFragment.onVocabularyRemove();
             }
         }
-    };
+    }
 
     private class TranslationsPagerAdapter extends FragmentPagerAdapter
     {
@@ -328,7 +328,7 @@ public class TranslationsActivity extends FiruActivityBase
             ArrayAdapter<Translation> adapter = null;
             if (list != null)
             {
-                adapter = new ArrayAdapter<Translation>(getActivity(), android.R.layout.simple_list_item_1, list);
+                adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, list);
             }
             Log.d("firu", "fillTranslationsList: " + list);
             mTransView.setAdapter(adapter);
@@ -424,14 +424,14 @@ public class TranslationsActivity extends FiruActivityBase
 
     public static void showDictWord(Activity caller, Word word)
     {
-        ArrayList<Word> list = new ArrayList<Word>();
+        ArrayList<Word> list = new ArrayList<>();
         list.add(word);
         showDictWords(caller, list, 0);
     }
 
     public static void showVocWord(Activity caller, Word word)
     {
-        ArrayList<Word> list = new ArrayList<Word>();
+        ArrayList<Word> list = new ArrayList<>();
         list.add(word);
         showVocWords(caller, list, 0);
     }

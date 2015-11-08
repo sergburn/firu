@@ -29,7 +29,7 @@ import android.os.Parcelable;
 
 public class Translation extends DictionaryEntry
 {
-    long mWordID;
+    final long mWordID;
 
     public Translation(long wordId, String text, String targetLang)
     {
