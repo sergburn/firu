@@ -6,6 +6,7 @@
     android:layout_height="match_parent" >
 
     <!-- The main content view -->
+
     <FrameLayout
         android:id="@+id/content_frame"
         android:layout_width="match_parent"
@@ -18,9 +19,7 @@
         android:layout_width="240dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp"
-        android:background="#111">
+        android:background="@color/material_blue_grey_800">
 
 	    <include
 	        android:layout_width="match_parent"

@@ -2,36 +2,337 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+              android:orientation="vertical"
+              android:id="@+id/llDrawer"
+              android:background="@color/material_blue_grey_800">
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp"/>
 
     <TextView
-        android:id="@+id/textView1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Search words"
-        android:textAppearance="?android:attr/textAppearanceLargeInverse" />
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"
+        android:text="Dictionary"
+        android:id="@+id/txtDictionary"
+        android:textAllCaps="true"
+        android:gravity="center_vertical"
+        android:layout_marginLeft="16dp"/>
 
-    <TextView
-        android:id="@+id/textView2"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Search translations"
-        android:textAppearance="?android:attr/textAppearanceLargeInverse" />
+        android:background="@drawable/menu_selector"
+        android:id="@+id/rlWords"
+        android:clickable="true"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="Trainer"
-        android:textAppearance="?android:attr/textAppearanceLargeInverse" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgWords"
+            android:src="@drawable/ic_search_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
 
-    <ToggleButton
-        android:id="@+id/toggleButton1"
+        <TextView
+            android:id="@+id/txtWords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="Words"
+            android:layout_centerVertical="true"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"
+            android:layout_marginStart="56dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="65k"
+            android:id="@+id/txtWordsBadge"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentStart="false"
+            android:layout_centerVertical="true"
+            android:textSize="@dimen/abc_text_size_small_material" />
+    </RelativeLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ToggleButton" />
+        android:background="@drawable/menu_selector"
+        android:clickable="true"
+        android:id="@+id/rlTrans"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgTrans"
+            android:src="@drawable/ic_search_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/txtTrans"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Translations"
+            android:layout_centerVertical="true"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            android:layout_marginLeft="56dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="88 000"
+            android:id="@+id/txtTransBadge"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentStart="false"
+            android:layout_centerVertical="true"
+            android:textSize="@dimen/abc_text_size_small_material"/>
+    </RelativeLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/material_blue_grey_900">
+    </View>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:id="@+id/rlVocabulary"
+        android:paddingRight="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"
+            android:text="Vocabulary"
+            android:id="@+id/textView"
+            android:textAllCaps="true"
+            android:gravity="center_vertical"
+            android:layout_alignParentStart="true"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/dropArrow"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="false"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="false"
+            android:src="@drawable/ic_arrow_drop_down_white_24dp"
+            android:clickable="true"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/rlVocControls"
+        android:paddingLeft="16dp"
+        android:minHeight="48dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgStats"
+            android:src="@drawable/ic_poll_white_36dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:paddingRight="16dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgDownload"
+            android:src="@drawable/ic_get_app_white_36dp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/imgStats"
+            android:paddingRight="16dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgUpload"
+            android:src="@drawable/ic_backup_white_36dp"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/imgDownload"
+            android:paddingRight="16dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgReset"
+            android:src="@drawable/ic_delete_white_36dp"
+            android:layout_alignParentEnd="false"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/imgUpload"
+            android:paddingRight="16dp"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/menu_selector"
+        android:clickable="true"
+        android:id="@+id/rlTrainer"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgTrainer"
+            android:src="@drawable/ic_view_agenda_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/txtTrainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trainer"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="56dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="215"
+            android:id="@+id/txtTrainerBadge"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentStart="false"
+            android:layout_centerVertical="true"
+            android:textSize="@dimen/abc_text_size_small_material"/>
+
+    </RelativeLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/material_blue_grey_900">
+    </View>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/menu_selector"
+        android:clickable="true"
+        android:id="@+id/rlSettings"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgSettings"
+            android:src="@drawable/ic_settings_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/txtSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="56dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/menu_selector"
+        android:clickable="true"
+        android:id="@+id/rlFeedback"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgFeedback"
+            android:src="@drawable/ic_feedback_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/txtFeedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Feedback"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="56dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/menu_selector"
+        android:clickable="true"
+        android:id="@+id/rlHelp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:minHeight="48dp"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imgSettingsHelp"
+            android:src="@drawable/ic_help_outline_white_36dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            />
+
+        <TextView
+            android:id="@+id/txtHelp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Help"
+            android:textSize="@dimen/abc_text_size_medium_material"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="56dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium.Inverse"/>
+
+    </RelativeLayout>
 
 </LinearLayout>

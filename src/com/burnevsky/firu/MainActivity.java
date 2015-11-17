@@ -6,18 +6,14 @@ import java.util.List;
 
 import com.burnevsky.firu.model.Word;
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.support.v4.view.ScrollingView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ScrollView;
 
 public class MainActivity
@@ -61,9 +57,8 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        //getSupportActionBar().setHomeButtonEnabled(true);
 
-        View btnSearch = findViewById(R.id.textView1);
+        View btnSearch = findViewById(R.id.rlWords);
         btnSearch.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -73,7 +68,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             }
         });
 
-        View btnRevSearch = findViewById(R.id.textView2);
+        View btnRevSearch = findViewById(R.id.rlTrans);
         btnRevSearch.setOnClickListener(new View.OnClickListener()
         {
             @Override
@@ -82,6 +77,74 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
                 showSearchTransUi();
             }
         });
+
+        View laySearch = findViewById(R.id.rlTrainer);
+        laySearch.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent intent = new Intent(MainActivity.this, TrainerActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        findViewById(R.id.dropArrow).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                toggleVocabularyControls();
+            }
+        });
+
+        findViewById(R.id.imgStats).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                Intent intent2 = new Intent(MainActivity.this, StatActivity.class);
+                startActivity(intent2);
+            }
+        });
+
+        findViewById(R.id.imgUpload).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mApp.exportVocabulary(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.imgDownload).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mApp.importVocabulary(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.imgReset).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mApp.resetVocabulary(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.imgSettings).setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mApp.resetVocabulary(MainActivity.this);
+            }
+        });
+
+        findViewById(R.id.rlVocControls).setVisibility(View.GONE);
 
         showSearchUi();
     }
@@ -110,33 +173,6 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
 
         switch(item.getItemId())
         {
-            case R.id.action_settings:
-                Intent intent = new Intent(this, TrainerActivity.class);
-                startActivity(intent);
-                return true;
-
-            case R.id.action_import_voc:
-                mApp.importVocabulary(this);
-                return true;
-
-            case R.id.action_backup_voc:
-                mApp.exportVocabulary(this);
-                return true;
-
-            case R.id.action_reset_voc:
-                mApp.resetVocabulary(this);
-                return true;
-
-            case R.id.action_show_stats:
-                Intent intent2 = new Intent(this, StatActivity.class);
-                startActivity(intent2);
-                return true;
-
-            case R.id.action_rev_search:
-                Intent intent3 = new Intent(this, SearchTransFragment.class);
-                startActivity(intent3);
-                return true;
-
             default:
                 break;
         }
@@ -148,17 +184,17 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     public boolean onCreateOptionsMenu(Menu menu)
     {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.search_activity_actions, menu);
-        mExportVocMenu = menu.findItem(R.id.action_backup_voc);
-        mClearVocMenu = menu.findItem(R.id.action_reset_voc);
+        //getMenuInflater().inflate(R.menu.search_activity_actions, menu);
+        //mExportVocMenu = menu.findItem(R.id.action_backup_voc);
+        //mClearVocMenu = menu.findItem(R.id.action_reset_voc);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        mExportVocMenu.setEnabled(mModel.getVocabulary() != null);
-        mClearVocMenu.setEnabled(mModel.getVocabulary() != null && mModel.getVocabulary().getTotalWords() > 0);
+        //mExportVocMenu.setEnabled(mModel.getVocabulary() != null);
+        //mClearVocMenu.setEnabled(mModel.getVocabulary() != null && mModel.getVocabulary().getTotalWords() > 0);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -208,5 +244,11 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     {
         mViewTitle = title;
         getSupportActionBar().setTitle(mViewTitle);
+    }
+
+    private void toggleVocabularyControls()
+    {
+        View vocControls = findViewById(R.id.rlVocControls);
+        vocControls.setVisibility((vocControls.getVisibility() == View.VISIBLE) ? View.GONE : View.VISIBLE);
     }
 }

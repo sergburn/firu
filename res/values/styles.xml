@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="FiruTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- API 21 theme customizations can go here. -->
+        <!--   your app branding color for the app bar -->
+        <item name="colorPrimary">@color/material_blue_grey_800</item>
+        <!--   darker variant for the status bar and contextual app bars -->
+        <item name="colorPrimaryDark">@color/material_blue_grey_950</item>
+        <!--   theme UI controls like checkboxes and text fields -->
+        <!-- item name="android:colorAccent">@color/accent</item -->
+    </style>
+
+    <color name="challenge_bg">#DDDDDD</color>
+    <color name="trainer_bg">#FFFFFF</color>
+    <color name="stat_count_fg">#FFFFFF</color>
+    <color name="trainer_fg">#000000</color>
+
+</resources>
