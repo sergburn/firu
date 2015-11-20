@@ -39,6 +39,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -475,48 +476,7 @@ public class TrainerActivity extends FiruActivityBase
             }
         });
 
-
-        final int BUTTON_HEIGHT = 42;
-        final int BUTTON_WIDTH = 30;
-
-        final int dpHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_HEIGHT, getResources().getDisplayMetrics());
-        final int dpWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_WIDTH, getResources().getDisplayMetrics());
-
-        for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
-        {
-            GridLayout.Spec rowSpec = GridLayout.spec(r);
-            for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGTH; c++)
-            {
-                char cap = TRAINER_KEYBOARD_LINES[r].charAt(c);
-                if (Character.isLetter(cap))
-                {
-                    GridLayout.Spec colSpec = GridLayout.spec(c, 1.0f);
-
-                    GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
-                    params.height = LayoutParams.WRAP_CONTENT;
-                    params.width = LayoutParams.WRAP_CONTENT;
-                    params.bottomMargin = (r < TRAINER_KEYBOARD_LINES_NUM - 1) ? 30 : 10;
-
-                    Button k = new Button(this, null, android.R.attr.buttonStyle);
-                    k.setMinHeight(dpHeight);
-                    k.setMinWidth(dpWidth);
-                    k.setMinimumHeight(dpHeight);
-                    k.setMinimumWidth(dpWidth);
-                    k.setPadding(0, 0, 0, 0);
-                    k.setOnClickListener(mKeyBoardListener);
-                    k.setText(String.valueOf(cap));
-                    k.setTypeface(k.getTypeface(), 1); // bold
-                    k.setTextSize(22); // sp
-                    k.setGravity(Gravity.CENTER);
-                    k.setAllCaps(false);
-
-                    mKeyboard.addView(k, params);
-                    mKeys.add(k);
-                }
-            }
-        }
-        mEnter.setMinHeight(dpHeight);
-        mEnter.setMinimumHeight(dpHeight);
+        makeKeyboard();
 
         //View thisView = this.getWindow().getDecorView().findViewById(android.R.id.content);
 
@@ -546,6 +506,55 @@ public class TrainerActivity extends FiruActivityBase
         {
             onVocabularyEvent(null, Model.ModelEvent.MODEL_EVENT_FAILURE);
         }
+    }
+
+    private void makeKeyboard()
+    {
+        DisplayMetrics display = getResources().getDisplayMetrics();
+
+        final int BUTTON_HEIGHT_DP = 42;
+        final int BUTTON_WIDTH_DP = 30;
+        final int BUTTON_ROW_GAP_DP = 10;
+
+        final int BUTTON_WIDTH = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_WIDTH_DP, display);
+
+        final int pxWidth = Math.min(BUTTON_WIDTH, display.widthPixels / TRAINER_KEYBOARD_LINE_LENGTH); // no padding anywhere
+        final int pxHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BUTTON_HEIGHT_DP, display);
+
+        for (int r = 0; r < TRAINER_KEYBOARD_LINES_NUM; r++)
+        {
+            GridLayout.Spec rowSpec = GridLayout.spec(r, 1.0f);
+            for (int c = 0; c < TRAINER_KEYBOARD_LINE_LENGTH; c++)
+            {
+                char cap = TRAINER_KEYBOARD_LINES[r].charAt(c);
+                if (Character.isLetter(cap))
+                {
+                    GridLayout.Spec colSpec = GridLayout.spec(c, 1.0f);
+
+                    GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
+                    params.bottomMargin = (r < TRAINER_KEYBOARD_LINES_NUM - 1) ? BUTTON_ROW_GAP_DP : BUTTON_ROW_GAP_DP / 2;
+
+                    Button k = new Button(this, null, android.R.attr.buttonStyle);
+                    k.setMinHeight(pxHeight);
+                    k.setMinWidth(pxWidth);
+                    k.setMinimumHeight(pxHeight);
+                    k.setMinimumWidth(pxWidth);
+                    k.setPadding(0, 0, 0, 0);
+                    k.setOnClickListener(mKeyBoardListener);
+                    k.setText(String.valueOf(cap));
+                    k.setTypeface(k.getTypeface(), 1); // bold
+                    k.setTextSize(22); // sp
+                    //k.setGravity(Gravity.CENTER);
+                    k.setAllCaps(false);
+
+                    mKeyboard.addView(k, params);
+                    mKeys.add(k);
+                }
+            }
+        }
+        mEnter.setVisibility(View.GONE);
+        mEnter.setMinHeight(pxHeight);
+        mEnter.setMinimumHeight(pxHeight);
     }
 
     @Override
