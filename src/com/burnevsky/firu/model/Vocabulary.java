@@ -77,22 +77,14 @@ public class Vocabulary extends DictionaryBase
         mDatabase = dbOpener.getWritableDatabase();
 
         mTotalWords = countWords();
+        mTotalTranslations = countTranslations();
     }
-
 
     public static class LearningStats
     {
         public final Map<Mark, Integer> ForwardMarksDistribution = new TreeMap<>();
         public final Map<Mark, Integer> ReverseMarksDistribution = new TreeMap<>();
         public int TotalTranslationsCount = 0;
-        /*
-        public LearningStats()
-        {
-            ForwardMarksDistribution = new HashMap<Mark, Integer>();
-            ReverseMarksDistribution = new HashMap<Mark, Integer>();
-            TotalTranslationsCount = 0;
-        }
-         */
     }
 
     private String[] getWordSelect()
@@ -205,7 +197,7 @@ public class Vocabulary extends DictionaryBase
 
         long word_id = 0;
 
-        Cursor c;
+        Cursor c = null;
         try
         {
             c = mDatabase.query("words",
@@ -247,7 +239,10 @@ public class Vocabulary extends DictionaryBase
         finally
         {
             mDatabase.endTransaction();
-            c.close();
+            if (c != null)
+            {
+                c.close();
+            }
         }
         mTotalWords = countWords();
         return new Word(word_id, dictWord.getText(), dictWord.getLang());

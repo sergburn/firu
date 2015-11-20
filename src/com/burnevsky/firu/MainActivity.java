@@ -4,6 +4,9 @@ package com.burnevsky.firu;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.Model;
+import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 import android.content.Intent;
@@ -15,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 public class MainActivity
 extends FiruActivityBase
@@ -31,6 +35,8 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        subscribeDictionary();
+        subscribeVocabulary();
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawer = (ScrollView) findViewById(R.id.left_drawer);
@@ -86,6 +92,8 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             {
                 Intent intent = new Intent(MainActivity.this, TrainerActivity.class);
                 startActivity(intent);
+                //setWindowTitle("Trainer");
+                mDrawerLayout.closeDrawer(mDrawer);
             }
         });
 
@@ -146,7 +154,60 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
 
         findViewById(R.id.rlVocControls).setVisibility(View.GONE);
 
+        setTextViewText(R.id.txtWordsBadge, "");
+        setTextViewText(R.id.txtTransBadge, "");
+        setTextViewText(R.id.txtTrainerBadge, "");
+
         showSearchUi();
+    }
+
+    @Override
+    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
+    {
+        super.onDictionaryEvent(dict, event);
+        if (event == Model.ModelEvent.MODEL_EVENT_OPENED ||
+            event == Model.ModelEvent.MODEL_EVENT_READY)
+        {
+            setTextViewText(R.id.txtWordsBadge, getShortIntString(dict.getTotalWords()));
+            setTextViewText(R.id.txtTransBadge, getShortIntString(dict.getTotalTranslations()));
+        }
+        else
+        {
+            setTextViewText(R.id.txtWordsBadge, "");
+            setTextViewText(R.id.txtTransBadge, "");
+        }
+    }
+
+    @Override
+    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
+    {
+        super.onVocabularyEvent(voc, event);
+        if (event == Model.ModelEvent.MODEL_EVENT_OPENED ||
+            event == Model.ModelEvent.MODEL_EVENT_READY)
+        {
+            setTextViewText(R.id.txtTrainerBadge, getShortIntString(voc.getTotalTranslations()));
+        }
+        else
+        {
+            setTextViewText(R.id.txtTrainerBadge, "");
+        }
+    }
+
+    static private String getShortIntString(int value)
+    {
+        if (value > 1000)
+            return String.valueOf(value / 1000) + "k";
+        else
+            return String.valueOf(value);
+    }
+
+    private void setTextViewText(int id, CharSequence text)
+    {
+        TextView txtWordsBadge = (TextView) findViewById(id);
+        if (txtWordsBadge != null)
+        {
+            txtWordsBadge.setText(text);
+        }
     }
 
     @Override

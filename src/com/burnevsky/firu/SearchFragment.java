@@ -84,33 +84,6 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
     }
 
     @Override
-    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
-    {
-        switch (event)
-        {
-            case MODEL_EVENT_OPENED:
-                makeToast(
-                    "Vocabulary has " + String.valueOf(voc.getTotalWords()) + " words",
-                    Toast.LENGTH_SHORT);
-                break;
-
-            case MODEL_EVENT_FAILURE:
-                makeToast("Can't open Vocabulary", Toast.LENGTH_SHORT);
-                break;
-
-            default:
-                break;
-        }
-        invalidateOptionsMenu();
-    }
-
-    public void onVocabularyReset(Vocabulary voc)
-    {
-        invalidateOptionsMenu();
-        makeToast("Vocabulary is empty now", Toast.LENGTH_SHORT);
-    }
-
-    @Override
     public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
     {
         switch (event)
@@ -128,7 +101,6 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
             default:
                 break;
         }
-        showTotalWordsCount();
     }
 
     private void searchSharedWord()
@@ -189,7 +161,6 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
         subscribeDictionary();
-        subscribeVocabulary();
 
         super.onCreateView(inflater, container, savedInstanceState);
 
@@ -201,6 +172,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         mWordsListView = (ListView) rootView.findViewById(R.id.wordList);
         mWordsListView.setOnItemClickListener(this);
         mCountText = (TextView) rootView.findViewById(R.id.laCount);
+        mCountText.setText("");
 
         Bundle args = getArguments();
         if (args != null)
@@ -210,19 +182,6 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
 
         return rootView;
     }
-
-    private void showTotalWordsCount()
-    {
-        if (mModel.getDictionary() != null)
-        {
-            mCountText.setText("Total count " + String.valueOf(mModel.getDictionary().getTotalWords()) + " words");
-        }
-        else
-        {
-            mCountText.setText("Dictionary not open");
-        }
-    }
-
 
     @Override
     public boolean onQueryTextSubmit(String _query)
@@ -250,7 +209,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         if (newText == null || newText.isEmpty())
         {
             mWordsListView.setAdapter(null);
-            showTotalWordsCount();
+            mCountText.setText("");
         }
         return false;
     }

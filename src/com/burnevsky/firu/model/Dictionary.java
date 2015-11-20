@@ -81,6 +81,7 @@ public class Dictionary extends DictionaryBase
         c.close();
 
         mTotalWords = countWords();
+        mTotalTranslations = countTranslations();
     }
     
     @Override

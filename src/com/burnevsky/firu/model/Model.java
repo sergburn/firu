@@ -37,9 +37,13 @@ public class Model
 
     public enum ModelEvent
     {
+        /** Sent to subscribers when dictionary is opened */
         MODEL_EVENT_OPENED,
+        /** Sent to new subscribers if dictionary is already opened */
         MODEL_EVENT_READY,
+        /** Sent to subscribers if dictionary can't be opened */
         MODEL_EVENT_FAILURE,
+        /** Sent to subscribers when dictionary is closed */
         MODEL_EVENT_CLOSED,
     }
 

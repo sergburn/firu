@@ -5,7 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="action_search">Search</string>
-    <string name="search_box_hint">Enter part of word</string>
+    <string name="search_box_hint">Start typing word</string>
     <string name="title_activity_translations">Translations</string>
     <string name="action_import_voc">Import vocabulary</string>
     <string name="action_backup_voc">Backup vocabulary</string>
@@ -18,7 +18,7 @@
     <string name="action_activity_exam_next">New exam</string>
     <string name="action_rev_search">Search translations</string>
     <string name="title_activity_search_trans">Translations</string>
-    <string name="search_box_trans_hint">Enter part of translation</string>
+    <string name="search_box_trans_hint">Start typing translation</string>
     <string name="drawer_open">Show main menu</string>
     <string name="drawer_close">Hide menu</string>
 </resources>
