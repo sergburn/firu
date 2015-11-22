@@ -16,6 +16,7 @@
     <string name="action_show_stats">Show statistics</string>
     <string name="title_activity_exam_result">Exam result</string>
     <string name="action_activity_exam_next">New exam</string>
+    <string name="action_activity_exam_home">Back to home</string>
     <string name="action_rev_search">Search translations</string>
     <string name="title_activity_search_trans">Translations</string>
     <string name="search_box_trans_hint">Start typing translation</string>

@@ -102,7 +102,6 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.exam_result, menu);
         return true;
     }
@@ -114,12 +113,17 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_moveon)
+        switch (id)
         {
-            startNextExam();
-            return true;
+            case R.id.action_moveon:
+                startNextExam();
+                return true;
+            case R.id.action_home:
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
