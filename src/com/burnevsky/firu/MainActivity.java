@@ -53,6 +53,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             @Override
             public void onDrawerOpened(View drawerView)
             {
+                hideKeyboard();
                 super.onDrawerOpened(drawerView);
                 mViewTitle = getSupportActionBar().getTitle().toString();
                 getSupportActionBar().setTitle("Firu");
@@ -92,7 +93,6 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             {
                 Intent intent = new Intent(MainActivity.this, TrainerActivity.class);
                 startActivity(intent);
-                //setWindowTitle("Trainer");
                 mDrawerLayout.closeDrawer(mDrawer);
             }
         });

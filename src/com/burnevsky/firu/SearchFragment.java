@@ -223,8 +223,8 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
     @Override
     protected void hideKeyboard()
     {
-        super.hideKeyboard();
         mInputText.clearFocus();
+        super.hideKeyboard(); // this one seems to be unnecessary
     }
 
     private void showMatches(List<Word> result)

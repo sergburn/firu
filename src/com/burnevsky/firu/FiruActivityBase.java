@@ -6,8 +6,11 @@ import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 @SuppressLint("Registered")
 public class FiruActivityBase extends AppCompatActivity implements Model.ModelListener
@@ -43,5 +46,15 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
     protected void subscribeVocabulary()
     {
         mModel.subscribeVocabulary(this);
+    }
+
+    protected void hideKeyboard()
+    {
+        View view = getCurrentFocus();
+        if (view != null)
+        {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }

@@ -98,8 +98,8 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
     @Override
     protected void hideKeyboard()
     {
-        super.hideKeyboard();
         mInputText.clearFocus();
+        super.hideKeyboard(); // this one seems to be unnecessary
     }
 
     class DictionarySearch extends AsyncTask<String, Void, List<Word>>
