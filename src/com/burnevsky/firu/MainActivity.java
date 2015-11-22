@@ -162,6 +162,19 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     }
 
     @Override
+    public void onBackPressed()
+    {
+        if (mDrawerLayout.isDrawerOpen(mDrawer))
+        {
+            mDrawerLayout.closeDrawer(mDrawer);
+        }
+        else
+        {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
     {
         super.onDictionaryEvent(dict, event);
