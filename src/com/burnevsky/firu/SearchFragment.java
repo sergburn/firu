@@ -231,7 +231,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
     {
         if (result != null)
         {
-            ArrayAdapter<Word> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, result);
+            ArrayAdapter<Word> adapter = new ArrayAdapter<>(getActivity(), R.layout.word_list_item, result);
             mWordsListView.setAdapter(adapter);
 
             if (result.size() > 0)

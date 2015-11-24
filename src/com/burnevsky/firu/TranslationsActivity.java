@@ -328,7 +328,7 @@ public class TranslationsActivity extends FiruActivityBase
             ArrayAdapter<Translation> adapter = null;
             if (list != null)
             {
-                adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, list);
+                adapter = new ArrayAdapter<>(getActivity(), R.layout.translation_list_item, list);
             }
             Log.d("firu", "fillTranslationsList: " + list);
             mTransView.setAdapter(adapter);
