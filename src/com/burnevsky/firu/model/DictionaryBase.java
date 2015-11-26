@@ -35,10 +35,17 @@ public abstract class DictionaryBase implements IDictionary
     protected SQLiteDatabase mDatabase = null;
     protected int mTotalWords = 0;
     protected int mTotalTranslations = 0;
+    protected DictionaryID mDictID = DictionaryID.UNDEFINED;
 
-    public DictionaryBase()
+    public DictionaryBase(DictionaryID dictID)
     {
-        super();
+        mDictID = dictID;
+    }
+
+    @Override
+    public DictionaryID getDictID()
+    {
+        return mDictID;
     }
 
     @Override

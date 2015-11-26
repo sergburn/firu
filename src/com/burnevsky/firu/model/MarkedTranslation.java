@@ -37,9 +37,9 @@ public class MarkedTranslation extends Translation
         super(w, text, targetLang);
     }
 
-    MarkedTranslation(long id, long wordId, String text, String targetLang)
+    MarkedTranslation(DictionaryID dictID, long id, long wordId, String text, String targetLang)
     {
-        super(id, wordId, text, targetLang);
+        super(dictID, id, wordId, text, targetLang);
     }
 
     public MarkedTranslation(Translation trans)

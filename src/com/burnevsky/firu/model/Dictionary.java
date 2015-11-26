@@ -48,6 +48,8 @@ public class Dictionary extends DictionaryBase
 
     public Dictionary(String connectionString, Context context)
     {
+        super(DictionaryID.UNIVERSAL); // TODO: It should be dependent on something
+
         Log.i("firu", "connectionString: " + connectionString);
 
         SQLiteOpenHelper dbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
@@ -97,7 +99,7 @@ public class Dictionary extends DictionaryBase
         boolean next = c.moveToFirst();
         while (next)
         {
-            Word w = new Word(c.getLong(0), c.getString(1), Meta.SourceLanguage);
+            Word w = new Word(getDictID(), c.getLong(0), c.getString(1), Meta.SourceLanguage);
             list.add(w);
             next = c.moveToNext();
         }
@@ -128,9 +130,9 @@ public class Dictionary extends DictionaryBase
                 {
                     list.add(w);
                 }
-                w = new Word(c.getLong(0), c.getString(1), Meta.SourceLanguage);
+                w = new Word(getDictID(), c.getLong(0), c.getString(1), Meta.SourceLanguage);
             }
-            Translation t = new Translation(c.getLong(2), c.getLong(3), c.getString(4), Meta.TargetLanguage);
+            Translation t = new Translation(getDictID(), c.getLong(2), c.getLong(3), c.getString(4), Meta.TargetLanguage);
             w.addTranslation(t);
             next = c.moveToNext();
         }
@@ -152,7 +154,7 @@ public class Dictionary extends DictionaryBase
         boolean next = c.moveToFirst();
         while (next)
         {
-            Translation t = new Translation(c.getLong(0), w.getID(), c.getString(1), Meta.TargetLanguage);
+            Translation t = new Translation(getDictID(), c.getLong(0), w.getID(), c.getString(1), Meta.TargetLanguage);
             list.add(t);
             next = c.moveToNext();
         }

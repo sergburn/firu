@@ -34,6 +34,7 @@ public class DictionaryEntry implements Parcelable
     protected long mID = 0;
     protected String mText;
     protected String mLang;
+    protected DictionaryID mDictID = DictionaryID.UNDEFINED;
 
     public DictionaryEntry()
     {
@@ -48,9 +49,10 @@ public class DictionaryEntry implements Parcelable
     }
 
     // For internal use by Model only
-    DictionaryEntry(long id, String text, String targetLang)
+    DictionaryEntry(DictionaryID dictID, long id, String text, String targetLang)
     {
         this(text, targetLang);
+        mDictID = dictID;
         mID = id;
     }
 
@@ -62,6 +64,7 @@ public class DictionaryEntry implements Parcelable
     public void unlink()
     {
         mID = 0;
+        mDictID = DictionaryID.UNDEFINED;
     }
 
     public String getText()
@@ -77,6 +80,11 @@ public class DictionaryEntry implements Parcelable
     public int getLangCode()
     {
         return LangUtil.lang2Int(mLang);
+    }
+
+    public DictionaryID getDictID()
+    {
+        return mDictID;
     }
 
     @Override
@@ -97,6 +105,7 @@ public class DictionaryEntry implements Parcelable
         dest.writeLong(mID);
         dest.writeString(mText);
         dest.writeString(mLang);
+        dest.writeValue(mDictID);
     }
 
     protected DictionaryEntry(Parcel in)
@@ -104,5 +113,6 @@ public class DictionaryEntry implements Parcelable
         mID = in.readLong();
         mText = in.readString();
         mLang = in.readString();
+        mDictID = (DictionaryID) in.readValue(null);
     }
 }

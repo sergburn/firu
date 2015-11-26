@@ -49,9 +49,19 @@ public class Word extends DictionaryEntry
     }
 
     // For internal use by Model only
-    Word(long id, String word, String sourceLang)
+    Word(DictionaryID dictID, long id, String word, String sourceLang)
     {
-        super(id, word, sourceLang);
+        super(dictID, id, word, sourceLang);
+    }
+
+    @Override
+    public void unlink()
+    {
+        super.unlink();
+        for (Translation t : translations)
+        {
+            t.unlink();
+        }
     }
 
     // Parcelable

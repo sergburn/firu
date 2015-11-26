@@ -24,7 +24,6 @@
 
 package com.burnevsky.firu.model;
 
-import java.security.InvalidParameterException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +44,8 @@ public class Vocabulary extends DictionaryBase
 
     public Vocabulary(String connectionString, Context context)
     {
+        super(DictionaryID.VOCABULARY);
+
         SQLiteOpenHelper dbOpener = new SQLiteOpenHelper(context, connectionString, null, 1)
         {
             @Override
@@ -95,6 +96,7 @@ public class Vocabulary extends DictionaryBase
     private Word readWord(Cursor c)
     {
         return new Word(
+            getDictID(),
             c.getLong(0),
             c.getString(1),
             LangUtil.int2Lang(c.getInt(2)));
@@ -108,6 +110,7 @@ public class Vocabulary extends DictionaryBase
     private MarkedTranslation readTranslation(Cursor c)
     {
         MarkedTranslation mt = new MarkedTranslation(
+            getDictID(),
             c.getLong(0),
             c.getLong(2),
             c.getString(1),
@@ -192,12 +195,13 @@ public class Vocabulary extends DictionaryBase
     {
         if (translations.size() < 1)
         {
-            throw new InvalidParameterException("Attempt to add word without translations");
+            throw new IllegalArgumentException("Attempt to add word without translations");
         }
 
         long word_id = 0;
 
         Cursor c = null;
+        mDatabase.beginTransaction();
         try
         {
             c = mDatabase.query("words",
@@ -245,11 +249,16 @@ public class Vocabulary extends DictionaryBase
             }
         }
         mTotalWords = countWords();
-        return new Word(word_id, dictWord.getText(), dictWord.getLang());
+        return new Word(getDictID(), word_id, dictWord.getText(), dictWord.getLang());
     }
 
-    public boolean removeWord(Word word)
+    public boolean removeWord(Word word) throws Exception
     {
+        if (word.getDictID() != DictionaryID.VOCABULARY)
+        {
+            throw new IllegalArgumentException("This word does not belong to Vocabulary");
+        }
+
         boolean ok = false;
         mDatabase.beginTransaction();
         try

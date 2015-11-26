@@ -24,63 +24,22 @@
 
 package com.burnevsky.firu.model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-public class Translation extends DictionaryEntry
+public enum DictionaryID
 {
-    final long mWordID;
+    UNDEFINED (0),
+    VOCABULARY(1),
 
-    public Translation(long wordId, String text, String targetLang)
+    GGLE(100),
+    MSFT(200),
+
+    UNIVERSAL(1000);
+
+    private final int mID;
+
+    DictionaryID(int id)
     {
-        super(text, targetLang);
-        mWordID = wordId;
+        mID = id;
     }
 
-    public Translation(Word w, String text, String targetLang)
-    {
-        this(w.getID(), text, targetLang);
-    }
-
-    // For internal use by Model only
-    Translation(DictionaryID dictID, long id, long wordId, String text, String targetLang)
-    {
-        super(dictID, id, text, targetLang);
-        mWordID = wordId;
-    }
-
-    public long getWordID()
-    {
-        return mWordID;
-    }
-
-    // Parcelable
-
-    protected Translation(Parcel in)
-    {
-        super(in);
-        mWordID = in.readLong();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags)
-    {
-        super.writeToParcel(dest, flags);
-        dest.writeLong(mWordID);
-    }
-
-    public static final Parcelable.Creator<Translation> CREATOR = new Parcelable.Creator<Translation>()
-        {
-        @Override
-        public Translation createFromParcel(Parcel in)
-        {
-            return new Translation(in);
-        }
-
-        @Override
-        public Translation[] newArray(int size)
-        {
-            return new Translation[size];
-        }
-        };
+    int getID() { return mID; }
 }

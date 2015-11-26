@@ -28,6 +28,8 @@ import java.util.List;
 
 public interface IDictionary
 {
+    DictionaryID getDictID();
+
     int getTotalWords();
     int getTotalTranslations();
 
