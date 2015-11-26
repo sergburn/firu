@@ -275,7 +275,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     @Override
     public void onTranslationSelected(ArrayList<Word> allMatches, int selection)
     {
-        TranslationsActivity.showDictWords(this, allMatches, selection);
+        TranslationsActivity.showWords(this, allMatches, selection);
 
         // TODO Show in a side fragment on large screens
     }
@@ -283,7 +283,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     @Override
     public void onWordSelected(List<Word> allMatches, int selection)
     {
-        TranslationsActivity.showDictWord(this, allMatches.get(selection));
+        TranslationsActivity.showWord(this, allMatches.get(selection));
 
         // TODO Show in a side fragment on large screens
     }

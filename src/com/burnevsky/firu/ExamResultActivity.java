@@ -129,7 +129,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        TranslationsActivity.showVocWords(this, new ArrayList<>(Arrays.asList(mSortedTests)), position);
+        TranslationsActivity.showWords(this, new ArrayList<>(Arrays.asList(mSortedTests)), position);
     }
 
     private void startNextExam()

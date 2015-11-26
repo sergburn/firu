@@ -27,6 +27,7 @@ package com.burnevsky.firu;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Word;
 import android.annotation.TargetApi;
@@ -53,13 +54,11 @@ import android.support.v4.view.ViewPager;
 
 public class TranslationsActivity extends FiruActivityBase
 {
-    private final static String INTENT_EXTRA_DICT_WORD = "com.burnevsk.firu.dict_word";
-    private final static String INTENT_EXTRA_VOC_WORD = "com.burnevsk.firu.voc_word";
+    private final static String INTENT_EXTRA_WORD_LIST = "com.burnevsk.firu.word_list";
     private final static String INTENT_EXTRA_WORD_IDX = "com.burnevsk.firu.word_idx";
 
     private List<Word> mWordList = new ArrayList<>();
     private int mWordIndex = 0;
-    private boolean mFromDict = false;
 
     private Drawable mStarredIcon, mUnstarredIcon;
 
@@ -134,7 +133,7 @@ public class TranslationsActivity extends FiruActivityBase
         @Override
         protected void onPostExecute(Word word)
         {
-            mFragment.onVocabuaryMatch(word);
+            mFragment.onVocabularyMatch(word);
         }
     }
 
@@ -179,7 +178,18 @@ public class TranslationsActivity extends FiruActivityBase
         protected Boolean doInBackground(Word... param)
         {
             Word w = param[0];
-            return (mModel.getVocabulary() == null) || mModel.getVocabulary().removeWord(w);
+            if (mModel.getVocabulary() != null)
+            {
+                try
+                {
+                    return mModel.getVocabulary().removeWord(w);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            return false;
         }
 
         @Override
@@ -215,23 +225,11 @@ public class TranslationsActivity extends FiruActivityBase
 
     private class TranslationsFragment extends Fragment
     {
-        Word mDictWord, mVocWord;
+        Word mWord;
 
         TextView mWordView;
         ListView mTransView;
         ImageView mStarBtn ;
-
-        TranslationsFragment(Word word, boolean isFromDict)
-        {
-            if (isFromDict)
-            {
-                mDictWord = word;
-            }
-            else
-            {
-                mVocWord = word;
-            }
-        }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -249,39 +247,39 @@ public class TranslationsActivity extends FiruActivityBase
                 @Override
                 public void onClick(View v)
                 {
-                    if (mDictWord != null)
+                    if (mWord != null)
                     {
-                        new VocabularyAdd(TranslationsFragment.this).execute(mDictWord);
-                    }
-                    else if (mVocWord != null)
-                    {
-                        new VocabularyRemove(TranslationsFragment.this).execute(mVocWord);
+                        if (mWord.getDictID() == DictionaryID.VOCABULARY)
+                        {
+                            new VocabularyRemove(TranslationsFragment.this).execute(mWord);
+                        }
+                        else
+                        {
+                            new VocabularyAdd(TranslationsFragment.this).execute(mWord);
+                        }
                     }
                 }
             });
 
-            if (mVocWord != null)
+            Bundle args = getArguments();
+            if (args != null)
             {
-                mWordView.setText(mVocWord.getText());
-                // translations will be loaded when vocabulary is ready
-                mStarBtn.setVisibility(View.VISIBLE); // until vocabulary is open
-                updateStarButton(true);
-            }
-            else if (mDictWord != null)
-            {
-                mWordView.setText(mDictWord.getText());
-                // translations will be loaded when dictionary is ready
-                mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary is open
-            }
+                Word word = args.getParcelable("word");
 
-            if (mDictWord != null)
-            {
-                new DictionaryTranslations(TranslationsFragment.this).execute(mDictWord);
-                new VocabularyMatch(TranslationsFragment.this).execute(mDictWord);
-            }
-            else if (mVocWord != null)
-            {
-                new VocabularyTranslations(TranslationsFragment.this).execute(mVocWord);
+                if (word != null)
+                {
+                    mWordView.setText(word.getText());
+                    // translations will be loaded on background
+
+                    if (word.getDictID() == DictionaryID.VOCABULARY)
+                    {
+                        setVocabularyWord(word);
+                    }
+                    else if (word.getDictID() == DictionaryID.UNIVERSAL)
+                    {
+                        setDictionaryWord(word);
+                    }
+                }
             }
 
             return rootView;
@@ -289,32 +287,65 @@ public class TranslationsActivity extends FiruActivityBase
 
         private void onDictionaryTranslations(List<Translation> result)
         {
-            mDictWord.translations = result;
-            fillTranslationsList(mDictWord.translations);
+            mWord.translations = result;
+            fillTranslationsList(mWord.translations);
+
+            new VocabularyMatch(TranslationsFragment.this).execute(mWord);
         }
 
         private void onVocabularyTranslations(List<Translation> result)
         {
-            mVocWord.translations = result;
-            fillTranslationsList(mVocWord.translations);
+            mWord.translations = result;
+            fillTranslationsList(mWord.translations); // TODO: merge with dictionary translations
         }
 
-        private void onVocabuaryMatch(Word word)
+        private void onVocabularyMatch(Word word)
         {
-            mVocWord = word;
-            mStarBtn.setVisibility(mModel.getVocabulary() != null ? View.VISIBLE : View.INVISIBLE);
-            updateStarButton(mVocWord != null);
+            if (word != null)
+            {
+                setVocabularyWord(word);
+            }
+            else
+            {
+                mStarBtn.setVisibility(View.VISIBLE);
+                updateStarButton(false);
+            }
+        }
+
+        private void setDictionaryWord(Word word)
+        {
+            assert word.getDictID() == DictionaryID.UNIVERSAL;
+
+            mWord = word;
+
+            new DictionaryTranslations(TranslationsFragment.this).execute(mWord);
+
+            mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary match checked
+        }
+
+        private void setVocabularyWord(Word word)
+        {
+            assert word.getDictID() == DictionaryID.VOCABULARY;
+
+            mWord = word;
+
+            new VocabularyTranslations(TranslationsFragment.this).execute(mWord);
+
+            mStarBtn.setVisibility(View.VISIBLE);
+            updateStarButton(true);
         }
 
         private void onVocabularyAdd(Word word)
         {
-            mVocWord = word;
-            updateStarButton(mVocWord != null);
+            if (word != null)
+            {
+                setVocabularyWord(word);
+            }
         }
 
         private void onVocabularyRemove()
         {
-            mVocWord.unlink();
+            mWord.unlink();
             updateStarButton(false);
         }
 
@@ -333,6 +364,17 @@ public class TranslationsActivity extends FiruActivityBase
             Log.d("firu", "fillTranslationsList: " + list);
             mTransView.setAdapter(adapter);
         }
+    }
+
+    TranslationsFragment createFragment(Word word)
+    {
+        TranslationsFragment f = new TranslationsFragment();
+
+        Bundle args = new Bundle();
+        args.putParcelable("word", word);
+        f.setArguments(args);
+
+        return f;
     }
 
     @SuppressWarnings("deprecation")
@@ -371,29 +413,17 @@ public class TranslationsActivity extends FiruActivityBase
         }
 
         Intent intent = getIntent();
-        mWordList = intent.getParcelableArrayListExtra(INTENT_EXTRA_DICT_WORD);
+        mWordList = intent.getParcelableArrayListExtra(INTENT_EXTRA_WORD_LIST);
         if (mWordList == null)
         {
-            mWordList = intent.getParcelableArrayListExtra(INTENT_EXTRA_VOC_WORD);
-            if (mWordList == null)
-            {
-                Log.d("firu", "TranslationsActivity: Unsupported intent given");
-                finish();
-            }
-            else
-            {
-                mFromDict = false;
-            }
-        }
-        else
-        {
-            mFromDict = true;
+            Log.d("firu", "TranslationsActivity: Unsupported intent given");
+            finish();
         }
         mWordIndex = intent.getIntExtra(TranslationsActivity.INTENT_EXTRA_WORD_IDX, 0);
 
         for (Word word : mWordList)
         {
-            mFragments.add(new TranslationsFragment(word, mFromDict));
+            mFragments.add(createFragment(word));
         }
 
         mPagerAdapter.notifyDataSetChanged();
@@ -414,7 +444,7 @@ public class TranslationsActivity extends FiruActivityBase
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        //int id = item.getItemId();
         //if (id == R.id.action_settings)
         {
         //    return true;
@@ -422,32 +452,17 @@ public class TranslationsActivity extends FiruActivityBase
         return super.onOptionsItemSelected(item);
     }
 
-    public static void showDictWord(Activity caller, Word word)
+    public static void showWord(Activity caller, Word word)
     {
         ArrayList<Word> list = new ArrayList<>();
         list.add(word);
-        showDictWords(caller, list, 0);
+        showWords(caller, list, 0);
     }
 
-    public static void showVocWord(Activity caller, Word word)
-    {
-        ArrayList<Word> list = new ArrayList<>();
-        list.add(word);
-        showVocWords(caller, list, 0);
-    }
-
-    public static void showDictWords(Activity caller, ArrayList<Word> words, int selection)
+    public static void showWords(Activity caller, ArrayList<Word> words, int selection)
     {
         Intent intent = new Intent(caller, TranslationsActivity.class);
-        intent.putParcelableArrayListExtra(TranslationsActivity.INTENT_EXTRA_DICT_WORD, words);
-        intent.putExtra(TranslationsActivity.INTENT_EXTRA_WORD_IDX, selection);
-        caller.startActivity(intent);
-    }
-
-    public static void showVocWords(Activity caller, ArrayList<Word> words, int selection)
-    {
-        Intent intent = new Intent(caller, TranslationsActivity.class);
-        intent.putParcelableArrayListExtra(TranslationsActivity.INTENT_EXTRA_VOC_WORD, words);
+        intent.putParcelableArrayListExtra(TranslationsActivity.INTENT_EXTRA_WORD_LIST, words);
         intent.putExtra(TranslationsActivity.INTENT_EXTRA_WORD_IDX, selection);
         caller.startActivity(intent);
     }
