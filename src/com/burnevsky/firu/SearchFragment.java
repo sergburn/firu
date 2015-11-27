@@ -54,7 +54,9 @@ import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
-public class SearchFragment extends FiruFragmentBase implements SearchView.OnQueryTextListener, OnItemClickListener
+public class SearchFragment
+    extends FiruFragmentBase
+    implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
 
@@ -77,10 +79,18 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
 
     private OnTranslationSelectedListener mCallback;
 
-    SearchFragment(Context appContext, OnTranslationSelectedListener listener)
+    @Override
+    public void onAttach(Activity activity)
     {
-        super(appContext);
-        mCallback = listener;
+        super.onAttach(activity);
+        try
+        {
+            mCallback = (OnTranslationSelectedListener) activity;
+        }
+        catch (ClassCastException e)
+        {
+            throw new ClassCastException(activity.toString() + " must implement OnTranslationSelectedListener");
+        }
     }
 
     @Override
@@ -89,6 +99,7 @@ public class SearchFragment extends FiruFragmentBase implements SearchView.OnQue
         switch (event)
         {
             case MODEL_EVENT_OPENED:
+            case MODEL_EVENT_READY:
                 if (mSharedText != null && mInputText.getQuery().length() == 0)
                 {
                     searchSharedWord();

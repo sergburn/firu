@@ -11,6 +11,7 @@ import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Word;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -48,10 +49,18 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
 
     private OnWordSelectedListener mCallback;
 
-    SearchTransFragment(Context appContext, OnWordSelectedListener listener)
+    @Override
+    public void onAttach(Activity activity)
     {
-        super(appContext);
-        mCallback = listener;
+        super.onAttach(activity);
+        try
+        {
+            mCallback = (OnWordSelectedListener) activity;
+        }
+        catch (ClassCastException e)
+        {
+            throw new ClassCastException(activity.toString() + " must implement OnWordSelectedListener");
+        }
     }
 
     @Override

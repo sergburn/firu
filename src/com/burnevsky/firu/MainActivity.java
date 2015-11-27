@@ -71,7 +71,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             @Override
             public void onClick(View v)
             {
-                showSearchUi();
+                showSearchUi("");
             }
         });
 
@@ -158,7 +158,14 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         setTextViewText(R.id.txtTransBadge, "");
         setTextViewText(R.id.txtTrainerBadge, "");
 
-        showSearchUi();
+        String sharedText = "";
+        Intent intent = getIntent();
+        if (intent.getAction() == Intent.ACTION_SEND)
+        {
+            sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        }
+
+        showSearchUi(sharedText);
     }
 
     @Override
@@ -288,9 +295,13 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         // TODO Show in a side fragment on large screens
     }
 
-    private void showSearchUi()
+    private void showSearchUi(String intentText)
     {
-        SearchFragment frag = new SearchFragment(getApplicationContext(), MainActivity.this);
+        SearchFragment frag = new SearchFragment();
+
+        Bundle args = new Bundle();
+        args.putString(Intent.EXTRA_TEXT, intentText);
+        frag.setArguments(args);
 
         getFragmentManager()
         .beginTransaction()
@@ -303,7 +314,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
 
     private void showSearchTransUi()
     {
-        SearchTransFragment frag = new SearchTransFragment(getApplicationContext(), MainActivity.this);
+        SearchTransFragment frag = new SearchTransFragment();
 
         getFragmentManager()
         .beginTransaction()

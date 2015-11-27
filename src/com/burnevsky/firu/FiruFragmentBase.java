@@ -15,11 +15,13 @@ import android.widget.Toast;
 public class FiruFragmentBase extends Fragment implements Model.ModelListener
 {
     FiruApplication mApp = null;
-    final Model mModel;
+    Model mModel;
 
-    FiruFragmentBase(Context appContext)
+    @Override
+    public void onAttach(Activity activity)
     {
-        mApp = (FiruApplication) appContext;
+        super.onAttach(activity);
+        mApp = (FiruApplication) activity.getApplicationContext();
         mModel = mApp.mModel;
     }
 
