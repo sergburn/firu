@@ -11,7 +11,6 @@ import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Word;
 import com.burnevsky.firu.model.MarkedTranslation;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -67,7 +66,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
         String[] columns = {"word", "trans", "rate"};
         int[] fields = {R.id.era_textWord, R.id.era_textTrans, R.id.era_rbMark};
 
-        SimpleAdapter mAdapter = new SimpleAdapter(this, data, R.layout.marked_translation_list_item, columns, fields);
+        SimpleAdapter mAdapter = new SimpleAdapter(this, data, R.layout.marked_word_translation_list_item, columns, fields);
         mAdapter.setViewBinder(new SimpleAdapter.ViewBinder()
 		{
             @Override
@@ -86,7 +85,6 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
                 }
             }
         });
-
 
         ListView listView = (ListView) findViewById(R.id.era_listTranslations);
         listView.setAdapter(mAdapter);

@@ -87,6 +87,11 @@ public class DictionaryEntry implements Parcelable
         return mDictID;
     }
 
+    public boolean isVocabularyItem()
+    {
+        return mID != 0 && mDictID == DictionaryID.VOCABULARY;
+    }
+
     @Override
     public String toString()
     {

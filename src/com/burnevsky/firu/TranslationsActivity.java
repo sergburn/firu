@@ -26,8 +26,12 @@ package com.burnevsky.firu;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Word;
 import android.annotation.TargetApi;
@@ -43,9 +47,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RatingBar;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -223,7 +230,7 @@ public class TranslationsActivity extends FiruActivityBase
         }
     }
 
-    private class TranslationsFragment extends Fragment
+    public class TranslationsFragment extends Fragment implements AdapterView.OnItemClickListener
     {
         Word mWord;
 
@@ -249,7 +256,7 @@ public class TranslationsActivity extends FiruActivityBase
                 {
                     if (mWord != null)
                     {
-                        if (mWord.getDictID() == DictionaryID.VOCABULARY)
+                        if (mWord.isVocabularyItem()) // the word and all its translations
                         {
                             new VocabularyRemove(TranslationsFragment.this).execute(mWord);
                         }
@@ -268,16 +275,20 @@ public class TranslationsActivity extends FiruActivityBase
 
                 if (word != null)
                 {
-                    mWordView.setText(word.getText());
+                    setWord(word);
                     // translations will be loaded on background
 
                     if (word.getDictID() == DictionaryID.VOCABULARY)
                     {
-                        setVocabularyWord(word);
+                        mStarBtn.setVisibility(View.VISIBLE);
+
+                        new VocabularyTranslations(TranslationsFragment.this).execute(mWord);
                     }
                     else if (word.getDictID() == DictionaryID.UNIVERSAL)
                     {
-                        setDictionaryWord(word);
+                        mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary match checked
+
+                        new DictionaryTranslations(TranslationsFragment.this).execute(mWord);
                     }
                 }
             }
@@ -290,6 +301,7 @@ public class TranslationsActivity extends FiruActivityBase
             mWord.translations = result;
             fillTranslationsList(mWord.translations);
 
+            // check if this word already exists in Vocabulary
             new VocabularyMatch(TranslationsFragment.this).execute(mWord);
         }
 
@@ -303,43 +315,31 @@ public class TranslationsActivity extends FiruActivityBase
         {
             if (word != null)
             {
-                setVocabularyWord(word);
+                setWord(word);
+                new VocabularyTranslations(TranslationsFragment.this).execute(mWord);
             }
             else
             {
-                mStarBtn.setVisibility(View.VISIBLE);
                 updateStarButton(false);
             }
-        }
-
-        private void setDictionaryWord(Word word)
-        {
-            assert word.getDictID() == DictionaryID.UNIVERSAL;
-
-            mWord = word;
-
-            new DictionaryTranslations(TranslationsFragment.this).execute(mWord);
-
-            mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary match checked
-        }
-
-        private void setVocabularyWord(Word word)
-        {
-            assert word.getDictID() == DictionaryID.VOCABULARY;
-
-            mWord = word;
-
-            new VocabularyTranslations(TranslationsFragment.this).execute(mWord);
-
             mStarBtn.setVisibility(View.VISIBLE);
-            updateStarButton(true);
+        }
+
+        private void setWord(Word word)
+        {
+            mWord = word;
+            mWordView.setText(mWord.getText());
+            updateStarButton(mWord.isVocabularyItem());
         }
 
         private void onVocabularyAdd(Word word)
         {
             if (word != null)
             {
-                setVocabularyWord(word);
+                setWord(word);
+
+                updateStarButton(true);
+                fillTranslationsList(mWord.translations);
             }
         }
 
@@ -347,6 +347,7 @@ public class TranslationsActivity extends FiruActivityBase
         {
             mWord.unlink();
             updateStarButton(false);
+            fillTranslationsList(mWord.translations);
         }
 
         private void updateStarButton(boolean isStarred)
@@ -356,13 +357,64 @@ public class TranslationsActivity extends FiruActivityBase
 
         private void fillTranslationsList(List<Translation> list)
         {
-            ArrayAdapter<Translation> adapter = null;
+            List<SortedMap<String, Object>> data = new ArrayList<>();
+
             if (list != null)
             {
-                adapter = new ArrayAdapter<>(getActivity(), R.layout.translation_list_item, list);
+                for (Translation trans : list)
+                {
+                    TreeMap<String, Object> row = new TreeMap<>();
+                    row.put("trans", trans.getText());
+                    if (trans.isVocabularyItem() && trans instanceof MarkedTranslation)
+                    {
+                        row.put("rate", ((MarkedTranslation) trans).ReverseMark.toInt());
+                    }
+                    else
+                    {
+                        row.put("rate", Mark.Unfamiliar.toInt());
+                    }
+                    data.add(row);
+                }
             }
-            Log.d("firu", "fillTranslationsList: " + list);
+
+            String[] columns = {"trans", "rate"};
+            int[] fields = {R.id.tf_textTrans, R.id.tf_rbMark};
+
+            SimpleAdapter adapter = new SimpleAdapter(getContext(), data, R.layout.marked_translation_list_item, columns, fields);
+            adapter.setViewBinder(new SimpleAdapter.ViewBinder()
+            {
+                @Override
+                public boolean setViewValue(View view, Object data, String textRepresentation)
+                {
+                    if (view.getId() == R.id.tf_rbMark)
+                    {
+                        Integer rate = (Integer) data;
+                        RatingBar rbMark = (RatingBar) view;
+                        if (rate > 0)
+                        {
+                            rbMark.setRating(rate - 1);
+                        }
+                        else // unfamiliar
+                        {
+                            rbMark.setVisibility(View.GONE);
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            });
+
             mTransView.setAdapter(adapter);
+            mTransView.setOnItemClickListener(this);
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+        {
+
         }
     }
 

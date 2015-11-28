@@ -54,13 +54,31 @@ public class Word extends DictionaryEntry
         super(dictID, id, word, sourceLang);
     }
 
+    /** @return true if this Word and all its Translations belong to Vocabulary.
+     *          false if any of these don't. */
+    public boolean isVocabularyItem()
+    {
+        if (!super.isVocabularyItem()) return false;
+        if (translations != null)
+        {
+            for (Translation t : translations)
+            {
+                if (!t.isVocabularyItem()) return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public void unlink()
     {
         super.unlink();
-        for (Translation t : translations)
+        if (translations != null)
         {
-            t.unlink();
+            for (Translation t : translations)
+            {
+                t.unlink();
+            }
         }
     }
 

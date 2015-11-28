@@ -1,48 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/LinearLayout1"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+    android:paddingEnd="?android:attr/listPreferredItemPaddingEnd"
+    android:minHeight="?android:attr/listPreferredItemHeightSmall">
 
-    <RelativeLayout
-        android:id="@+id/RelativeLayout1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
-        <TextView
-            android:id="@+id/era_textWord"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="start"
-            android:paddingTop="2dp"
-            android:text="Large Text Large Text"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
-
-        <RatingBar
-            android:id="@+id/era_rbMark"
-            style="?android:attr/ratingBarStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_gravity="right|center_vertical"
-            android:isIndicator="true"
-            android:numStars="3"
-            android:rating="2"
-            android:stepSize="1" />
-
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/era_textTrans"
+    <RatingBar
+        android:id="@+id/tf_rbMark"
+        style="?android:attr/ratingBarStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingBottom="5dp"
-        android:text="Medium Text Medium Text Medium Text Medium Text"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_gravity="right|center_vertical"
+        android:isIndicator="true"
+        android:numStars="3"
+        android:rating="2"
+        android:stepSize="1" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/tf_textTrans"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Medium Text Medium Text Medium Text Medium Text"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@id/tf_rbMark"/>
+
+</RelativeLayout>

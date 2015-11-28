@@ -24,6 +24,7 @@
 
 package com.burnevsky.firu.model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -193,12 +194,12 @@ public class Vocabulary extends DictionaryBase
 
     public Word addWord(Word dictWord, List<Translation> translations) throws Exception
     {
-        if (translations.size() < 1)
+        if (translations == null || translations.size() < 1)
         {
             throw new IllegalArgumentException("Attempt to add word without translations");
         }
 
-        long word_id = 0;
+        Word vocWord;
 
         Cursor c = null;
         mDatabase.beginTransaction();
@@ -218,7 +219,10 @@ public class Vocabulary extends DictionaryBase
             ContentValues wordValues = new ContentValues();
             wordValues.put("text", dictWord.getText());
             wordValues.put("lang", dictWord.getLangCode());
-            word_id = mDatabase.insertOrThrow("words", null, wordValues);
+            long word_id = mDatabase.insertOrThrow("words", null, wordValues);
+
+            Word newWord = new Word(getDictID(), word_id, dictWord.getText(), dictWord.getLang());
+            newWord.translations = new ArrayList<>();
 
             for (Translation dt : translations)
             {
@@ -230,10 +234,13 @@ public class Vocabulary extends DictionaryBase
                 transValues.put("lang", t.getLangCode());
                 transValues.put("fmark", t.ForwardMark.toInt());
                 transValues.put("rmark", t.ReverseMark.toInt());
-                mDatabase.insertOrThrow("translations", null, transValues);
+                long trans_id = mDatabase.insertOrThrow("translations", null, transValues);
+
+                newWord.translations.add(new MarkedTranslation(getDictID(), trans_id, word_id, t.getText(), t.getLang()));
             }
 
             mDatabase.setTransactionSuccessful();
+            vocWord = newWord;
         }
         catch (SQLiteConstraintException e)
         {
@@ -249,7 +256,7 @@ public class Vocabulary extends DictionaryBase
             }
         }
         mTotalWords = countWords();
-        return new Word(getDictID(), word_id, dictWord.getText(), dictWord.getLang());
+        return vocWord;
     }
 
     public boolean removeWord(Word word) throws Exception
