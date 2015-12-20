@@ -42,6 +42,8 @@ import android.util.Log;
 public class Vocabulary extends DictionaryBase
 {
     private static final String TAG = Vocabulary.class.getName();
+    private static final String[] WORD_COLUMNS = new String[]{"_id", "text", "lang"};
+    private static final String[] TRANSLATION_COLUMNS = new String[]{"_id", "text", "word_id", "fmark", "rmark", "lang"};
 
     public Vocabulary(String connectionString, Context context)
     {
@@ -89,158 +91,98 @@ public class Vocabulary extends DictionaryBase
         public int TotalTranslationsCount = 0;
     }
 
-    private String[] getWordSelect()
-    {
-        return new String[] { "_id", "text", "lang" };
-    }
-
-    private Word readWord(Cursor c)
+    @Override
+    protected Word readWord(Cursor c)
     {
         return new Word(
             getDictID(),
             c.getLong(0),
-            c.getString(1),
-            LangUtil.int2Lang(c.getInt(2)));
+            new Text(c.getString(1), LangUtil.int2Lang(c.getInt(2))));
     }
 
-    private String[] getTranslationSelect()
+    @Override
+    protected String[] getWordColumns()
     {
-        return new String[] { "_id", "text", "word_id", "fmark", "rmark", "lang" };
+        return WORD_COLUMNS;
     }
 
-    private MarkedTranslation readTranslation(Cursor c)
+    @Override
+    protected MarkedTranslation readTranslation(Cursor c)
     {
         MarkedTranslation mt = new MarkedTranslation(
             getDictID(),
             c.getLong(0),
             c.getLong(2),
-            c.getString(1),
-            LangUtil.int2Lang(c.getInt(5)));
+            new Text(c.getString(1), LangUtil.int2Lang(c.getInt(5))));
         mt.ForwardMark = new Mark(c.getInt(3));
         mt.ReverseMark = new Mark(c.getInt(4));
         return mt;
     }
 
     @Override
-    public List<Word> searchWords(String startsWith, int numMaximum)
+    protected String[] getTranslationColumns()
     {
-        List<Word> list = new LinkedList<>();
-        Cursor c = mDatabase.query("words",
-            getWordSelect(),
-            "text LIKE '" + startsWith + "%'", // most probably should use collated index
-            null, null, null,
-            "text ASC",
-            String.valueOf(numMaximum));
-        boolean next = c.moveToFirst();
-        while (next)
-        {
-            Word w = readWord(c);
-            list.add(w);
-            next = c.moveToNext();
-        }
-        return list;
+        return TRANSLATION_COLUMNS;
     }
 
-    public List<Translation> getTranslations(final Word word)
+    public List<MarkedTranslation> getTranslations(final long wordId, final Mark min, final Mark max)
     {
-        return getTranslations(word, Mark.YetToLearn, Mark.Learned);
-    }
-
-    public List<Translation> getTranslations(final Word word, final Mark min, final Mark max)
-    {
-        List<Translation> list = new LinkedList<>();
-        Cursor c = mDatabase.query("translations",
-            getTranslationSelect(),
+        List<MarkedTranslation> list = new ArrayList<>();
+        Cursor c = mDatabase.query(TRANSLATIONS_TABLE, TRANSLATION_COLUMNS,
             "word_id = ? AND rmark >= ? AND rmark <= ?",
-            new String[] { String.valueOf(word.getID()), String.valueOf(min.toInt()), String.valueOf(max.toInt()) },
+            new String[] { String.valueOf(wordId), String.valueOf(min.toInt()), String.valueOf(max.toInt()) },
             null, null,
             "text ASC",
             null);
         boolean next = c.moveToFirst();
         while (next)
         {
-            MarkedTranslation t = readTranslation(c);
-            list.add(t);
+            list.add(readTranslation(c));
             next = c.moveToNext();
         }
+        c.close();
         return list;
     }
 
-    public Word findWord(String text, int langCode)
-    {
-        Cursor c = mDatabase.query("words",
-            getWordSelect(),
-            "(lower(text) LIKE '" + text.toLowerCase(Locale.US) + "') AND " + "(lang = " + langCode + ")",
-            null, null, null, null, String.valueOf(1));
-        if (c.moveToFirst())
-        {
-            return readWord(c);
-        }
-        return null;
-    }
-
-    public Word getWord(long wordId)
-    {
-        Cursor c = mDatabase.query("words",
-            getWordSelect(),
-            "_id = " + String.valueOf(wordId),
-            null, null, null, null, null);
-        if (c.moveToFirst())
-        {
-            return readWord(c);
-        }
-        return null;
-    }
-
-    public Word addWord(Word dictWord, List<Translation> translations) throws Exception
+    /** Adds given word and translations to the vocabulary.
+     *  @param wordText The word to add.
+     *              If same Text already exists as Word, then translations added to it.
+     *  @param translations Translation to associate with this word.
+     *                      If some translations already exist, they are ignored.
+     *  @return New Word instance with all its translations as it exists in the database.
+     *  */
+    public Word addWord(final Text wordText, final List<? extends Text> translations) throws Exception
     {
         if (translations == null || translations.size() < 1)
         {
             throw new IllegalArgumentException("Attempt to add word without translations");
         }
 
-        Word vocWord;
+        Word newWord;
 
-        Cursor c = null;
         mDatabase.beginTransaction();
         try
         {
-            c = mDatabase.query("words",
-                new String[] { "_id" },
-                "(lower(text) LIKE '" + dictWord.getText().toLowerCase(Locale.US) + "') AND " +
-                    "(lang = " + dictWord.getLangCode() + ")",
-                    null, null, null, null, String.valueOf(1));
-            boolean next = c.moveToFirst();
-            if (next)
+            long word_id;
+
+            Word existingWord = findWord(wordText);
+            if (existingWord != null)
             {
-                throw new Exception("The word " + dictWord.getText() + " already exists, ID " + String.valueOf(c.getInt(0)));
+                word_id = existingWord.getID();
+            }
+            else
+            {
+                ContentValues wordValues = new ContentValues();
+                wordValues.put("text", wordText.getText());
+                wordValues.put("lang", wordText.getLangCode());
+                word_id = mDatabase.insertOrThrow(WORDS_TABLE, null, wordValues);
             }
 
-            ContentValues wordValues = new ContentValues();
-            wordValues.put("text", dictWord.getText());
-            wordValues.put("lang", dictWord.getLangCode());
-            long word_id = mDatabase.insertOrThrow("words", null, wordValues);
+            newWord = new Word(getDictID(), word_id, wordText);
 
-            Word newWord = new Word(getDictID(), word_id, dictWord.getText(), dictWord.getLang());
-            newWord.translations = new ArrayList<>();
-
-            for (Translation dt : translations)
-            {
-                MarkedTranslation t = new MarkedTranslation(dt);
-
-                ContentValues transValues = new ContentValues();
-                transValues.put("word_id", word_id);
-                transValues.put("text", t.getText());
-                transValues.put("lang", t.getLangCode());
-                transValues.put("fmark", t.ForwardMark.toInt());
-                transValues.put("rmark", t.ReverseMark.toInt());
-                long trans_id = mDatabase.insertOrThrow("translations", null, transValues);
-
-                newWord.translations.add(new MarkedTranslation(getDictID(), trans_id, word_id, t.getText(), t.getLang()));
-            }
+            doAddTranslations(newWord, translations);
 
             mDatabase.setTransactionSuccessful();
-            vocWord = newWord;
         }
         catch (SQLiteConstraintException e)
         {
@@ -250,28 +192,78 @@ public class Vocabulary extends DictionaryBase
         finally
         {
             mDatabase.endTransaction();
-            if (c != null)
-            {
-                c.close();
-            }
         }
         mTotalWords = countWords();
-        return vocWord;
+        mTotalTranslations = countTranslations();
+        return newWord;
+    }
+
+    public Word addTranslations(final Word word, final List<? extends Text> translations) throws Exception
+    {
+        if (translations == null || translations.size() < 1)
+        {
+            throw new IllegalArgumentException("Translation list is null or empty");
+        }
+
+        if (word.getID() == 0 || word.getDictID() != DictionaryID.VOCABULARY)
+        {
+            throw new IllegalArgumentException("Given word does not belong to vocabulary");
+        }
+
+        Word newWord = new Word(word);
+        mDatabase.beginTransaction();
+        try
+        {
+            doAddTranslations(newWord, translations);
+            mDatabase.setTransactionSuccessful();
+        }
+        catch (SQLiteConstraintException e)
+        {
+            Log.e(TAG, "Exception in addTranslations: " + e.getMessage());
+            throw e;
+        }
+        finally
+        {
+            mDatabase.endTransaction();
+        }
+        mTotalTranslations = countTranslations();
+        return newWord;
+    }
+
+    private void doAddTranslations(Word word, final List<? extends Text> translations)
+    {
+        loadTranslations(word);
+
+        for (Text transText : translations)
+        {
+            MarkedTranslation mt;
+
+            int matchIndex = Translation.findMatch(transText, word.getTranslations());
+            if (matchIndex < 0) // not found
+            {
+                ContentValues transValues = new ContentValues();
+                transValues.put("word_id", word.getID());
+                transValues.put("text", transText.getText());
+                transValues.put("lang", transText.getLangCode());
+                transValues.put("fmark", Mark.YetToLearn.toInt());
+                transValues.put("rmark", Mark.YetToLearn.toInt());
+
+                long trans_id = mDatabase.insertOrThrow(TRANSLATIONS_TABLE, null, transValues);
+
+                mt = new MarkedTranslation(DictionaryID.VOCABULARY, trans_id, word.getID(), transText);
+                word.addTranslation(mt);
+            }
+        }
     }
 
     public boolean removeWord(Word word) throws Exception
     {
-        if (word.getDictID() != DictionaryID.VOCABULARY)
-        {
-            throw new IllegalArgumentException("This word does not belong to Vocabulary");
-        }
-
         boolean ok = false;
         mDatabase.beginTransaction();
         try
         {
-            mDatabase.delete("translations", "word_id = " + String.valueOf(word.getID()), null);
-            mDatabase.delete("words", "_id = " + String.valueOf(word.getID()), null);
+            mDatabase.delete(TRANSLATIONS_TABLE, "word_id = " + String.valueOf(word.getID()), null);
+            mDatabase.delete(WORDS_TABLE, "_id = " + String.valueOf(word.getID()), null);
             mDatabase.setTransactionSuccessful();
             ok = true;
         }
@@ -296,7 +288,7 @@ public class Vocabulary extends DictionaryBase
             ContentValues transValues = new ContentValues();
             transValues.put("fmark", trans.ForwardMark.toInt());
             transValues.put("rmark", trans.ReverseMark.toInt());
-            mDatabase.update("translations", transValues, "_id = " + String.valueOf(trans.getID()), null);
+            mDatabase.update(TRANSLATIONS_TABLE, transValues, "_id = " + String.valueOf(trans.getID()), null);
 
             mDatabase.setTransactionSuccessful();
         }
@@ -316,8 +308,8 @@ public class Vocabulary extends DictionaryBase
         mDatabase.beginTransaction();
         try
         {
-            mDatabase.delete("translations", null, null);
-            mDatabase.delete("words", null, null);
+            mDatabase.delete(TRANSLATIONS_TABLE, null, null);
+            mDatabase.delete(WORDS_TABLE, null, null);
 
             mDatabase.setTransactionSuccessful();
             mTotalWords = 0;
@@ -331,33 +323,6 @@ public class Vocabulary extends DictionaryBase
         {
             mDatabase.endTransaction();
         }
-    }
-
-    public List<MarkedTranslation> selectTranslations(Mark min, Mark max)
-    {
-        List<MarkedTranslation> list = new LinkedList<>();
-        try
-        {
-            Cursor c = mDatabase.query("translations",
-                getTranslationSelect(),
-                "rmark >= " + String.valueOf(min.toInt()) + " AND rmark <= " + String.valueOf(max.toInt()),
-                null, null, null, null, null);
-            boolean next = c.moveToFirst();
-            while (next)
-            {
-                MarkedTranslation t = readTranslation(c);
-                list.add(t);
-                next = c.moveToNext();
-            }
-            Log.d(TAG, String.format("Loaded %d translations with marks in [%d..%d]",
-                c.getCount(), min.toInt(), max.toInt()));
-        }
-        catch (Exception e)
-        {
-            Log.e(TAG, "Exception in selectTranslations: " + e.getMessage());
-            //throw e;
-        }
-        return list;
     }
 
     public List<Word> selectWordsByMarks(final Mark min, final Mark max)
@@ -406,10 +371,8 @@ public class Vocabulary extends DictionaryBase
         LearningStats stats = new LearningStats();
         try
         {
-            Cursor c = mDatabase.query("translations",
-                getTranslationSelect(),
-                null,
-                null, null, null, null, null);
+            Cursor c = mDatabase.query(TRANSLATIONS_TABLE, TRANSLATION_COLUMNS,
+                null, null, null, null, null, null);
             boolean next = c.moveToFirst();
             while (next)
             {

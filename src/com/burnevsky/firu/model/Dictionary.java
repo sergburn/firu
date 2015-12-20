@@ -24,6 +24,7 @@
 
 package com.burnevsky.firu.model;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -31,10 +32,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 public class Dictionary extends DictionaryBase
 {
+    private static final String[] TRANSLATION_COLUMNS = new String[]{"_id", "text", "word_id"};
+    private static final String[] WORD_COLUMNS = new String[]{"_id", "text"};
+    private static final String[] INFO_COLUMNS = new String[]{"source", "sourceFormat", "name", "src_lang", "trg_lang"};
+
     public Information Meta;
 
     public class Information
@@ -67,11 +73,11 @@ public class Dictionary extends DictionaryBase
 
         mDatabase = dbOpener.getReadableDatabase();
 
-        Cursor c = mDatabase.query("info", 
-                new String[] { "source", "sourceFormat", "name", "src_lang", "trg_lang" },
-                null, null, null, null, null);
+        Cursor c = mDatabase.query("info",
+            INFO_COLUMNS,
+            null, null, null, null, null);
 
-        if (!c.isLast() && c.moveToFirst())
+        if (c.moveToNext())
         {
             Meta = new Information();
             Meta.OriginalFile = c.getString(0);
@@ -85,26 +91,37 @@ public class Dictionary extends DictionaryBase
         mTotalWords = countWords();
         mTotalTranslations = countTranslations();
     }
-    
+
     @Override
-    public List<Word> searchWords(String startsWith, int numMaximum)
+    protected Word readWord(Cursor c)
     {
-        List<Word> list = new LinkedList<>();
-        Cursor c = mDatabase.query("words", 
-                new String[] { "_id", "text" },
-                "text LIKE '" + startsWith + "%'", // SQLite can't use indexes with collation, so this is binary match
-                 null, null, null, 
-                 "text ASC",
-                 String.valueOf(numMaximum));
-        boolean next = c.moveToFirst();
-        while (next)
-        {
-            Word w = new Word(getDictID(), c.getLong(0), c.getString(1), Meta.SourceLanguage);
-            list.add(w);
-            next = c.moveToNext();
-        }
-        c.close();
-        return list;
+        return new Word(getDictID(), c.getLong(0), new Text(c.getString(1), Meta.SourceLanguage));
+    }
+
+    @Override
+    protected String[] getWordColumns()
+    {
+        return WORD_COLUMNS;
+    }
+
+    @Override
+    protected Translation readTranslation(Cursor c)
+    {
+        return readTranslation(c, 0);
+    }
+
+    @Override
+    protected String[] getTranslationColumns()
+    {
+        return TRANSLATION_COLUMNS;
+    }
+
+    @NonNull
+    private Translation readTranslation(Cursor c, int firstColumn)
+    {
+        return new Translation(getDictID(),
+            c.getLong(firstColumn), c.getLong(firstColumn + 2),
+            new Text(c.getString(firstColumn + 1), Meta.TargetLanguage));
     }
 
     public List<Word> searchWordsByTranslations(String matchText, int numMaximum)
@@ -115,12 +132,13 @@ public class Dictionary extends DictionaryBase
         Word w = null;
         List<Word> list = new LinkedList<>();
         Cursor c = mDatabase.rawQuery(
-            "SELECT w._id, w.text, t._id, t.word_id, t.text " +
+            "SELECT w._id, w.text, t._id, t.text, t.word_id " +
                 "FROM words AS w JOIN translations AS t ON w._id = t.word_id " +
                 "WHERE t.text LIKE ? OR t.text LIKE ? " +
                 "ORDER BY w._id LIMIT ?;",
-                new String[] { pattern0, pattern1, String.valueOf(numMaximum) }
-            );
+            new String[]{pattern0, pattern1, String.valueOf(numMaximum)}
+        );
+        int transColumnsStart = c.getColumnIndex("t._id");
         boolean next = c.moveToFirst();
         while (next)
         {
@@ -130,33 +148,15 @@ public class Dictionary extends DictionaryBase
                 {
                     list.add(w);
                 }
-                w = new Word(getDictID(), c.getLong(0), c.getString(1), Meta.SourceLanguage);
+                w = readWord(c);
             }
-            Translation t = new Translation(getDictID(), c.getLong(2), c.getLong(3), c.getString(4), Meta.TargetLanguage);
+            Translation t = readTranslation(c, transColumnsStart);
             w.addTranslation(t);
             next = c.moveToNext();
         }
         if (w != null)
         {
             list.add(w);
-        }
-        c.close();
-        return list;
-    }
-
-    public List<Translation> getTranslations(Word w)
-    {
-        List<Translation> list = new LinkedList<>();
-        Cursor c = mDatabase.query("translations", 
-                new String[] { "_id", "text", "word_id" },
-                "word_id = " + w.getID(),
-                 null, null, null, null, null);
-        boolean next = c.moveToFirst();
-        while (next)
-        {
-            Translation t = new Translation(getDictID(), c.getLong(0), w.getID(), c.getString(1), Meta.TargetLanguage);
-            list.add(t);
-            next = c.moveToNext();
         }
         c.close();
         return list;

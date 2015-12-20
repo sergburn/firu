@@ -50,6 +50,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
@@ -94,23 +96,26 @@ public class SearchFragment
     }
 
     @Override
-    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
+    public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
     {
-        switch (event)
+        if (dictionaryID == DictionaryID.UNIVERSAL)
         {
-            case MODEL_EVENT_OPENED:
-            case MODEL_EVENT_READY:
-                if (mSharedText != null && mInputText.getQuery().length() == 0)
-                {
-                    searchSharedWord();
-                }
-                break;
+            switch (event)
+            {
+                case MODEL_EVENT_OPENED:
+                case MODEL_EVENT_READY:
+                    if (mSharedText != null && mInputText.getQuery().length() == 0)
+                    {
+                        searchSharedWord();
+                    }
+                    break;
 
-            case MODEL_EVENT_FAILURE:
-                makeToast("Can't open Dictionary", Toast.LENGTH_SHORT);
+                case MODEL_EVENT_FAILURE:
+                    makeToast("Can't open Dictionary", Toast.LENGTH_SHORT);
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -136,7 +141,8 @@ public class SearchFragment
         @Override
         protected List<Word> doInBackground(String... param)
         {
-            return (mModel.getDictionary() != null) ? mModel.getDictionary().searchWords(param[0], MAX_WORDS_IN_RESULT) : null;
+            IDictionary dictionary = mModel.getDictionary(DictionaryID.UNIVERSAL);
+            return (dictionary != null) ? dictionary.searchWords(param[0], MAX_WORDS_IN_RESULT) : null;
         }
 
         @Override
@@ -158,7 +164,8 @@ public class SearchFragment
         @Override
         protected Integer doInBackground(String... param)
         {
-            return (mModel.getDictionary() != null) ? mModel.getDictionary().countWords(param[0]) : 0;
+            IDictionary dictionary = mModel.getDictionary(DictionaryID.UNIVERSAL);
+            return (dictionary != null) ? dictionary.countWords(param[0]) : 0;
         }
 
         @Override

@@ -33,9 +33,17 @@ public interface IDictionary
     int getTotalWords();
     int getTotalTranslations();
 
-    int countWords();
-    int countTranslations();
-
     int countWords(String startsWith);
+
+    int UNLIMITED = -1;
+
+    /** @return Word with translations */
+    Word findWord(Text word);
+
+    /** @param numMaximum Use UNLIMITED for unlimited search.
+     *  @return List of Word's without translations */
     List<Word> searchWords(String startsWith, int numMaximum);
+
+    /** Fills given word with it translations */
+    void loadTranslations(Word word);
 }

@@ -6,22 +6,19 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.burnevsky.firu.SearchFragment.OnTranslationSelectedListener;
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Translation;
 import com.burnevsky.firu.model.Word;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -33,8 +30,8 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
 {
     private final static int MAX_ITEMS_IN_RESULT = 100;
 
-    private static final String[] mListColumns = {"word", "trans", "rate"};
-    private static final int[] mListFields = {R.id.sta_textWord, R.id.sta_textTrans};
+    private static final String[] LIST_COLUMNS = {"word", "trans", "rate"};
+    private static final int[] LIST_FIELDS = {R.id.sta_textWord, R.id.sta_textTrans};
 
     private SearchView mInputText = null;
     private ListView mTransList = null;
@@ -116,9 +113,10 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
         @Override
         protected List<Word> doInBackground(String... param)
         {
+            Dictionary dictionary = (Dictionary) mModel.getDictionary(DictionaryID.UNIVERSAL);
             return
-                (mModel.getDictionary() != null) ?
-                    mModel.getDictionary().searchWordsByTranslations(param[0], MAX_ITEMS_IN_RESULT) :
+                (dictionary != null) ?
+                    dictionary.searchWordsByTranslations(param[0], MAX_ITEMS_IN_RESULT) :
                         null;
         }
 
@@ -139,7 +137,7 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
 
             for (Word w : list)
             {
-                for (Translation t : w.translations)
+                for (Translation t : w.getTranslations())
                 {
                     TreeMap<String, Object> row = new TreeMap<>();
                     row.put("word", w.getText());
@@ -151,7 +149,7 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
             }
 
             mTransList.setAdapter(new SimpleAdapter(getActivity(), data,
-                R.layout.translation_word_list_item, mListColumns, mListFields));
+                R.layout.translation_word_list_item, LIST_COLUMNS, LIST_FIELDS));
 
             if (list.size() > 0)
             {

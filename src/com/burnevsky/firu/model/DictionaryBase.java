@@ -27,11 +27,19 @@ package com.burnevsky.firu.model;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+
 /**
  *
  */
 public abstract class DictionaryBase implements IDictionary
 {
+    protected static final String WORDS_TABLE = "words";
+    protected static final String TRANSLATIONS_TABLE = "translations";
+
     protected SQLiteDatabase mDatabase = null;
     protected int mTotalWords = 0;
     protected int mTotalTranslations = 0;
@@ -65,13 +73,13 @@ public abstract class DictionaryBase implements IDictionary
     {
         if (mDatabase == null) return 0;
 
-        Cursor c = mDatabase.query("words",
+        Cursor c = mDatabase.query(WORDS_TABLE,
             new String[] { "count(*)" },
             "text LIKE '" + startsWith + "%'", // most probably should use collated index
             null, null, null, null, null);
 
         int count = 0;
-        if (!c.isAfterLast() && c.moveToFirst())
+        if (c.moveToNext())
         {
             count = c.getInt(0);
         }
@@ -79,17 +87,16 @@ public abstract class DictionaryBase implements IDictionary
         return count;
     }
 
-    @Override
-    public int countWords()
+    protected int countWords()
     {
         if (mDatabase == null) return 0;
 
-        Cursor c = mDatabase.query("words",
+        Cursor c = mDatabase.query(WORDS_TABLE,
             new String[] { "count(*)" },
             null, null, null, null, null, null);
 
         int count = 0;
-        if (!c.isAfterLast() && c.moveToFirst())
+        if (c.moveToNext())
         {
             count = c.getInt(0);
         }
@@ -97,21 +104,91 @@ public abstract class DictionaryBase implements IDictionary
         return count;
     }
 
-    @Override
-    public int countTranslations()
+    protected int countTranslations()
     {
         if (mDatabase == null) return 0;
 
-        Cursor c = mDatabase.query("translations",
+        Cursor c = mDatabase.query(TRANSLATIONS_TABLE,
             new String[] { "count(*)" },
             null, null, null, null, null, null);
 
         int count = 0;
-        if (!c.isAfterLast() && c.moveToFirst())
+        if (c.moveToNext())
         {
             count = c.getInt(0);
         }
         c.close();
         return count;
     }
+
+    protected abstract Word readWord(Cursor c);
+    protected abstract String[] getWordColumns();
+
+    @Override
+    public Word findWord(Text text)
+    {
+        Word word = null;
+
+        Cursor c = mDatabase.query(WORDS_TABLE, getWordColumns(),
+            "(lower(text) LIKE '" + text.getText().toLowerCase(Locale.US) + "') AND (lang = " +
+                text.getLangCode() + ")",
+            null, null, null, null, String.valueOf(1));
+
+        if (c.moveToFirst())
+        {
+            word = readWord(c);
+            c.close();
+            loadTranslations(word);
+        }
+        else
+        {
+            c.close();
+        }
+
+        return word;
+    }
+
+    @Override
+    public List<Word> searchWords(String startsWith, int numMaximum)
+    {
+        List<Word> list = new ArrayList<>();
+        Cursor c = mDatabase.query(WORDS_TABLE, getWordColumns(),
+            // Should use collated index, but SQLite can't use indexes with collation, so this is binary match
+            "text LIKE '" + startsWith + "%'",
+            null, null, null,
+            "text ASC",
+            String.valueOf(numMaximum));
+
+        while (c.moveToNext())
+        {
+            Word w = readWord(c);
+            list.add(w);
+        }
+
+        return list;
+    }
+
+    protected abstract Translation readTranslation(Cursor c);
+    protected abstract String[] getTranslationColumns();
+
+    @Override
+    public void loadTranslations(Word word)
+    {
+        if (word.getDictID() != getDictID())
+        {
+            throw new IllegalArgumentException("This word is not from this dictionary");
+        }
+
+        List<Translation> list = new ArrayList<>();
+        Cursor c = mDatabase.query(TRANSLATIONS_TABLE, getTranslationColumns(),
+            "word_id = " + word.getID(),
+            null, null, null, null, null);
+        while (c.moveToNext())
+        {
+            list.add(readTranslation(c));
+        }
+        c.close();
+        word.mTranslations = list;
+    }
+
 }

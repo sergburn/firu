@@ -2,6 +2,8 @@
 package com.burnevsky.firu;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 
@@ -19,12 +21,7 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
     Model mModel;
 
     @Override
-    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
-    {
-    }
-
-    @Override
-    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
+    public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
     {
     }
 
@@ -40,12 +37,12 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
 
     protected void subscribeDictionary()
     {
-        mModel.subscribeDictionary(this);
+        mModel.subscribeDictionary(DictionaryID.UNIVERSAL, this);
     }
 
     protected void subscribeVocabulary()
     {
-        mModel.subscribeVocabulary(this);
+        mModel.subscribeDictionary(DictionaryID.VOCABULARY, this);
     }
 
     protected void hideKeyboard()

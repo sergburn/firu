@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Model.ModelEvent;
@@ -135,21 +136,21 @@ public class FiruApplication extends Application
             @Override
             public void run()
             {
-                mModel.closeVocabulary();
-                try
-                {
-                    copyFile(mBackupVocFile, mLocalVocFile);
-                    Toast.makeText(toastContext, "Copying succeded", Toast.LENGTH_SHORT).show();
-                }
-                catch(IOException e)
-                {
-                    e.printStackTrace();
-                    Toast.makeText(toastContext, "Copying failed", Toast.LENGTH_SHORT).show();
-                }
-                finally
-                {
-                    openVocabulary();
-                }
+            mModel.closeDictionary(DictionaryID.VOCABULARY);
+            try
+            {
+                copyFile(mBackupVocFile, mLocalVocFile);
+                Toast.makeText(toastContext, "Copying succeded", Toast.LENGTH_SHORT).show();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+                Toast.makeText(toastContext, "Copying failed", Toast.LENGTH_SHORT).show();
+            }
+            finally
+            {
+                openVocabulary();
+            }
             }
         };
 
@@ -192,21 +193,21 @@ public class FiruApplication extends Application
             @Override
             public void run()
             {
-                try
-                {
-                    mModel.closeVocabulary();
-                    copyFile(mLocalVocFile, mBackupVocFile);
-                    Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
-                }
-                catch(IOException e)
-                {
-                    e.printStackTrace();
-                    Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show();
-                }
-                finally
-                {
-                    openVocabulary();
-                }
+            try
+            {
+                mModel.closeDictionary(DictionaryID.VOCABULARY);
+                copyFile(mLocalVocFile, mBackupVocFile);
+                Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
+            }
+            catch(IOException e)
+            {
+                e.printStackTrace();
+                Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show();
+            }
+            finally
+            {
+                openVocabulary();
+            }
             }
         };
 

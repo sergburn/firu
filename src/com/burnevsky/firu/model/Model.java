@@ -4,8 +4,12 @@ package com.burnevsky.firu.model;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.burnevsky.firu.BuildConfig;
 import com.burnevsky.firu.model.Model.ModelEvent;
@@ -17,22 +21,25 @@ import android.util.Log;
 
 public class Model
 {
-    private Dictionary mDict = null;
-    private Vocabulary mVoc = null;
+    private Map<DictionaryID, IDictionary> mDictionaries = new TreeMap<>() ;
 
     private final Handler mHandler = new Handler();
 
     private final ModelListenersManager mModelListeners = new ModelListenersManager();
 
-
-    public Dictionary getDictionary()
+    public IDictionary getDictionary(DictionaryID dictionaryID)
     {
-        return mDict;
+        return mDictionaries.get(dictionaryID);
+    }
+
+    public Collection<IDictionary> getDictionaries()
+    {
+        return mDictionaries.values();
     }
 
     public Vocabulary getVocabulary()
     {
-        return mVoc;
+        return (Vocabulary) getDictionary(DictionaryID.VOCABULARY);
     }
 
     public enum ModelEvent
@@ -49,39 +56,21 @@ public class Model
 
     public interface ModelListener
     {
-        void onDictionaryEvent(Dictionary dict, ModelEvent event);
-        void onVocabularyEvent(Vocabulary voc, ModelEvent event);
+        void onDictionaryEvent(DictionaryID dictionaryID, ModelEvent event);
     }
 
-    public void subscribeDictionary(final ModelListener listener)
+    public void subscribeDictionary(final DictionaryID dictionaryID, final ModelListener listener)
     {
         mModelListeners.addListener(listener);
 
-        if (mDict != null)
+        if (mDictionaries.get(dictionaryID) != null)
         {
             mHandler.post(new Runnable()
             {
                 @Override
                 public void run()
                 {
-                    mModelListeners.notifyListener(listener, DbType.MODEL_DB_DICT, ModelEvent.MODEL_EVENT_READY);
-                }
-            });
-        }
-    }
-
-    public void subscribeVocabulary(final ModelListener listener)
-    {
-        mModelListeners.addListener(listener);
-
-        if (mVoc != null)
-        {
-            mHandler.post(new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    mModelListeners.notifyListener(listener, DbType.MODEL_DB_VOC, ModelEvent.MODEL_EVENT_READY);
+                    mModelListeners.notifyListener(listener, dictionaryID, ModelEvent.MODEL_EVENT_READY);
                 }
             });
         }
@@ -100,15 +89,15 @@ public class Model
             @Override
             protected void onPostExecute(Dictionary result)
             {
-                mDict = result;
+                mDictionaries.put(DictionaryID.UNIVERSAL, result);
                 if (result != null)
                 {
-                    Log.i("firu", "Dictionary: totalWordCount: " + String.valueOf(mDict.getTotalWords()));
-                    mModelListeners.notifyAllListeners(DbType.MODEL_DB_DICT, ModelEvent.MODEL_EVENT_OPENED);
+                    Log.i("firu", "Dictionary: totalWordCount: " + String.valueOf(result.getTotalWords()));
+                    mModelListeners.notifyAllListeners(DictionaryID.UNIVERSAL, ModelEvent.MODEL_EVENT_OPENED);
                 }
                 else
                 {
-                    mModelListeners.notifyAllListeners(DbType.MODEL_DB_DICT, ModelEvent.MODEL_EVENT_FAILURE);
+                    mModelListeners.notifyAllListeners(DictionaryID.UNIVERSAL, ModelEvent.MODEL_EVENT_FAILURE);
                 }
             }
         }
@@ -129,15 +118,15 @@ public class Model
             @Override
             protected void onPostExecute(Vocabulary result)
             {
-                mVoc = result;
+                mDictionaries.put(DictionaryID.VOCABULARY, result);
                 if (result != null)
                 {
-                    Log.i("firu", "Vocabulary: totalWordCount: " + String.valueOf(mVoc.getTotalWords()));
-                    mModelListeners.notifyAllListeners(DbType.MODEL_DB_VOC, ModelEvent.MODEL_EVENT_OPENED);
+                    Log.i("firu", "Vocabulary: totalWordCount: " + String.valueOf(result.getTotalWords()));
+                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_OPENED);
                 }
                 else
                 {
-                    mModelListeners.notifyAllListeners(DbType.MODEL_DB_VOC, ModelEvent.MODEL_EVENT_FAILURE);
+                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_FAILURE);
                 }
             }
         }
@@ -147,14 +136,26 @@ public class Model
 
     public void resetVocabulary()
     {
+        final Vocabulary voc = (Vocabulary) mDictionaries.get(DictionaryID.VOCABULARY);
+
         class VocabularyCleaner extends AsyncTask<Void, Void, Void>
         {
             @Override
+            protected void onPreExecute()
+            {
+                if (voc != null)
+                {
+                    Log.i("firu", "Vocabulary pre-reset");
+                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_CLOSED);
+                }
+            }
+
+            @Override
             protected Void doInBackground(Void... params)
             {
-                if (mVoc != null)
+                if (voc != null)
                 {
-                    mVoc.clearAll();
+                    voc.clearAll();
                 }
                 return null;
             }
@@ -162,10 +163,10 @@ public class Model
             @Override
             protected void onPostExecute(Void result)
             {
-                if (mVoc != null)
+                if (voc != null)
                 {
                     Log.i("firu", "Vocabulary reset");
-                    mModelListeners.notifyAllListeners(DbType.MODEL_DB_VOC, ModelEvent.MODEL_EVENT_READY);
+                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_OPENED);
                 }
             }
         }
@@ -173,29 +174,13 @@ public class Model
         new VocabularyCleaner().execute();
     }
 
-    private void closeDictionary()
+    public void closeDictionary(DictionaryID dictionaryID)
     {
-        if (mDict != null)
+        if (mDictionaries.get(dictionaryID) != null)
         {
-            mModelListeners.notifyAllListeners(DbType.MODEL_DB_DICT, ModelEvent.MODEL_EVENT_CLOSED);
-            mDict = null;
+            mModelListeners.notifyAllListeners(dictionaryID, ModelEvent.MODEL_EVENT_CLOSED);
+            mDictionaries.remove(dictionaryID);
         }
-    }
-
-    public void closeVocabulary()
-    {
-        if (mVoc != null)
-        {
-            mModelListeners.notifyAllListeners(DbType.MODEL_DB_VOC, ModelEvent.MODEL_EVENT_CLOSED);
-            mVoc = null;
-        }
-    }
-
-    private enum DbType
-    {
-        MODEL_DB_NONE,
-        MODEL_DB_DICT,
-        MODEL_DB_VOC,
     }
 
     private class ModelListenersManager
@@ -209,12 +194,7 @@ public class Model
             }
         }
 
-        private List<ModelListenerRef> mListeners = null;
-
-        ModelListenersManager()
-        {
-            mListeners = new ArrayList<>();
-        }
+        private List<ModelListenerRef> mListeners = new ArrayList<>();
 
         void addListener(final ModelListener listener)
         {
@@ -234,26 +214,12 @@ public class Model
             mListeners.add(new ModelListenerRef(listener));
         }
 
-        void notifyListener(ModelListener listener, DbType dbType, ModelEvent event)
+        void notifyListener(ModelListener listener, DictionaryID dbType, ModelEvent event)
         {
-            switch (dbType)
-            {
-                case MODEL_DB_DICT:
-                    listener.onDictionaryEvent(mDict, event);
-                    break;
-                case MODEL_DB_VOC:
-                    listener.onVocabularyEvent(mVoc, event);
-                    break;
-                default:
-                    if (BuildConfig.DEBUG)
-                    {
-                        throw new InvalidParameterException();
-                    }
-                    break;
-            }
+            listener.onDictionaryEvent(dbType, event);
         }
 
-        void notifyAllListeners(DbType dbType, ModelEvent event)
+        void notifyAllListeners(DictionaryID dbType, ModelEvent event)
         {
             for (Iterator<ModelListenerRef> iter = mListeners.iterator(); iter.hasNext();)
             {

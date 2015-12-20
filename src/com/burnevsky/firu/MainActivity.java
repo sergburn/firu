@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
@@ -182,34 +184,34 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     }
 
     @Override
-    public void onDictionaryEvent(Dictionary dict, Model.ModelEvent event)
+    public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
     {
-        super.onDictionaryEvent(dict, event);
+        super.onDictionaryEvent(dictionaryID, event);
         if (event == Model.ModelEvent.MODEL_EVENT_OPENED ||
             event == Model.ModelEvent.MODEL_EVENT_READY)
         {
-            setTextViewText(R.id.txtWordsBadge, getShortIntString(dict.getTotalWords()));
-            setTextViewText(R.id.txtTransBadge, getShortIntString(dict.getTotalTranslations()));
+            IDictionary dict = mModel.getDictionary(dictionaryID);
+            if (dictionaryID == DictionaryID.UNIVERSAL)
+            {
+                setTextViewText(R.id.txtWordsBadge, getShortIntString(dict.getTotalWords()));
+                setTextViewText(R.id.txtTransBadge, getShortIntString(dict.getTotalTranslations()));
+            }
+            else if (dictionaryID == DictionaryID.VOCABULARY)
+            {
+                setTextViewText(R.id.txtTrainerBadge, getShortIntString(dict.getTotalTranslations()));
+            }
         }
         else
         {
-            setTextViewText(R.id.txtWordsBadge, "");
-            setTextViewText(R.id.txtTransBadge, "");
-        }
-    }
-
-    @Override
-    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
-    {
-        super.onVocabularyEvent(voc, event);
-        if (event == Model.ModelEvent.MODEL_EVENT_OPENED ||
-            event == Model.ModelEvent.MODEL_EVENT_READY)
-        {
-            setTextViewText(R.id.txtTrainerBadge, getShortIntString(voc.getTotalTranslations()));
-        }
-        else
-        {
-            setTextViewText(R.id.txtTrainerBadge, "");
+            if (dictionaryID == DictionaryID.UNIVERSAL)
+            {
+                setTextViewText(R.id.txtWordsBadge, "");
+                setTextViewText(R.id.txtTransBadge, "");
+            }
+            else if (dictionaryID == DictionaryID.VOCABULARY)
+            {
+                setTextViewText(R.id.txtTrainerBadge, "");
+            }
         }
     }
 
@@ -303,7 +305,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         args.putString(Intent.EXTRA_TEXT, intentText);
         frag.setArguments(args);
 
-        getFragmentManager()
+        getSupportFragmentManager()
         .beginTransaction()
         .replace(R.id.content_frame, frag)
         .commit();
@@ -316,7 +318,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     {
         SearchTransFragment frag = new SearchTransFragment();
 
-        getFragmentManager()
+        getSupportFragmentManager()
         .beginTransaction()
         .replace(R.id.content_frame, frag)
         .commit();
