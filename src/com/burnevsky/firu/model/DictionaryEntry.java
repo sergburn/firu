@@ -24,41 +24,35 @@
 
 package com.burnevsky.firu.model;
 
-import android.annotation.SuppressLint;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-@SuppressLint("ParcelCreator")
-public class DictionaryEntry implements Parcelable
+public class DictionaryEntry extends Text
 {
     protected long mID = 0;
-    protected String mText;
-    protected String mLang;
     protected DictionaryID mDictID = DictionaryID.UNDEFINED;
 
-    public DictionaryEntry()
+    public DictionaryEntry(Text text)
     {
-        super();
+        super(text);
     }
 
     // For internal use by Model only
-    DictionaryEntry(String text, String targetLang)
+    DictionaryEntry(DictionaryID dictID, long id, Text text)
     {
-        mText = text;
-        mLang = targetLang;
-    }
-
-    // For internal use by Model only
-    DictionaryEntry(DictionaryID dictID, long id, String text, String targetLang)
-    {
-        this(text, targetLang);
-        mDictID = dictID;
+        this(text);
         mID = id;
+        mDictID = dictID;
     }
 
     public long getID()
     {
         return mID;
+    }
+
+    public DictionaryID getDictID()
+    {
+        return mDictID;
     }
 
     public void unlink()
@@ -67,35 +61,9 @@ public class DictionaryEntry implements Parcelable
         mDictID = DictionaryID.UNDEFINED;
     }
 
-    public String getText()
-    {
-        return mText;
-    }
-
-    public String getLang()
-    {
-        return mLang;
-    }
-
-    public int getLangCode()
-    {
-        return LangUtil.lang2Int(mLang);
-    }
-
-    public DictionaryID getDictID()
-    {
-        return mDictID;
-    }
-
     public boolean isVocabularyItem()
     {
         return mID != 0 && mDictID == DictionaryID.VOCABULARY;
-    }
-
-    @Override
-    public String toString()
-    {
-        return getText();
     }
 
     @Override
@@ -107,17 +75,30 @@ public class DictionaryEntry implements Parcelable
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
+        super.writeToParcel(dest, flags);
         dest.writeLong(mID);
-        dest.writeString(mText);
-        dest.writeString(mLang);
         dest.writeValue(mDictID);
     }
 
     protected DictionaryEntry(Parcel in)
     {
+        super(in);
         mID = in.readLong();
-        mText = in.readString();
-        mLang = in.readString();
         mDictID = (DictionaryID) in.readValue(null);
     }
+
+    public static final Parcelable.Creator<DictionaryEntry> CREATOR = new Parcelable.Creator<DictionaryEntry>()
+    {
+        @Override
+        public DictionaryEntry createFromParcel(Parcel in)
+        {
+            return new DictionaryEntry(in);
+        }
+
+        @Override
+        public DictionaryEntry[] newArray(int size)
+        {
+            return new DictionaryEntry[size];
+        }
+    };
 }

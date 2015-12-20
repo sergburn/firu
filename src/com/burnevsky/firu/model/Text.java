@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Sergey Burnevsky
+ * Copyright (c) 2015 Sergey Burnevsky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,80 +24,95 @@
 
 package com.burnevsky.firu.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Word extends DictionaryEntry
+import java.util.List;
+
+public class Text implements Parcelable
 {
-    List<Translation> mTranslations = new ArrayList<>();
+    protected String mText;
+    protected String mLang;
 
-    public Word(Text text)
+    public Text(String text, String targetLang)
     {
-        super(text);
+        mText = text;
+        mLang = targetLang;
     }
 
-    // For internal use by Model only
-    Word(DictionaryID dictID, long id, Text text)
+    public Text(Text other)
     {
-        super(dictID, id, text);
+        mText = other.getText();
+        mLang = other.getLang();
     }
 
-    public Word(final DictionaryEntry other)
+    public String getText()
     {
-        this(other.getDictID(), other.getID(), other);
+        return mText;
     }
 
-    public List<Translation> getTranslations()
+    public String getLang()
     {
-        return new ArrayList<>(mTranslations);
+        return mLang;
+    }
+
+    public int getLangCode()
+    {
+        return LangUtil.lang2Int(mLang);
+    }
+
+    public static int findMatch(Text sample, List<? extends Text> list)
+    {
+        if (list != null)
+        {
+            for (int i = 0; i < list.size(); i++)
+            {
+                if (list.get(i).getText().compareTo(sample.getText()) == 0)
+                {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     @Override
-    public void unlink()
+    public String toString()
     {
-        super.unlink();
-        for (Translation t : mTranslations)
-        {
-            t.unlink();
-        }
+        return getText();
     }
 
-    public void addTranslation(Translation t)
+    @Override
+    public int describeContents()
     {
-        assert (mTranslations != null);
-        mTranslations.add(t);
+        return 0;
     }
-
-    // Parcelable
 
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
-        super.writeToParcel(dest, flags);
-        dest.writeList(mTranslations);
+        dest.writeString(mText);
+        dest.writeString(mLang);
     }
 
-    private Word(Parcel in)
+    protected Text(Parcel in)
     {
-        super(in);
-        in.readList(mTranslations, MarkedTranslation.class.getClassLoader());
+        mText = in.readString();
+        mLang = in.readString();
     }
 
-    public static final Parcelable.Creator<Word> CREATOR = new Parcelable.Creator<Word>()
+    public static final Parcelable.Creator<Text> CREATOR = new Parcelable.Creator<Text>()
     {
         @Override
-        public Word createFromParcel(Parcel in)
+        public Text createFromParcel(Parcel in)
         {
-            return new Word(in);
+            return new Text(in);
         }
 
         @Override
-        public Word[] newArray(int size)
+        public Text[] newArray(int size)
         {
-            return new Word[size];
+            return new Text[size];
         }
     };
 }

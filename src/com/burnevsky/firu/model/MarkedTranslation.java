@@ -32,19 +32,21 @@ public class MarkedTranslation extends Translation
     public Mark ForwardMark = Mark.YetToLearn;
     public Mark ReverseMark = Mark.YetToLearn;
 
-    public MarkedTranslation(Word w, String text, String targetLang)
+    public MarkedTranslation(Text text)
     {
-        super(w, text, targetLang);
+        super(text);
     }
 
-    MarkedTranslation(DictionaryID dictID, long id, long wordId, String text, String targetLang)
+    MarkedTranslation(DictionaryID dictID, long id, long wordId, Text text)
     {
-        super(dictID, id, wordId, text, targetLang);
+        super(dictID, id, wordId, text);
     }
 
-    public MarkedTranslation(Translation trans)
+    public MarkedTranslation(MarkedTranslation other)
     {
-        super(trans.getWordID(), trans.getText(), trans.getLang());
+        super(other);
+        ForwardMark = other.ForwardMark;
+        ReverseMark = other.ReverseMark;
     }
 
     // Parcelable

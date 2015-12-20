@@ -27,31 +27,54 @@ package com.burnevsky.firu.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Collections;
+import java.util.List;
+
 public class Translation extends DictionaryEntry
 {
-    final long mWordID;
+    protected long mWordID = 0;
 
-    public Translation(long wordId, String text, String targetLang)
+    public Translation(Text text)
     {
-        super(text, targetLang);
-        mWordID = wordId;
-    }
-
-    public Translation(Word w, String text, String targetLang)
-    {
-        this(w.getID(), text, targetLang);
+        super(text);
     }
 
     // For internal use by Model only
-    Translation(DictionaryID dictID, long id, long wordId, String text, String targetLang)
+    Translation(DictionaryID dictID, long id, long wordId, Text text)
     {
-        super(dictID, id, text, targetLang);
+        super(dictID, id, text);
         mWordID = wordId;
+    }
+
+    public Translation(Translation other)
+    {
+        this(other.getDictID(), other.getID(), other.getWordID(), other);
     }
 
     public long getWordID()
     {
         return mWordID;
+    }
+
+    @Override
+    public void unlink()
+    {
+        super.unlink();
+        mWordID = 0;
+    }
+
+    /** @return true if all given Translations belong to Vocabulary.
+     *          false if any of those don't. */
+    public static boolean isAllVocabularyItems(List<? extends Translation> list)
+    {
+        if (list != null)
+        {
+            for (Translation t : list)
+            {
+                if (!t.isVocabularyItem()) return false;
+            }
+        }
+        return true;
     }
 
     // Parcelable
