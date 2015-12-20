@@ -24,60 +24,56 @@
 
 package com.burnevsky.firu.model.test;
 
-import com.burnevsky.firu.model.Vocabulary;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.util.ArrayList;
+import com.burnevsky.firu.model.MarkedTranslation;
+import com.burnevsky.firu.model.Word;
 
-public class ReverseExam
+public class ReverseExamChallenge implements Parcelable
 {
-    Vocabulary mVoc;
-
-    private int mNextTest = 0;
-
-    ArrayList<ReverseExamChallenge> mChallenges = new ArrayList<>();
-
-    ReverseExam(Vocabulary voc)
+    ReverseExamChallenge(Word w, MarkedTranslation t)
     {
-        mVoc = voc;
+        mWord = w;
+        mTranslation = t;
     }
 
-    public int getTestsCount()
+    public Word mWord;
+    public MarkedTranslation mTranslation;
+
+    // Parcelable
+
+    @Override
+    public int describeContents()
     {
-        return mChallenges.size();
+        return 0;
     }
 
-    public int getTestsToGo()
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
     {
-        return mChallenges.size() - mNextTest;
+        mWord.writeToParcel(dest, flags);
+        mTranslation.writeToParcel(dest, flags);
     }
 
-    public int getExamProgress()
+    private ReverseExamChallenge(Parcel in)
     {
-        if (mChallenges.size() > 0)
+        mWord = in.readParcelable(null);
+        mTranslation = in.readParcelable(null);
+    }
+
+    public static final Parcelable.Creator<ReverseExamChallenge> CREATOR = new Parcelable.Creator<ReverseExamChallenge>()
+    {
+        @Override
+        public ReverseExamChallenge createFromParcel(Parcel in)
         {
-            return mNextTest * 100 / mChallenges.size();
+            return new ReverseExamChallenge(in);
         }
-        else
-        {
-            return 100;
-        }
-    }
 
-    public ReverseTest nextTest()
-    {
-        if (getTestsToGo() > 0)
+        @Override
+        public ReverseExamChallenge[] newArray(int size)
         {
-            ReverseExamChallenge challenge = mChallenges.get(mNextTest++);
-            return new ReverseTest(mVoc, challenge.mTranslation, challenge.mWord);
+            return new ReverseExamChallenge[size];
         }
-        else
-        {
-            return null;
-        }
-    }
-
-    public ArrayList<ReverseExamChallenge> getResults()
-    {
-        return new ArrayList<>(mChallenges.subList(0, mNextTest));
-    }
+    };
 }

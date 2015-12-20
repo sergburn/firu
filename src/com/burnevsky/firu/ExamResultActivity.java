@@ -1,16 +1,6 @@
 package com.burnevsky.firu;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import com.burnevsky.firu.model.Mark;
-import com.burnevsky.firu.model.Word;
-import com.burnevsky.firu.model.MarkedTranslation;
-
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -23,11 +13,30 @@ import android.widget.ListView;
 import android.widget.RatingBar;
 import android.widget.SimpleAdapter;
 
+import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.Word;
+import com.burnevsky.firu.model.test.ReverseExam;
+import com.burnevsky.firu.model.test.ReverseExamChallenge;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 public class ExamResultActivity extends AppCompatActivity implements OnItemClickListener
 {
-    public final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
+    private final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
 
-    private Word[] mSortedTests;
+    private List<ReverseExamChallenge> mSortedTests;
+
+    public static void showExamResults(Activity caller, ReverseExam exam)
+    {
+        Intent intent = new Intent(caller, ExamResultActivity.class);
+        intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, exam.getResults());
+        caller.startActivity(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -36,30 +45,25 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
         setContentView(R.layout.activity_exam_result);
 
         Intent intent = getIntent();
-        ArrayList<Word> tests = intent.getParcelableArrayListExtra(INTENT_EXTRA_REV_EXAM);
+        mSortedTests = intent.getParcelableArrayListExtra(INTENT_EXTRA_REV_EXAM);
 
-        mSortedTests = new Word[tests.size()];
-        tests.toArray(mSortedTests);
-        Arrays.sort(mSortedTests, new Comparator<Word>()
+        Collections.sort(mSortedTests, new Comparator<ReverseExamChallenge>()
         {
             @Override
-            public int compare(Word lhs, Word rhs)
+            public int compare(ReverseExamChallenge lhs, ReverseExamChallenge rhs)
             {
-                MarkedTranslation lt = (MarkedTranslation) lhs.translations.get(0);
-                MarkedTranslation rt = (MarkedTranslation) rhs.translations.get(0);
-                return lt.ReverseMark.toInt() - rt.ReverseMark.toInt(); // ascending order
+                return lhs.mTranslation.ReverseMark.toInt() - rhs.mTranslation.ReverseMark.toInt(); // ascending order
             }
         });
 
         List<SortedMap<String, Object>> data = new ArrayList<>();
 
-        for (Word test : mSortedTests)
+        for (ReverseExamChallenge test : mSortedTests)
         {
             TreeMap<String, Object> row = new TreeMap<>();
-            row.put("word", test.getText());
-            MarkedTranslation mt = (MarkedTranslation) test.translations.get(0);
-            row.put("trans", mt.getText());
-            row.put("rate", markToRate(mt.ReverseMark));
+            row.put("word", test.mWord.getText());
+            row.put("trans", test.mTranslation.getText());
+            row.put("rate", markToRate(test.mTranslation.ReverseMark));
             data.add(row);
         }
 
@@ -127,7 +131,14 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        TranslationsActivity.showWords(this, new ArrayList<>(Arrays.asList(mSortedTests)), position);
+        ArrayList<Word> words = new ArrayList<>();
+
+        for (ReverseExamChallenge test : mSortedTests)
+        {
+            words.add(test.mWord);
+        }
+
+        TranslationsActivity.showWords(this, words, position);
     }
 
     private void startNextExam()
