@@ -40,7 +40,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,16 +49,17 @@ import android.support.v7.widget.GridLayout;
 import android.util.TypedValue;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 import com.burnevsky.firu.model.test.ReverseExam;
+import com.burnevsky.firu.model.test.ReverseExamBuilder;
 import com.burnevsky.firu.model.test.ReverseTest;
 import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.test.TestResult;
@@ -76,7 +76,6 @@ public class TrainerActivity extends FiruActivityBase
     private Button mEnter = null;
     private final ArrayList<Button> mKeys = new ArrayList<>();
     private RatingBar mMarkRating = null;
-    private LinearLayout mChallengeLayout;
 
     private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
 
@@ -136,41 +135,44 @@ public class TrainerActivity extends FiruActivityBase
     }
 
     @Override
-    public void onVocabularyEvent(Vocabulary voc, Model.ModelEvent event)
+    public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
     {
-        switch (event)
+        if (dictionaryID == DictionaryID.VOCABULARY)
         {
-            case MODEL_EVENT_FAILURE:
-            case MODEL_EVENT_CLOSED:
-                mData = new Data();
-                changeState(mData.mState);
+            switch (event)
+            {
+                case MODEL_EVENT_FAILURE:
+                case MODEL_EVENT_CLOSED:
+                    mData = new Data();
+                    changeState(mData.mState);
 
-                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-                dialog
-                .setTitle("Reverse exam")
-                .setMessage("Vocabulary unavailable.\nCan't start exam.")
-                .setIcon(android.R.drawable.ic_dialog_info)
-                .setNeutralButton("Yes", new DialogInterface.OnClickListener()
-                {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        finish();
-                    }
-                } )
-                .show();
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+                    dialog
+                        .setTitle("Reverse exam")
+                        .setMessage("Vocabulary unavailable.\nCan't start exam.")
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .setNeutralButton("Yes", new DialogInterface.OnClickListener()
+                        {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which)
+                            {
+                                finish();
+                            }
+                        })
+                        .show();
 
-                break;
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 
     private void startExam()
     {
         changeState(Data.State.STATE_MAKING_EXAM);
-        new ReverseExamBuilder().execute();
+        new BuildReverseExam().execute();
     }
 
     private void onExamUnavailable()
@@ -192,12 +194,12 @@ public class TrainerActivity extends FiruActivityBase
         .show();
     }
 
-    class ReverseExamBuilder extends AsyncTask<Mark, Void, ReverseExam>
+    class BuildReverseExam extends AsyncTask<Mark, Void, ReverseExam>
     {
         @Override
         protected ReverseExam doInBackground(Mark... param)
         {
-            return (mModel.getVocabulary() != null) ? new ReverseExam(mModel.getVocabulary()) : null;
+            return (mModel.getVocabulary() != null) ? ReverseExamBuilder.buildExam(mModel.getVocabulary()) : null;
         }
 
         @Override
@@ -440,7 +442,6 @@ public class TrainerActivity extends FiruActivityBase
         mKeyboard = (GridLayout) findViewById(R.id.gridKeyboard);
         mEnter = (Button) findViewById(R.id.btnEnter);
         mMarkRating = (RatingBar) findViewById(R.id.rbMark);
-        mChallengeLayout = (LinearLayout) findViewById(R.id.ltChallenge);
 
         mOkIcon = getResources().getDrawable(R.drawable.ic_action_accept);
         mPassedIcon = getResources().getDrawable(R.drawable.ic_action_good);
@@ -504,7 +505,7 @@ public class TrainerActivity extends FiruActivityBase
         }
         else
         {
-            onVocabularyEvent(null, Model.ModelEvent.MODEL_EVENT_FAILURE);
+            onDictionaryEvent(DictionaryID.VOCABULARY, Model.ModelEvent.MODEL_EVENT_FAILURE);
         }
     }
 
@@ -720,10 +721,7 @@ public class TrainerActivity extends FiruActivityBase
             }
             else
             {
-                Intent intent = new Intent(this, ExamResultActivity.class);
-                ArrayList<Word> testWords = mData.mExam.getResults();
-                intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, testWords);
-                startActivity(intent);
+                ExamResultActivity.showExamResults(this, mData.mExam);
                 finish();
             }
         }
