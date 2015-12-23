@@ -188,17 +188,15 @@ public class TranslationsFragment extends FiruFragmentBase implements Translatio
     }
 
     @Override
+    public void onVocabularyCheckCompleted()
+    {
+        mStarBtn.setVisibility(View.VISIBLE);
+    }
+
+    @Override
     public void onWordUpdated()
     {
-        if (mViewModel.getWord() != null)
-        {
-            mStarBtn.setImageDrawable(mViewModel.getWord().isVocabularyItem() ? mStarredIcon : mUnstarredIcon);
-            mStarBtn.setVisibility(View.VISIBLE);
-        }
-        else
-        {
-            mStarBtn.setVisibility(View.INVISIBLE);
-        }
+        mStarBtn.setImageDrawable(mViewModel.getWord().isVocabularyItem() ? mStarredIcon : mUnstarredIcon);
     }
 
     @Override

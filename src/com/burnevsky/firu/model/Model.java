@@ -32,6 +32,7 @@ public class Model
         return mDictionaries.get(dictionaryID);
     }
 
+    /** @return List of open dictionaries, including Vocabulary */
     public Collection<IDictionary> getDictionaries()
     {
         return mDictionaries.values();
@@ -59,6 +60,7 @@ public class Model
         void onDictionaryEvent(DictionaryID dictionaryID, ModelEvent event);
     }
 
+    /** Subscribes to any dictionary, including Vocabulary */
     public void subscribeDictionary(final DictionaryID dictionaryID, final ModelListener listener)
     {
         mModelListeners.addListener(listener);

@@ -43,8 +43,8 @@ public class TranslationsFragmentModel
 {
     interface IListener
     {
+        void onVocabularyCheckCompleted();
         void onWordUpdated();
-
         void onTranslationsUpdated();
     }
 
@@ -70,20 +70,22 @@ public class TranslationsFragmentModel
         return mAllTranslations.subList(0, mAllTranslations.size()); // copy of the list
     }
 
-    class FindWord extends AsyncTask<Object, Void, Word>
+    class FindWord extends AsyncTask<Text, Void, Word>
     {
-        void start(DictionaryID dictionaryId, Text text)
+        DictionaryID mDictionaryID;
+
+        public FindWord(DictionaryID dictionaryId)
         {
-            execute(dictionaryId, text);
+            mDictionaryID = dictionaryId;
         }
 
         @Override
-        protected Word doInBackground(Object... param)
+        protected Word doInBackground(Text... param)
         {
-            IDictionary dictionary = mModel.getDictionary((DictionaryID) param[0]);
+            IDictionary dictionary = mModel.getDictionary(mDictionaryID);
             if (dictionary != null)
             {
-                return dictionary.findWord((Text) param[1]);
+                return dictionary.findWord(param[0]);
             }
             return null;
         }
@@ -100,6 +102,11 @@ public class TranslationsFragmentModel
                 }
                 mergeTranslations(word.getTranslations());
                 mListener.onTranslationsUpdated();
+            }
+
+            if (mDictionaryID == DictionaryID.VOCABULARY)
+            {
+                mListener.onVocabularyCheckCompleted();
             }
         }
     }
@@ -281,7 +288,7 @@ public class TranslationsFragmentModel
             }
             else
             {
-                new FindWord().start(dictionary.getDictID(), mWord);
+                new FindWord(dictionary.getDictID()).execute(mWord);
             }
         }
     }
