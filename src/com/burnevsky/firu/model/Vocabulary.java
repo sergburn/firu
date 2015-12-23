@@ -107,6 +107,13 @@ public class Vocabulary extends DictionaryBase
     }
 
     @Override
+    protected String getWordMatchQuery(final Text text)
+    {
+        return "(lower(text) LIKE '" + text.getText().toLowerCase(Locale.US) + "') AND (lang = " +
+            text.getLangCode() + ")";
+    }
+
+    @Override
     protected MarkedTranslation readTranslation(Cursor c)
     {
         MarkedTranslation mt = new MarkedTranslation(

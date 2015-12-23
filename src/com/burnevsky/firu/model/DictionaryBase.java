@@ -123,6 +123,7 @@ public abstract class DictionaryBase implements IDictionary
 
     protected abstract Word readWord(Cursor c);
     protected abstract String[] getWordColumns();
+    protected abstract String getWordMatchQuery(final Text text);
 
     @Override
     public Word findWord(Text text)
@@ -130,8 +131,7 @@ public abstract class DictionaryBase implements IDictionary
         Word word = null;
 
         Cursor c = mDatabase.query(WORDS_TABLE, getWordColumns(),
-            "(lower(text) LIKE '" + text.getText().toLowerCase(Locale.US) + "') AND (lang = " +
-                text.getLangCode() + ")",
+            getWordMatchQuery(text),
             null, null, null, null, String.valueOf(1));
 
         if (c.moveToFirst())

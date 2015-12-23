@@ -27,6 +27,7 @@ package com.burnevsky.firu.model;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -102,6 +103,12 @@ public class Dictionary extends DictionaryBase
     protected String[] getWordColumns()
     {
         return WORD_COLUMNS;
+    }
+
+    @Override
+    protected String getWordMatchQuery(Text text)
+    {
+        return "lower(text) LIKE '" + text.getText().toLowerCase(Locale.US) + "'";
     }
 
     @Override
