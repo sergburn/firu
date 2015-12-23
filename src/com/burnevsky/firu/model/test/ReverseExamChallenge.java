@@ -52,14 +52,14 @@ public class ReverseExamChallenge implements Parcelable
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
-        mWord.writeToParcel(dest, flags);
-        mTranslation.writeToParcel(dest, flags);
+        dest.writeParcelable(mWord, flags);
+        dest.writeParcelable(mTranslation, flags);
     }
 
     private ReverseExamChallenge(Parcel in)
     {
-        mWord = in.readParcelable(null);
-        mTranslation = in.readParcelable(null);
+        mWord = in.readParcelable(Word.class.getClassLoader());
+        mTranslation = in.readParcelable(MarkedTranslation.class.getClassLoader());
     }
 
     public static final Parcelable.Creator<ReverseExamChallenge> CREATOR = new Parcelable.Creator<ReverseExamChallenge>()
