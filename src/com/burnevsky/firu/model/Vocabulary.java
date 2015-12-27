@@ -156,6 +156,8 @@ public class Vocabulary extends DictionaryBase
      *              If same Text already exists as Word, then translations added to it.
      *  @param translations Translation to associate with this word.
      *                      If some translations already exist, they are ignored.
+     *                      If some translation is instance of MarkedTranslation, its marks will be
+     *                      preserved, otherwise both marks will be set to Mark.YetToLearn
      *  @return New Word instance with all its translations as it exists in the database.
      *  */
     public Word addWord(final Text wordText, final List<? extends Text> translations) throws Exception
@@ -243,7 +245,11 @@ public class Vocabulary extends DictionaryBase
 
         for (Text transText : translations)
         {
-            MarkedTranslation mt;
+            MarkedTranslation mt = null;
+            if (transText instanceof MarkedTranslation)
+            {
+                mt = (MarkedTranslation) transText;
+            }
 
             int matchIndex = Translation.findMatch(transText, word.getTranslations());
             if (matchIndex < 0) // not found
@@ -252,13 +258,25 @@ public class Vocabulary extends DictionaryBase
                 transValues.put("word_id", word.getID());
                 transValues.put("text", transText.getText());
                 transValues.put("lang", transText.getLangCode());
-                transValues.put("fmark", Mark.YetToLearn.toInt());
-                transValues.put("rmark", Mark.YetToLearn.toInt());
-
+                if (mt != null)
+                {
+                    transValues.put("fmark", mt.ForwardMark.toInt());
+                    transValues.put("rmark", mt.ReverseMark.toInt());
+                }
+                else
+                {
+                    transValues.put("fmark", Mark.YetToLearn.toInt());
+                    transValues.put("rmark", Mark.YetToLearn.toInt());
+                }
                 long trans_id = mDatabase.insertOrThrow(TRANSLATIONS_TABLE, null, transValues);
 
-                mt = new MarkedTranslation(DictionaryID.VOCABULARY, trans_id, word.getID(), transText);
-                word.addTranslation(mt);
+                MarkedTranslation newTrans = new MarkedTranslation(DictionaryID.VOCABULARY, trans_id, word.getID(), transText);
+                if (mt != null)
+                {
+                    newTrans.ForwardMark = mt.ForwardMark;
+                    newTrans.ReverseMark = mt.ReverseMark;
+                }
+                word.addTranslation(newTrans);
             }
         }
     }

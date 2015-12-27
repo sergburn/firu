@@ -25,6 +25,7 @@
 package com.burnevsky.firu;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.IDictionary;
@@ -53,6 +54,7 @@ public class TranslationsFragmentModel
 
     private Word mWord = null;
     private List<Translation> mAllTranslations = new ArrayList<>();
+    private Word mLastRemovedWord = null;
 
     public TranslationsFragmentModel(Model model, IListener listener)
     {
@@ -164,8 +166,42 @@ public class TranslationsFragmentModel
             if (word != null)
             {
                 mWord = word;
-                mListener.onWordUpdated();
                 mAllTranslations = mWord.getTranslations();
+                mListener.onWordUpdated();
+                mListener.onTranslationsUpdated();
+            }
+        }
+    }
+
+    class VocabularyRestore extends AsyncTask<Word, Void, Word>
+    {
+        @Override
+        protected Word doInBackground(Word... param)
+        {
+            Vocabulary vocabulary = (Vocabulary) mModel.getDictionary(DictionaryID.VOCABULARY);
+            if (vocabulary != null)
+            {
+                try
+                {
+                    Word word = param[0];
+                    return vocabulary.addWord(word, word.getTranslations());
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Word word)
+        {
+            if (word != null)
+            {
+                mWord = word;
+                mAllTranslations = mWord.getTranslations();
+                mListener.onWordUpdated();
                 mListener.onTranslationsUpdated();
             }
         }
@@ -237,8 +273,8 @@ public class TranslationsFragmentModel
             if (removed)
             {
                 mWord.unlink();
-                mListener.onWordUpdated();
                 mAllTranslations = mWord.getTranslations();
+                mListener.onWordUpdated();
                 mListener.onTranslationsUpdated();
             }
         }
@@ -293,19 +329,52 @@ public class TranslationsFragmentModel
         }
     }
 
-    public void triggerWordInVocabulary()
+    public void addWordToVocabulary()
+    {
+        if (mWord != null)
+        {
+            if (!mWord.isVocabularyItem())
+            {
+                new VocabularyAdd().start(mWord, mAllTranslations);
+            }
+            else
+            {
+                Log.d("firu", "Attempt to re-add vocabulary word");
+            }
+        }
+    }
+
+    public void removeWordFromVocabulary()
     {
         if (mWord != null)
         {
             if (mWord.isVocabularyItem())
             {
+                mLastRemovedWord = mWord;
                 new VocabularyRemove().execute(mWord);
             }
             else
             {
-                new VocabularyAdd().start(mWord, mAllTranslations);
+                Log.d("firu", "Attempt to remove non-vocabulary word");
             }
         }
+    }
+
+    public void restoreLastRemovedWord()
+    {
+        if (mLastRemovedWord != null)
+        {
+            new VocabularyRestore().execute(mLastRemovedWord);
+        }
+        else
+        {
+            Log.d("firu", "No removed word to restore");
+        }
+    }
+
+    public void forgetLastRemovedWord()
+    {
+        mLastRemovedWord = null;
     }
 
     public void addTranslationToVocabulary(int position)

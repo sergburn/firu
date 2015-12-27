@@ -109,7 +109,7 @@ public class TranslationsFragment extends FiruFragmentBase implements Translatio
             @Override
             public void onClick(View v)
             {
-                mViewModel.triggerWordInVocabulary();
+                onWordRatingClicked();
             }
         });
         mStarBtn.setVisibility(View.INVISIBLE); // until vocabulary match checked
@@ -220,6 +220,42 @@ public class TranslationsFragment extends FiruFragmentBase implements Translatio
         }
 
         mAdapter.notifyDataSetChanged();
+    }
+
+    private void onWordRatingClicked()
+    {
+        Word word = mViewModel.getWord();
+        if (word != null)
+        {
+            if (word.isVocabularyItem())
+            {
+                mViewModel.removeWordFromVocabulary();
+
+                Snackbar.make(mTransView, "Word removed from vocabulary", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Undo", new View.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(View v)
+                        {
+                            mViewModel.restoreLastRemovedWord();
+                        }
+                    })
+                    .setCallback(new Snackbar.Callback()
+                    {
+                        @Override
+                        public void onDismissed(Snackbar snackbar, int event)
+                        {
+                            super.onDismissed(snackbar, event);
+                            mViewModel.forgetLastRemovedWord();
+                        }
+                    })
+                    .show();
+            }
+            else
+            {
+                mViewModel.addWordToVocabulary();
+            }
+        }
     }
 
     private void onTranslationRatingClicked(final int position)
