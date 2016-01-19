@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Sergey Burnevsky
+ * Copyright (c) 2014-2016 Sergey Burnevsky (sergey.burnevsky at gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,12 +72,6 @@ public class Word extends DictionaryEntry
     }
 
     // Parcelable
-
-    @Override
-    public int describeContents()
-    {
-        return 0;
-    }
 
     @Override
     public void writeToParcel(Parcel dest, int flags)

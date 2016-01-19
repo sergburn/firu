@@ -71,7 +71,10 @@ public class Translation extends DictionaryEntry
         {
             for (Translation t : list)
             {
-                if (!t.isVocabularyItem()) return false;
+                if (!t.isVocabularyItem())
+                {
+                    return false;
+                }
             }
         }
         return true;
