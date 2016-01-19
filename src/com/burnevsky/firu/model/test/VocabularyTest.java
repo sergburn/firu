@@ -24,6 +24,10 @@
 
 package com.burnevsky.firu.model.test;
 
+import android.util.Log;
+
+import com.burnevsky.firu.model.Mark;
+
 public class VocabularyTest
 {
     protected static final int KMaxHints = 3;
@@ -83,5 +87,28 @@ public class VocabularyTest
         {
             throw new TestAlreadyCompleteException();
         }
+    }
+
+    public static Mark updateMarkToTestResult(Mark oldMark, TestResult result)
+    {
+        if (oldMark != Mark.UNFAMILIAR)
+        {
+            switch (result)
+            {
+                case Passed:
+                    return oldMark.upgrade();
+
+                case PassedWithHints:
+                    return Mark.WITH_HINTS;
+
+                case Failed:
+                    return Mark.YET_TO_LEARN;
+
+                default:
+                    Log.e("Mark", String.format("Unexpected test result %s in Mark::updateToTestResult", result));
+                    break;
+            }
+        }
+        return Mark.UNFAMILIAR;
     }
 }

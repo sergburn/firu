@@ -27,9 +27,7 @@ package com.burnevsky.firu;
 import java.util.Map;
 import java.util.TreeMap;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -44,7 +42,6 @@ import com.androidplot.pie.PieRenderer;
 import com.androidplot.pie.PieWidget;
 import com.androidplot.pie.Segment;
 import com.androidplot.pie.SegmentFormatter;
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Vocabulary;
 /*
@@ -182,17 +179,17 @@ public class StatActivity extends FiruActivityBase
         sf4.getFillPaint().setColor(Color.GREEN);
 
         Map<Mark, SegmentFormatter> styles = new TreeMap<>();
-        styles.put(Mark.Unfamiliar, sf0);
-        styles.put(Mark.YetToLearn, sf1);
-        styles.put(Mark.WithHints, sf2);
-        styles.put(Mark.AlmostLearned, sf3);
-        styles.put(Mark.Learned, sf4);
+        styles.put(Mark.UNFAMILIAR, sf0);
+        styles.put(Mark.YET_TO_LEARN, sf1);
+        styles.put(Mark.WITH_HINTS, sf2);
+        styles.put(Mark.ALMOST_LEARNED, sf3);
+        styles.put(Mark.LEARNED, sf4);
 
         Vocabulary.LearningStats stats = mLearningStats;
         if (stats == null || stats.TotalTranslationsCount == 0)
         {
             stats = new Vocabulary.LearningStats();
-            stats.ReverseMarksDistribution.put(Mark.Unfamiliar, 100);
+            stats.ReverseMarksDistribution.put(Mark.UNFAMILIAR, 100);
             stats.TotalTranslationsCount = 100;
         }
 

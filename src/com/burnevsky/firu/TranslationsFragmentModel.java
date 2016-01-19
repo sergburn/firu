@@ -414,7 +414,7 @@ public class TranslationsFragmentModel
         if (trans.isVocabularyItem())
         {
             MarkedTranslation mt = (MarkedTranslation) trans;
-            mt.ReverseMark = Mark.Unfamiliar;
+            mt.ReverseMark = Mark.UNFAMILIAR;
             new VocabularyUpdateMarks().execute(mt);
         }
     }
@@ -422,7 +422,7 @@ public class TranslationsFragmentModel
     /** Adds translation to training */
     public void selectTranslation(int position)
     {
-        selectTranslation(position, Mark.YetToLearn);
+        selectTranslation(position, Mark.YET_TO_LEARN);
     }
 
     /**

@@ -24,89 +24,57 @@
 
 package com.burnevsky.firu.model;
 
-import android.util.Log;
-
-import com.burnevsky.firu.model.test.TestResult;
-
-public class Mark implements Comparable<Mark>
+public enum Mark
 {
+    UNFAMILIAR(0),
+    YET_TO_LEARN(1),
+    WITH_HINTS(2),
+    ALMOST_LEARNED(3),
+    LEARNED(4);
+
     private int mValue;
 
-    public Mark(int value)
+    Mark(int value)
     {
         mValue = value;
     }
 
-    private static final int UnfamiliarValue = 0;
-    private static final int YetToLearnValue = 1;
-    private static final int WithHintsValue = 2;
-    private static final int AlmostLearnedValue = 3;
-    private static final int LearnedValue = 4;
-
-    public static final Mark Unfamiliar = new Mark(UnfamiliarValue);
-    public static final Mark YetToLearn = new Mark(YetToLearnValue);
-    public static final Mark WithHints = new Mark(WithHintsValue);
-    public static final Mark AlmostLearned = new Mark(AlmostLearnedValue);
-    public static final Mark Learned = new Mark(LearnedValue);
-
-    public void upgrade()
+    public Mark upgrade()
     {
-        if (mValue < LearnedValue)
+        if (mValue < LEARNED.toInt())
         {
-            mValue += 1;
+            return fromInt(mValue + 1);
         }
+        return this;
     }
 
-    public void downgrade()
+    public Mark downgrade()
     {
-        if (mValue > YetToLearnValue)
+        if (mValue > YET_TO_LEARN.toInt())
         {
-            mValue -= 1;
+            return fromInt(mValue - 1);
         }
-    }
-
-    public void updateToTestResult(TestResult result)
-    {
-        int oldValue = mValue;
-        switch (result)
-        {
-            case Passed:
-                if (mValue == YetToLearnValue)
-                    mValue = AlmostLearnedValue;
-                else
-                    upgrade();
-                break;
-
-            case PassedWithHints:
-                mValue = WithHintsValue;
-                break;
-
-            case Failed:
-                mValue = YetToLearnValue;
-                break;
-
-            default:
-                Log.e("Mark", String.format("Unexpected test result %s in Mark::updateToTestResult", result));
-                break;
-        }
-        Log.d("Mark", String.format("Mark changed from %d to %d", oldValue, mValue));
+        return this;
     }
 
     @Override
     public String toString()
     {
-        switch (mValue)
+        switch (this)
         {
-            case YetToLearnValue:
-                return "learning";
-            case WithHintsValue:
-                return "hints needed";
-            case AlmostLearnedValue:
-                return "well known";
-            case LearnedValue:
-                return "learned";
+            case UNFAMILIAR:
+                return "Unfamiliar";
+            case YET_TO_LEARN:
+                return "YetToLearn";
+            case WITH_HINTS:
+                return "WithHints";
+            case ALMOST_LEARNED:
+                return "Almost";
+            case LEARNED:
+                return "Learned";
             default:
-                return "<none>";
+                assert false;
+                return "";
         }
     }
 
@@ -115,17 +83,16 @@ public class Mark implements Comparable<Mark>
         return mValue;
     }
 
-    public boolean lessThan(Mark other)
+    public static Mark fromInt(int value)
     {
-        return mValue < other.mValue;
-    }
-
-    /* (non-Javadoc)
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    @Override
-    public int compareTo(Mark another)
-    {
-        return mValue - another.mValue;
+        for (Mark m: values())
+        {
+            if (m.toInt() == value)
+            {
+                return m;
+            }
+        }
+        assert false;
+        return Mark.UNFAMILIAR;
     }
 }

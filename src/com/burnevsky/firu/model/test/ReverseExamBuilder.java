@@ -56,10 +56,10 @@ public class ReverseExamBuilder
         params.exam = new ReverseExam(voc);
 
         // First select words with translations that are not completely learned yet
-        selectWords(Mark.YetToLearn, Mark.AlmostLearned, K_NUM_UNLEARNED, params);
+        selectWords(Mark.YET_TO_LEARN, Mark.ALMOST_LEARNED, K_NUM_UNLEARNED, params);
 
         // Next select some learned words
-        selectWords(Mark.Learned, Mark.Learned, K_NUM_TESTS, params);
+        selectWords(Mark.LEARNED, Mark.LEARNED, K_NUM_TESTS, params);
 
         // Now shuffle them
         Collections.shuffle(params.exam.mChallenges, params.rand);

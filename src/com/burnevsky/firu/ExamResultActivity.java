@@ -98,7 +98,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     public static int markToRate(Mark mark)
     {
         int i = mark.toInt();
-        return i <= Mark.YetToLearn.toInt() ? 0 : i - 1;
+        return i <= Mark.YET_TO_LEARN.toInt() ? 0 : i - 1;
     }
 
     @Override

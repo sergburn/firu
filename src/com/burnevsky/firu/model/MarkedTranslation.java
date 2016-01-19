@@ -1,7 +1,7 @@
 /*******************************************************************************
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Sergey Burnevsky
+ * Copyright (c) 2014-2016 Sergey Burnevsky (sergey.burnevsky at gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,8 @@ import android.os.Parcelable;
 
 public class MarkedTranslation extends Translation
 {
-    public Mark ForwardMark = Mark.YetToLearn;
-    public Mark ReverseMark = Mark.YetToLearn;
+    public Mark ForwardMark = Mark.YET_TO_LEARN;
+    public Mark ReverseMark = Mark.YET_TO_LEARN;
 
     public MarkedTranslation(Text text)
     {
@@ -54,8 +54,8 @@ public class MarkedTranslation extends Translation
     private MarkedTranslation(Parcel in)
     {
         super(in);
-        ForwardMark = new Mark(in.readInt());
-        ReverseMark = new Mark(in.readInt());
+        ForwardMark = Mark.fromInt(in.readInt());
+        ReverseMark = Mark.fromInt(in.readInt());
     }
 
     @Override

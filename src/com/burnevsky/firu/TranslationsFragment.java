@@ -214,7 +214,7 @@ public class TranslationsFragment extends FiruFragmentBase implements Translatio
             }
             else
             {
-                row.put("rate", Mark.Unfamiliar.toInt());
+                row.put("rate", Mark.UNFAMILIAR.toInt());
             }
             mListData.add(row);
         }
@@ -265,7 +265,7 @@ public class TranslationsFragment extends FiruFragmentBase implements Translatio
         {
             final MarkedTranslation copy = new MarkedTranslation((MarkedTranslation) translation);
 
-            if (copy.ReverseMark.toInt() == Mark.Unfamiliar.toInt())
+            if (copy.ReverseMark.toInt() == Mark.UNFAMILIAR.toInt())
             {
                 mViewModel.selectTranslation(position);
             }

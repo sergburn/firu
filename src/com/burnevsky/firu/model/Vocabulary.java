@@ -121,8 +121,8 @@ public class Vocabulary extends DictionaryBase
             c.getLong(0),
             c.getLong(2),
             new Text(c.getString(1), LangUtil.int2Lang(c.getInt(5))));
-        mt.ForwardMark = new Mark(c.getInt(3));
-        mt.ReverseMark = new Mark(c.getInt(4));
+        mt.ForwardMark = Mark.fromInt(c.getInt(3));
+        mt.ReverseMark = Mark.fromInt(c.getInt(4));
         return mt;
     }
 
@@ -265,8 +265,8 @@ public class Vocabulary extends DictionaryBase
                 }
                 else
                 {
-                    transValues.put("fmark", Mark.YetToLearn.toInt());
-                    transValues.put("rmark", Mark.YetToLearn.toInt());
+                    transValues.put("fmark", Mark.YET_TO_LEARN.toInt());
+                    transValues.put("rmark", Mark.YET_TO_LEARN.toInt());
                 }
                 long trans_id = mDatabase.insertOrThrow(TRANSLATIONS_TABLE, null, transValues);
 

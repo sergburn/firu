@@ -134,7 +134,7 @@ public class ReverseTest extends VocabularyTest
 
     private void saveResult(TestResult result)
     {
-        mChallenge.ReverseMark.updateToTestResult(result);
+        mChallenge.ReverseMark = VocabularyTest.updateMarkToTestResult(mChallenge.ReverseMark, result);
         mVoc.updateMarks(mChallenge);
     }
 }
