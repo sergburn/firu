@@ -1,11 +1,8 @@
 
 package com.burnevsky.firu;
 
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryID;
-import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
 
 import android.app.Activity;
 import android.support.v4.app.Fragment;
@@ -25,21 +22,12 @@ public class FiruFragmentBase extends Fragment implements Model.ModelListener
         super.onAttach(activity);
         mApp = (FiruApplication) activity.getApplicationContext();
         mModel = mApp.mModel;
+        mModel.subscribeDictionaryEvents(this);
     }
 
     @Override
     public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
     {
-    }
-
-    protected void subscribeDictionary()
-    {
-        mModel.subscribeDictionary(DictionaryID.UNIVERSAL, this);
-    }
-
-    protected void subscribeVocabulary()
-    {
-        mModel.subscribeDictionary(DictionaryID.VOCABULARY, this);
     }
 
     protected void invalidateOptionsMenu()

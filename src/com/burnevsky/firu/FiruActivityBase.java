@@ -1,11 +1,8 @@
 
 package com.burnevsky.firu;
 
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryID;
-import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -33,16 +30,7 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
         mApp = (FiruApplication) getApplicationContext();
 
         mModel = mApp.mModel;
-    }
-
-    protected void subscribeDictionary()
-    {
-        mModel.subscribeDictionary(DictionaryID.UNIVERSAL, this);
-    }
-
-    protected void subscribeVocabulary()
-    {
-        mModel.subscribeDictionary(DictionaryID.VOCABULARY, this);
+        mModel.subscribeDictionaryEvents(this);
     }
 
     protected void hideKeyboard()

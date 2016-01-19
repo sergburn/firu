@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.burnevsky.firu.model.Dictionary;
+import com.burnevsky.firu.model.DictionaryFactory;
 import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
@@ -101,14 +102,14 @@ public class FiruApplication extends Application
         mLocalVocFile = getDatabasePath(VOC_DB_NAME);
         checkPath(mLocalVocFile, "Local Vocabulary");
 
-        mModel = new Model();
-        openDictionary();
-        openVocabulary();
-    }
+        DictionaryFactory factory = new DictionaryFactory(
+            getApplicationContext(),
+            mDictFile.getAbsolutePath(),
+            mLocalVocFile.getAbsolutePath());
 
-    private void openDictionary()
-    {
-        mModel.openDictionary(mDictFile.getAbsolutePath(), getApplicationContext());
+        mModel = new Model(factory);
+        mModel.openDictionary(DictionaryID.UNIVERSAL);
+        mModel.openDictionary(DictionaryID.VOCABULARY);
     }
 
     private void copyFile(File src, File dst) throws IOException
@@ -149,7 +150,7 @@ public class FiruApplication extends Application
             }
             finally
             {
-                openVocabulary();
+                mModel.openDictionary(DictionaryID.VOCABULARY);
             }
             }
         };
@@ -193,21 +194,21 @@ public class FiruApplication extends Application
             @Override
             public void run()
             {
-            try
-            {
-                mModel.closeDictionary(DictionaryID.VOCABULARY);
-                copyFile(mLocalVocFile, mBackupVocFile);
-                Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
-            }
-            catch(IOException e)
-            {
-                e.printStackTrace();
-                Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show();
-            }
-            finally
-            {
-                openVocabulary();
-            }
+                try
+                {
+                    mModel.closeDictionary(DictionaryID.VOCABULARY);
+                    copyFile(mLocalVocFile, mBackupVocFile);
+                    Toast.makeText(context, "Backup succeded", Toast.LENGTH_SHORT).show();
+                }
+                catch(IOException e)
+                {
+                    e.printStackTrace();
+                    Toast.makeText(context, "Backup failed", Toast.LENGTH_SHORT).show();
+                }
+                finally
+                {
+                    mModel.openDictionary(DictionaryID.VOCABULARY);
+                }
             }
         };
 
@@ -252,10 +253,5 @@ public class FiruApplication extends Application
         } )
         .setNegativeButton("No", null)
         .show();
-    }
-
-    private void openVocabulary()
-    {
-        mModel.openVocabulary(mLocalVocFile.getAbsolutePath(), getApplicationContext());
     }
 }

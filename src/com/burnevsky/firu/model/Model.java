@@ -1,29 +1,54 @@
+/*******************************************************************************
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014-2015 Sergey Burnevsky (sergey.burnevsky at gmail.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *******************************************************************************/
 
 package com.burnevsky.firu.model;
 
 import java.lang.ref.WeakReference;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.burnevsky.firu.BuildConfig;
-import com.burnevsky.firu.model.Model.ModelEvent;
-
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 public class Model
 {
-    private Map<DictionaryID, IDictionary> mDictionaries = new TreeMap<>() ;
+    public Model(DictionaryFactory factory)
+    {
+        mFactory = factory;
+    }
 
-    private final Handler mHandler = new Handler();
+    private final DictionaryFactory mFactory;
+
+    private Map<DictionaryID, IDictionary> mDictionaries = new TreeMap<>();
+
+    private final Handler mHandler = new Handler(Looper.getMainLooper()); // main thread
 
     private final ModelListenersManager mModelListeners = new ModelListenersManager();
 
@@ -45,6 +70,7 @@ public class Model
 
     public enum ModelEvent
     {
+        MODEL_EVENT_NONE,
         /** Sent to subscribers when dictionary is opened */
         MODEL_EVENT_OPENED,
         /** Sent to new subscribers if dictionary is already opened */
@@ -61,12 +87,13 @@ public class Model
     }
 
     /** Subscribes to any dictionary, including Vocabulary */
-    public void subscribeDictionary(final DictionaryID dictionaryID, final ModelListener listener)
+    public void subscribeDictionaryEvents(final ModelListener listener)
     {
         mModelListeners.addListener(listener);
 
-        if (mDictionaries.get(dictionaryID) != null)
+        for (IDictionary dict : getDictionaries())
         {
+            final DictionaryID dictionaryID = dict.getDictID();
             mHandler.post(new Runnable()
             {
                 @Override
@@ -78,62 +105,47 @@ public class Model
         }
     }
 
-    public void openDictionary(final String dbPath, final Context appContext)
+    public void openDictionary(final DictionaryID dictionaryID)
     {
-        class DictionaryOpener extends AsyncTask<Void, Void, Dictionary>
+        class DictionaryOpener extends AsyncTask<Void, Void, IDictionary>
         {
             @Override
-            protected Dictionary doInBackground(Void... voids)
+            protected IDictionary doInBackground(Void... voids)
             {
-                return new Dictionary(dbPath, appContext);
+                switch (dictionaryID)
+                {
+                    case UNIVERSAL:
+                        return mFactory.newDictionary();
+                    case VOCABULARY:
+                        return mFactory.newVocabulary();
+                    default:
+                        return null;
+                }
             }
 
             @Override
-            protected void onPostExecute(Dictionary result)
+            protected void onPostExecute(IDictionary result)
             {
-                mDictionaries.put(DictionaryID.UNIVERSAL, result);
+                mDictionaries.remove(dictionaryID);
                 if (result != null)
                 {
-                    Log.i("firu", "Dictionary: totalWordCount: " + String.valueOf(result.getTotalWords()));
-                    mModelListeners.notifyAllListeners(DictionaryID.UNIVERSAL, ModelEvent.MODEL_EVENT_OPENED);
+                    Log.i("firu",
+                        "Dictionary " + dictionaryID.toString() +
+                        "totalWordCount: " + String.valueOf(result.getTotalWords()));
+                    mDictionaries.put(dictionaryID, result);
+                    mModelListeners.notifyAllListeners(dictionaryID, ModelEvent.MODEL_EVENT_OPENED);
                 }
                 else
                 {
-                    mModelListeners.notifyAllListeners(DictionaryID.UNIVERSAL, ModelEvent.MODEL_EVENT_FAILURE);
+                    mModelListeners.notifyAllListeners(dictionaryID, ModelEvent.MODEL_EVENT_FAILURE);
                 }
             }
         }
 
-        new DictionaryOpener().execute();
-    }
-
-    public void openVocabulary(final String dbPath, final Context appContext)
-    {
-        class VocabularyOpener extends AsyncTask<Void, Void, Vocabulary>
+        if (mDictionaries.get(dictionaryID) == null)
         {
-            @Override
-            protected Vocabulary doInBackground(Void... voids)
-            {
-                return new Vocabulary(dbPath, appContext);
-            }
-
-            @Override
-            protected void onPostExecute(Vocabulary result)
-            {
-                mDictionaries.put(DictionaryID.VOCABULARY, result);
-                if (result != null)
-                {
-                    Log.i("firu", "Vocabulary: totalWordCount: " + String.valueOf(result.getTotalWords()));
-                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_OPENED);
-                }
-                else
-                {
-                    mModelListeners.notifyAllListeners(DictionaryID.VOCABULARY, ModelEvent.MODEL_EVENT_FAILURE);
-                }
-            }
+            new DictionaryOpener().execute();
         }
-
-        new VocabularyOpener().execute();
     }
 
     public void resetVocabulary()

@@ -483,8 +483,6 @@ public class TrainerActivity extends FiruActivityBase
 
         if (mModel.getVocabulary() != null)
         {
-            subscribeVocabulary();
-
             // find the retained fragment on activity restarts
             FragmentManager fm = getFragmentManager();
             mData = (Data) fm.findFragmentByTag("data");

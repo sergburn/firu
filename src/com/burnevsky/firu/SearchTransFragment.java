@@ -63,8 +63,6 @@ public class SearchTransFragment extends FiruFragmentBase implements SearchView.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
     {
-        subscribeDictionary();
-
         super.onCreateView(inflater, container, savedInstanceState);
 
         ViewGroup rootView = (ViewGroup) inflater.inflate(R.layout.fragment_search_trans, container, false);

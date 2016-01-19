@@ -4,11 +4,9 @@ package com.burnevsky.firu;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
 import android.content.Intent;
@@ -37,8 +35,6 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        subscribeDictionary();
-        subscribeVocabulary();
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawer = (ScrollView) findViewById(R.id.left_drawer);
