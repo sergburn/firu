@@ -15,8 +15,8 @@ import android.widget.SimpleAdapter;
 
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Word;
-import com.burnevsky.firu.model.test.ReverseExam;
-import com.burnevsky.firu.model.test.ReverseExamChallenge;
+import com.burnevsky.firu.model.exam.ReverseExam;
+import com.burnevsky.firu.model.exam.ReverseExamChallenge;
 
 import java.util.ArrayList;
 import java.util.Collections;

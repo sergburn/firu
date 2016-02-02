@@ -22,24 +22,19 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model.exam;
 
-public class TestAlreadyCompleteException extends FiruTestException
-{
-    private static final long serialVersionUID = 3291566877991130498L;
+public enum TestResult {
+    
+    Incomplete,
+    
+    // adds 1 to current rate
+    Passed,
+    
+    // doesn't change rate if 1 or 2, demotes rate 3 to 2
+    PassedWithHints,
+    
+    // sets current rate 1.
+    Failed
 
-    public TestAlreadyCompleteException() {
-    }
-
-    public TestAlreadyCompleteException(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public TestAlreadyCompleteException(String detailMessage, Throwable throwable) {
-        super(detailMessage, throwable);
-    }
-
-    public TestAlreadyCompleteException(Throwable throwable) {
-        super(throwable);
-    }
 }

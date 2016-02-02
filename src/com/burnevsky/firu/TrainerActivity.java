@@ -48,7 +48,6 @@ import android.widget.Button;
 import android.support.v7.widget.GridLayout;
 import android.util.TypedValue;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,13 +55,11 @@ import android.widget.Toast;
 import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Word;
-import com.burnevsky.firu.model.test.ReverseExam;
-import com.burnevsky.firu.model.test.ReverseExamBuilder;
-import com.burnevsky.firu.model.test.ReverseTest;
-import com.burnevsky.firu.model.test.TestAlreadyCompleteException;
-import com.burnevsky.firu.model.test.TestResult;
+import com.burnevsky.firu.model.exam.ReverseExam;
+import com.burnevsky.firu.model.exam.ReverseExamBuilder;
+import com.burnevsky.firu.model.exam.ReverseTest;
+import com.burnevsky.firu.model.exam.TestAlreadyCompleteException;
+import com.burnevsky.firu.model.exam.TestResult;
 
 public class TrainerActivity extends FiruActivityBase
 {

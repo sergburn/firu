@@ -22,7 +22,7 @@
  * SOFTWARE.
  *******************************************************************************/
 
-package com.burnevsky.firu.model.test;
+package com.burnevsky.firu.model.exam;
 
 import android.util.Log;
 
