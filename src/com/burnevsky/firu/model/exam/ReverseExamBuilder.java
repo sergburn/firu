@@ -39,7 +39,7 @@ public class ReverseExamBuilder
     private static final String TAG = ReverseExam.class.getName();
 
     private static final int K_NUM_TESTS = 7;
-    private static final int K_NUM_UNLEARNED = 5;
+    private static final int K_NUM_UNLEARNED = 6;
 
     private static class BuildOptions
     {
@@ -71,7 +71,9 @@ public class ReverseExamBuilder
     {
         List<Word> words = options.voc.selectWordsByMarks(min, max);
 
-        while (options.exam.mChallenges.size() < maxCount && words.size() > 0)
+        while (words != null &&
+            options.exam.mChallenges.size() < maxCount &&
+            words.size() > 0)
         {
             int k = options.rand.nextInt(words.size());
             Word w = words.get(k);
