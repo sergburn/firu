@@ -61,6 +61,24 @@ public class ReverseTest extends VocabularyTest
         return mAnswer.length();
     }
 
+    public String getAnswerHint(String start, char placeHolder, boolean showMiddle)
+    {
+        final int middleIndex = mAnswer.length() / 2;
+        StringBuilder str = new StringBuilder(start);
+        for (int i = start.length(); i < mAnswer.length(); i++)
+        {
+            if (showMiddle && i == middleIndex)
+            {
+                str.append(mAnswer.charAt(middleIndex));
+            }
+            else
+            {
+                str.append(placeHolder);
+            }
+        }
+        return str.toString();
+    }
+
     public Mark getMark()
     {
         return mChallenge.ReverseMark;

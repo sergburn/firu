@@ -74,7 +74,7 @@ public class TrainerActivity extends FiruActivityBase
     private final ArrayList<Button> mKeys = new ArrayList<>();
     private RatingBar mMarkRating = null;
 
-    private final char[] mAnswerTemplate = new char[32]; // enough for any word, I guess
+    private static final char TRAINER_HINT_PLACEHOLDER = '\u2022';
 
     private static final String[] TRAINER_KEYBOARD_LINES = {
         "qwertyuiopå",
@@ -95,6 +95,7 @@ public class TrainerActivity extends FiruActivityBase
         public boolean mErrorState;
 
         public String mInputText = null;
+        public boolean mShowWordMiddle = false;
 
         // User must enter word without typing mistakes to Pass the test
         // (otherwise she can use try-and-error approach)
@@ -125,11 +126,6 @@ public class TrainerActivity extends FiruActivityBase
 
     // TODO: setting
     private boolean mShowWordLength = true;
-
-    public TrainerActivity()
-    {
-        Arrays.fill(mAnswerTemplate, '\u2022');
-    }
 
     @Override
     public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
@@ -409,6 +405,7 @@ public class TrainerActivity extends FiruActivityBase
     {
         mData.mTest = test;
         mData.mInputText = "";
+        mData.mShowWordMiddle = false;
         mData.mForgiveFurtherMistakes = false;
         changeState(Data.State.STATE_TEST_ONGOING);
     }
@@ -471,6 +468,16 @@ public class TrainerActivity extends FiruActivityBase
             public void onClick(View v)
             {
                 mGuessValidator.onEnter();
+            }
+        });
+
+        mWordText.setOnClickListener(new OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                mData.mShowWordMiddle = true;
+                showAnswerText();
             }
         });
 
@@ -616,11 +623,10 @@ public class TrainerActivity extends FiruActivityBase
     {
         if (mData.mTest != null)
         {
-            String word = mData.mInputText;
-            if (mShowWordLength)
-            {
-                word += String.valueOf(mAnswerTemplate, 0, mData.mTest.getAnswerLength() - mData.mInputText.length());
-            }
+            final boolean showMiddle = mData.mShowWordMiddle && (mData.mInputText.length() < 1);
+            String word = mShowWordLength ?
+                mData.mTest.getAnswerHint(mData.mInputText, TRAINER_HINT_PLACEHOLDER, showMiddle) :
+                mData.mInputText;
             mWordText.setText(word);
         }
         else

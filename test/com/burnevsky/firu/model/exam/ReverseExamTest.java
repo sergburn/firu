@@ -25,23 +25,71 @@
 package com.burnevsky.firu.model.exam;
 
 import com.burnevsky.firu.model.Mark;
+import com.burnevsky.firu.model.MarkedTranslation;
+import com.burnevsky.firu.model.Text;
 import com.burnevsky.firu.model.Vocabulary;
+import com.burnevsky.firu.model.Word;
 
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class ReverseExamTest
 {
+    Vocabulary mMockVocabulary;
+
+    @Before
+    public void setUp()
+    {
+        mMockVocabulary = mock(Vocabulary.class);
+    }
+
     @Test
     public void testExamBuilder()
     {
-        Vocabulary vocabulary = mock(Vocabulary.class);
         //when(vocabulary.getTranslations()).thenReturn();
 
-        when(vocabulary.selectWordsByMarks(any(Mark.class), any(Mark.class)))
+        when(mMockVocabulary.selectWordsByMarks(any(Mark.class), any(Mark.class)))
             .thenReturn(null);
-        ReverseExam exam = ReverseExamBuilder.buildExam(vocabulary);
-        assertNull(exam);
+        ReverseExam exam = ReverseExamBuilder.buildExam(mMockVocabulary);
+        assertNotNull(exam);
+        assertEquals(0,exam.mChallenges.size());
+    }
+
+    @Test
+    public void testReverseTest_getAnswerHint()
+    {
+        final String LANG = "lang";
+        final String CHAL = "challenge";
+        final char DUMM = 'x';
+
+        ReverseTest test = new ReverseTest(mMockVocabulary,
+            new MarkedTranslation(new Text(CHAL, LANG)),
+            new Word(new Text("123", LANG)));
+
+        assertEquals(0, test.getAnswerHint("", DUMM, false).compareTo("xxx"));
+        assertEquals(0, test.getAnswerHint("", DUMM, true).compareTo("x2x"));
+        assertEquals(0, test.getAnswerHint("1", DUMM, false).compareTo("1xx"));
+        assertEquals(0, test.getAnswerHint("1", DUMM, true).compareTo("12x"));
+        assertEquals(0, test.getAnswerHint("12", DUMM, false).compareTo("12x"));
+        assertEquals(0, test.getAnswerHint("12", DUMM, true).compareTo("12x"));
+        assertEquals(0, test.getAnswerHint("123", DUMM, false).compareTo("123"));
+        assertEquals(0, test.getAnswerHint("123", DUMM, true).compareTo("123"));
+
+        test = new ReverseTest(mMockVocabulary,
+            new MarkedTranslation(new Text(CHAL, LANG)),
+            new Word(new Text("1234", LANG)));
+
+        assertEquals(0, test.getAnswerHint("", DUMM, false).compareTo("xxxx"));
+        assertEquals(0, test.getAnswerHint("", DUMM, true).compareTo("xx3x"));
+        assertEquals(0, test.getAnswerHint("1", DUMM, false).compareTo("1xxx"));
+        assertEquals(0, test.getAnswerHint("1", DUMM, true).compareTo("1x3x"));
+        assertEquals(0, test.getAnswerHint("12", DUMM, false).compareTo("12xx"));
+        assertEquals(0, test.getAnswerHint("12", DUMM, true).compareTo("123x"));
+        assertEquals(0, test.getAnswerHint("123", DUMM, false).compareTo("123x"));
+        assertEquals(0, test.getAnswerHint("123", DUMM, true).compareTo("123x"));
+        assertEquals(0, test.getAnswerHint("1234", DUMM, false).compareTo("1234"));
+        assertEquals(0, test.getAnswerHint("1234", DUMM, true).compareTo("1234"));
     }
 }
