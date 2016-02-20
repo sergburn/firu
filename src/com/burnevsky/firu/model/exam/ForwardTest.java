@@ -26,20 +26,33 @@ package com.burnevsky.firu.model.exam;
 
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.MarkedTranslation;
+import com.burnevsky.firu.model.Text;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
 
-public class ReverseTest extends VocabularyTest
-{
-    private Vocabulary mVoc = null;
-    private MarkedTranslation mChallenge = null;
-    private String mAnswer = null;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-    ReverseTest(Vocabulary vocabulary, MarkedTranslation challenge, Word answer)
+public class ForwardTest extends VocabularyTest
+{
+    Vocabulary mVoc = null;
+    Word mChallenge = null;
+    MarkedTranslation mAnswer = null;
+    List<String> mVariants = new ArrayList<>();
+
+    final static int K_NUM_VARIANTS = 5;
+
+    ForwardTest(Vocabulary vocabulary, Word challenge, MarkedTranslation answer, List<String> variants)
     {
         mVoc = vocabulary;
-        mAnswer = answer.getText();
+        mAnswer = answer;
         mChallenge = challenge;
+
+        Exam.selectRandomItems(K_NUM_VARIANTS-1, variants, mVariants);
+
+        int k = Exam.mRand.nextInt(mVariants.size()+1); // may be < K_NUM_VARIANTS
+        mVariants.add(k, mAnswer.getText());
     }
 
     public String getChallenge()
@@ -51,84 +64,29 @@ public class ReverseTest extends VocabularyTest
     {
         if (mResult != TestResult.Incomplete)
         {
-            return mAnswer;
+            return mAnswer.getText();
         }
         return null;
     }
 
-    public int getAnswerLength()
+    public List<String> getVariants()
     {
-        return mAnswer.length();
-    }
-
-    public String getAnswerHint(String start, char placeHolder, boolean showMiddle)
-    {
-        final int middleIndex = mAnswer.length() / 2;
-        StringBuilder str = new StringBuilder(start);
-        for (int i = start.length(); i < mAnswer.length(); i++)
-        {
-            if (showMiddle && i == middleIndex)
-            {
-                str.append(mAnswer.charAt(middleIndex));
-            }
-            else
-            {
-                str.append(placeHolder);
-            }
-        }
-        return str.toString();
+        return mVariants;
     }
 
     public Mark getMark()
     {
-        return mChallenge.ReverseMark;
+        return mAnswer.ForwardMark;
     }
 
-    /** @return guess followed by the next letter in answer, if answer starts with guess and is longer;
-     *          guess - otherwise */
-    public String getHint(String guess) throws TestAlreadyCompleteException
-    {
-        ensureIncomplete();
-
-        if (mAnswer.startsWith(guess))
-        {
-            if (revokeHint() && (guess.length() < mAnswer.length()))
-            {
-                return mAnswer.substring(0, guess.length() + 1);
-            }
-        }
-        return guess;
-    }
-
-    /** User is still typing the answer and thinks it is not yet complete.
-     * @param forgiveMistakes If true, then even if guess is not correct, it does not affect number of hints.
-     * @return true if guess is correct, false otherwise  */
-    public boolean checkGuess(String guess, boolean forgiveMistakes) throws TestAlreadyCompleteException
-    {
-        ensureIncomplete();
-
-        if (mAnswer.startsWith(guess))
-        {
-            return true;
-        }
-        else
-        {
-            if (!forgiveMistakes)
-            {
-                revokeHint();
-            }
-            return false;
-        }
-    }
-
-    /** User thinks answer is complete and finished typing by pressing Enter/Done etc.
+    /** User selects one of offered variants
      * @return true if guess is correct. Test is then finished;
      *         false if guess is not correct. Test may become finished, if no more hints left, or continue otherwise. */
     public boolean checkAnswer(String guess) throws TestAlreadyCompleteException
     {
         ensureIncomplete();
 
-        if (mAnswer.equals(guess))
+        if (mAnswer.getText().equals(guess))
         {
             finalizeTest(true);
             saveResult(mResult);
@@ -143,7 +101,7 @@ public class ReverseTest extends VocabularyTest
 
     protected void saveResult(TestResult result)
     {
-        mChallenge.ReverseMark = VocabularyTest.updateMarkToTestResult(mChallenge.ReverseMark, result);
-        mVoc.updateMarks(mChallenge);
+        mAnswer.ForwardMark = VocabularyTest.updateMarkToTestResult(mAnswer.ForwardMark, result);
+        mVoc.updateMarks(mAnswer);
     }
 }

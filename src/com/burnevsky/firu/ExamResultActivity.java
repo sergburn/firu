@@ -15,8 +15,9 @@ import android.widget.SimpleAdapter;
 
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Word;
+import com.burnevsky.firu.model.exam.Exam;
 import com.burnevsky.firu.model.exam.ReverseExam;
-import com.burnevsky.firu.model.exam.ReverseExamChallenge;
+import com.burnevsky.firu.model.exam.ExamChallenge;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,13 +26,13 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class ExamResultActivity extends AppCompatActivity implements OnItemClickListener
+public class ExamResultActivity extends FiruActivityBase implements OnItemClickListener
 {
     private final static String INTENT_EXTRA_REV_EXAM = "com.burnevsk.firu.reverse_exam";
 
-    private List<ReverseExamChallenge> mSortedTests;
+    private List<ExamChallenge> mSortedTests;
 
-    public static void showExamResults(Activity caller, ReverseExam exam)
+    public static void showExamResults(Activity caller, Exam exam)
     {
         Intent intent = new Intent(caller, ExamResultActivity.class);
         intent.putParcelableArrayListExtra(ExamResultActivity.INTENT_EXTRA_REV_EXAM, exam.getResults());
@@ -47,10 +48,10 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
         Intent intent = getIntent();
         mSortedTests = intent.getParcelableArrayListExtra(INTENT_EXTRA_REV_EXAM);
 
-        Collections.sort(mSortedTests, new Comparator<ReverseExamChallenge>()
+        Collections.sort(mSortedTests, new Comparator<ExamChallenge>()
         {
             @Override
-            public int compare(ReverseExamChallenge lhs, ReverseExamChallenge rhs)
+            public int compare(ExamChallenge lhs, ExamChallenge rhs)
             {
                 return lhs.mTranslation.ReverseMark.toInt() - rhs.mTranslation.ReverseMark.toInt(); // ascending order
             }
@@ -58,7 +59,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
 
         List<SortedMap<String, Object>> data = new ArrayList<>();
 
-        for (ReverseExamChallenge test : mSortedTests)
+        for (ExamChallenge test : mSortedTests)
         {
             TreeMap<String, Object> row = new TreeMap<>();
             row.put("word", test.mWord.getText());
@@ -133,7 +134,7 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     {
         ArrayList<Word> words = new ArrayList<>();
 
-        for (ReverseExamChallenge test : mSortedTests)
+        for (ExamChallenge test : mSortedTests)
         {
             words.add(test.mWord);
         }
@@ -144,6 +145,6 @@ public class ExamResultActivity extends AppCompatActivity implements OnItemClick
     private void startNextExam()
     {
         finish();
-        TrainerActivity.startExamActivity(this);
+        mApp.startNextExam(this);
     }
 }

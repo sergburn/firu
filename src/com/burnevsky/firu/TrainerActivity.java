@@ -25,7 +25,6 @@
 package com.burnevsky.firu;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import android.app.Activity;
@@ -56,7 +55,6 @@ import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.exam.ReverseExam;
-import com.burnevsky.firu.model.exam.ReverseExamBuilder;
 import com.burnevsky.firu.model.exam.ReverseTest;
 import com.burnevsky.firu.model.exam.TestAlreadyCompleteException;
 import com.burnevsky.firu.model.exam.TestResult;
@@ -192,7 +190,7 @@ public class TrainerActivity extends FiruActivityBase
         @Override
         protected ReverseExam doInBackground(Mark... param)
         {
-            return (mModel.getVocabulary() != null) ? ReverseExamBuilder.buildExam(mModel.getVocabulary()) : null;
+            return (mModel.getVocabulary() != null) ? ReverseExam.Builder.buildExam(mModel.getVocabulary()) : null;
         }
 
         @Override

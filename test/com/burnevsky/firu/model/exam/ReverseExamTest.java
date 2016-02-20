@@ -50,11 +50,13 @@ public class ReverseExamTest
     {
         //when(vocabulary.getTranslations()).thenReturn();
 
-        when(mMockVocabulary.selectWordsByMarks(any(Mark.class), any(Mark.class)))
+        when(mMockVocabulary.selectWordsByMarks(any(Mark.class), any(Mark.class), eq(true)))
             .thenReturn(null);
-        ReverseExam exam = ReverseExamBuilder.buildExam(mMockVocabulary);
+        ReverseExam exam = ReverseExam.Builder.buildExam(mMockVocabulary);
         assertNotNull(exam);
-        assertEquals(0,exam.mChallenges.size());
+        assertEquals(0, exam.mChallenges.size());
+
+        verify(mMockVocabulary, never()).selectWordsByMarks(any(Mark.class), any(Mark.class), eq(false));
     }
 
     @Test

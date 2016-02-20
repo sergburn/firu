@@ -42,6 +42,11 @@ public class MarkedTranslation extends Translation
         super(dictID, id, wordId, text);
     }
 
+    MarkedTranslation(long id, long wordId, Text text)
+    {
+        super(DictionaryID.VOCABULARY, id, wordId, text);
+    }
+
     public MarkedTranslation(MarkedTranslation other)
     {
         super(other);

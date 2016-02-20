@@ -28,7 +28,7 @@ import android.util.Log;
 
 import com.burnevsky.firu.model.Mark;
 
-public class VocabularyTest
+public abstract class VocabularyTest
 {
     protected static final int KMaxHints = 3;
     protected int mHints = KMaxHints;
@@ -65,6 +65,17 @@ public class VocabularyTest
             return false;
         }
     }
+
+    public void unlockAnswer()
+    {
+        if (mResult == TestResult.Incomplete)
+        {
+            finalizeTest(false);
+            saveResult(mResult);
+        }
+    }
+
+    protected abstract void saveResult(TestResult result);
 
     protected void finalizeTest(boolean passed)
     {

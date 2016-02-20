@@ -37,11 +37,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.v7.view.menu.ListMenuItemView;
 import android.util.Log;
 
 public class Vocabulary extends DictionaryBase
 {
-    private static final String TAG = Vocabulary.class.getName();
+    private static final String TAG = "Vocabulary";
     private static final String[] WORD_COLUMNS = new String[]{"_id", "text", "lang"};
     private static final String[] TRANSLATION_COLUMNS = new String[]{"_id", "text", "word_id", "fmark", "rmark", "lang"};
 
@@ -350,7 +351,7 @@ public class Vocabulary extends DictionaryBase
         }
     }
 
-    public List<Word> selectWordsByMarks(final Mark min, final Mark max)
+    public List<Word> selectWordsByMarks(final Mark min, final Mark max, boolean reverse)
     {
         List<Word> list = new LinkedList<>();
         try
@@ -358,7 +359,10 @@ public class Vocabulary extends DictionaryBase
             // select distinct w.* from words as w join translations as t on w._id = t.word_id where t.rmark < 4;
 
             Cursor c = mDatabase.rawQuery(
-                "select distinct w.* from words as w join translations as t on w._id = t.word_id where t.rmark >= ? and t.rmark <= ?;",
+                "select distinct w.* from words as w join translations as t on w._id = t.word_id where " +
+                        (reverse ?
+                                "t.rmark >= ? and t.rmark <= ?;" :
+                                "t.fmark >= ? and t.fmark <= ?;"),
                 new String[] { String.valueOf(min.toInt()), String.valueOf(max.toInt()) }
                 );
             boolean next = c.moveToFirst();
@@ -369,11 +373,59 @@ public class Vocabulary extends DictionaryBase
                 next = c.moveToNext();
             }
             Log.d(TAG, String.format("Loaded %d words with marks in [%d..%d]",
-                c.getCount(), min.toInt(), max.toInt()));
+                    c.getCount(), min.toInt(), max.toInt()));
         }
         catch (Exception e)
         {
             Log.e(TAG, "Exception in selectWordsByMarks: " + e.getMessage());
+            //throw e;
+        }
+        return list;
+    }
+
+    /** @return Ordered list of translation IDs */
+    public List<Long> selectTranslations(final Mark min, boolean reverse, List<Long> exceptWords)
+    {
+        List<Long> list = new ArrayList<>();
+        try
+        {
+            // select t.* from translations as t where t.rmark > 3 and t.word_id not in (1,2,3,9,19,20);
+
+            StringBuilder exceptionList = new StringBuilder();
+            if (exceptWords != null && !exceptWords.isEmpty())
+            {
+                for (int i = 0; i < exceptWords.size(); i++)
+                {
+                    if (i > 0)
+                    {
+                        exceptionList.append(",");
+                    }
+                    exceptionList.append(exceptWords.get(i));
+                }
+            }
+
+            StringBuilder sql = new StringBuilder("select distinct t._id from translations as t where ");
+            sql.append(reverse ? "t.rmark >= ?" : "t.fmark >= ?");
+            if (exceptionList.length() > 0)
+            {
+                sql.append(" and t.word_id not in (");
+                sql.append(exceptionList);
+                sql.append(")");
+            }
+            sql.append(" ORDER BY t._id;");
+
+            Cursor c = mDatabase.rawQuery(sql.toString(), new String[]{String.valueOf(min.toInt())});
+
+            while (c.moveToNext())
+            {
+                list.add(c.getLong(0));
+            }
+            Log.d(TAG, String.format("Found %d translations with marks >= %d except words (%s)",
+                    c.getCount(), min.toInt(), exceptionList));
+        }
+        catch (Exception e)
+        {
+            Log.e(TAG, "Exception in selectTranslations: " + e.getMessage());
             //throw e;
         }
         return list;
@@ -416,5 +468,23 @@ public class Vocabulary extends DictionaryBase
             //throw e;
         }
         return stats;
+    }
+
+    public MarkedTranslation loadTranslation(long id)
+    {
+        MarkedTranslation mt = null;
+        Cursor c = mDatabase.query(TRANSLATIONS_TABLE, getTranslationColumns(),
+                "_id = " + id,
+                null, null, null, null, null);
+        if (c.moveToNext())
+        {
+            mt = readTranslation(c);
+        }
+        else
+        {
+            Log.e(TAG, "loadTranslation: not found t._id=" + id);
+        }
+        c.close();
+        return mt;
     }
 }

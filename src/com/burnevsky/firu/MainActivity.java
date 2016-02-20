@@ -83,14 +83,12 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
             }
         });
 
-        View laySearch = findViewById(R.id.rlTrainer);
-        laySearch.setOnClickListener(new View.OnClickListener()
+        findViewById(R.id.rlTrainer).setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                Intent intent = new Intent(MainActivity.this, TrainerActivity.class);
-                startActivity(intent);
+                mApp.startNextExam(MainActivity.this);
                 mDrawerLayout.closeDrawer(mDrawer);
             }
         });

@@ -30,9 +30,9 @@ import android.os.Parcelable;
 import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Word;
 
-public class ReverseExamChallenge implements Parcelable
+public class ExamChallenge implements Parcelable
 {
-    ReverseExamChallenge(Word w, MarkedTranslation t)
+    ExamChallenge(Word w, MarkedTranslation t)
     {
         mWord = w;
         mTranslation = t;
@@ -56,24 +56,24 @@ public class ReverseExamChallenge implements Parcelable
         dest.writeParcelable(mTranslation, flags);
     }
 
-    private ReverseExamChallenge(Parcel in)
+    private ExamChallenge(Parcel in)
     {
         mWord = in.readParcelable(Word.class.getClassLoader());
         mTranslation = in.readParcelable(MarkedTranslation.class.getClassLoader());
     }
 
-    public static final Parcelable.Creator<ReverseExamChallenge> CREATOR = new Parcelable.Creator<ReverseExamChallenge>()
+    public static final Parcelable.Creator<ExamChallenge> CREATOR = new Parcelable.Creator<ExamChallenge>()
     {
         @Override
-        public ReverseExamChallenge createFromParcel(Parcel in)
+        public ExamChallenge createFromParcel(Parcel in)
         {
-            return new ReverseExamChallenge(in);
+            return new ExamChallenge(in);
         }
 
         @Override
-        public ReverseExamChallenge[] newArray(int size)
+        public ExamChallenge[] newArray(int size)
         {
-            return new ReverseExamChallenge[size];
+            return new ExamChallenge[size];
         }
     };
 }

@@ -33,8 +33,11 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryFactory;
@@ -43,7 +46,9 @@ import com.burnevsky.firu.model.Model;
 import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Model.ModelEvent;
 import com.burnevsky.firu.model.Model.ModelListener;
+import com.burnevsky.firu.model.exam.Exam;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
@@ -253,5 +258,18 @@ public class FiruApplication extends Application
         } )
         .setNegativeButton("No", null)
         .show();
+    }
+
+    public void startNextExam(Activity caller)
+    {
+        // I want some hidden prediction here :-)
+        if (GregorianCalendar.getInstance().get(Calendar.MINUTE) % 2 == 0)
+        {
+            TrainerActivity.startExamActivity(caller);
+        }
+        else
+        {
+            TrainerFwdActivity.startExamActivity(caller);
+        }
     }
 }

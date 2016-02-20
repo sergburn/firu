@@ -43,6 +43,11 @@
             android:label="@string/app_name">
         </activity>
         <activity
+            android:name=".TrainerFwdActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name">
+        </activity>
+        <activity
             android:name=".StatActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_stat" >

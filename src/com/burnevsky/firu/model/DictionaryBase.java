@@ -190,5 +190,4 @@ public abstract class DictionaryBase implements IDictionary
         c.close();
         word.mTranslations = list;
     }
-
 }

@@ -44,6 +44,6 @@ public interface IDictionary
      *  @return List of Word's without translations */
     List<Word> searchWords(String startsWith, int numMaximum);
 
-    /** Fills given word with it translations */
+    /** Fills given word with its translations */
     void loadTranslations(Word word);
 }
