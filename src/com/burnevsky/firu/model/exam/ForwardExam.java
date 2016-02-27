@@ -26,15 +26,11 @@ package com.burnevsky.firu.model.exam;
 
 import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.MarkedTranslation;
-import com.burnevsky.firu.model.Text;
 import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Word;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 public class ForwardExam extends Exam
 {
@@ -46,7 +42,7 @@ public class ForwardExam extends Exam
 
     ForwardExam(Vocabulary voc)
     {
-        super(voc);
+        super(voc, TestDirection.FORWARD_TEST);
     }
 
     public ForwardTest nextTest()
@@ -70,10 +66,10 @@ public class ForwardExam extends Exam
             ForwardExam exam = new ForwardExam(voc);
 
             // Select some learned words
-            exam.selectWords(Mark.LEARNED, Mark.LEARNED, K_NUM_TESTS - K_NUM_UNLEARNED, WordSelection.SELECT_FORWARD_MARKS);
+            exam.selectWords(Mark.LEARNED, Mark.LEARNED, K_NUM_TESTS - K_NUM_UNLEARNED);
 
             // Select words with translations that are not completely learned yet
-            exam.selectWords(Mark.YET_TO_LEARN, Mark.ALMOST_LEARNED, K_NUM_TESTS, WordSelection.SELECT_FORWARD_MARKS);
+            exam.selectWords(Mark.YET_TO_LEARN, Mark.ALMOST_LEARNED, K_NUM_TESTS);
 
             // Now shuffle them
             Collections.shuffle(exam.mChallenges, mRand);

@@ -53,7 +53,7 @@ public class ExamResultActivity extends FiruActivityBase implements OnItemClickL
             @Override
             public int compare(ExamChallenge lhs, ExamChallenge rhs)
             {
-                return lhs.mTranslation.ReverseMark.toInt() - rhs.mTranslation.ReverseMark.toInt(); // ascending order
+                return lhs.getMark().toInt() - rhs.getMark().toInt(); // ascending order
             }
         });
 
@@ -64,7 +64,7 @@ public class ExamResultActivity extends FiruActivityBase implements OnItemClickL
             TreeMap<String, Object> row = new TreeMap<>();
             row.put("word", test.mWord.getText());
             row.put("trans", test.mTranslation.getText());
-            row.put("rate", markToRate(test.mTranslation.ReverseMark));
+            row.put("rate", markToRate(test.getMark()));
             data.add(row);
         }
 

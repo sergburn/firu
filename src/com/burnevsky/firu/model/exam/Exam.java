@@ -41,15 +41,18 @@ public class Exam
     protected Vocabulary mVoc;
     protected ArrayList<ExamChallenge> mChallenges = new ArrayList<>();
 
-    enum WordSelection
+    enum TestDirection
     {
-        SELECT_REVERSE_MARKS,
-        SELECT_FORWARD_MARKS
+        REVERSE_TEST,
+        FORWARD_TEST
     }
 
-    public Exam(Vocabulary voc)
+    protected TestDirection mDirection;
+
+    public Exam(Vocabulary voc, TestDirection direction)
     {
         mVoc = voc;
+        mDirection = direction;
     }
 
     public int getTestsCount()
@@ -80,9 +83,9 @@ public class Exam
     }
 
     // Selects words without duplicates
-    protected void selectWords(final Mark min, final Mark max, final int maxCount, WordSelection mode)
+    protected void selectWords(final Mark min, final Mark max, final int maxCount)
     {
-        List<Word> words = mVoc.selectWordsByMarks(min, max, (mode == WordSelection.SELECT_REVERSE_MARKS));
+        List<Word> words = mVoc.selectWordsByMarks(min, max, (mDirection == TestDirection.REVERSE_TEST));
 
         // TODO: use Exam.selectRandomItems();
 
@@ -110,7 +113,7 @@ public class Exam
                 {
                     int j = mRand.nextInt(translations.size());
 
-                    mChallenges.add(new ExamChallenge(w, translations.get(j)));
+                    mChallenges.add(new ExamChallenge(w, translations.get(j), mDirection));
                 }
             }
             words.remove(k);

@@ -27,19 +27,28 @@ package com.burnevsky.firu.model.exam;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.burnevsky.firu.model.Mark;
 import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Word;
 
 public class ExamChallenge implements Parcelable
 {
-    ExamChallenge(Word w, MarkedTranslation t)
+    ExamChallenge(Word w, MarkedTranslation t, Exam.TestDirection direction)
     {
         mWord = w;
         mTranslation = t;
+        mDirection = direction;
     }
 
     public Word mWord;
     public MarkedTranslation mTranslation;
+    public Exam.TestDirection mDirection;
+
+    public Mark getMark()
+    {
+        return (mDirection == Exam.TestDirection.FORWARD_TEST) ?
+                mTranslation.ForwardMark : mTranslation.ReverseMark;
+    }
 
     // Parcelable
 
@@ -52,12 +61,15 @@ public class ExamChallenge implements Parcelable
     @Override
     public void writeToParcel(Parcel dest, int flags)
     {
+        dest.writeInt(mDirection.ordinal());
         dest.writeParcelable(mWord, flags);
         dest.writeParcelable(mTranslation, flags);
     }
 
     private ExamChallenge(Parcel in)
     {
+        mDirection = (in.readInt() == Exam.TestDirection.FORWARD_TEST.ordinal()) ?
+                Exam.TestDirection.FORWARD_TEST : Exam.TestDirection.REVERSE_TEST;
         mWord = in.readParcelable(Word.class.getClassLoader());
         mTranslation = in.readParcelable(MarkedTranslation.class.getClassLoader());
     }

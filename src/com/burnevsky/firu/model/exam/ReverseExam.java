@@ -25,19 +25,15 @@
 package com.burnevsky.firu.model.exam;
 
 import com.burnevsky.firu.model.Mark;
-import com.burnevsky.firu.model.MarkedTranslation;
 import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Word;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 public class ReverseExam extends Exam
 {
     ReverseExam(Vocabulary voc)
     {
-        super(voc);
+        super(voc, TestDirection.REVERSE_TEST);
     }
 
     public ReverseTest nextTest()
@@ -63,10 +59,10 @@ public class ReverseExam extends Exam
             ReverseExam exam = new ReverseExam(voc);
 
             // First select words with translations that are not completely learned yet
-            exam.selectWords(Mark.YET_TO_LEARN, Mark.ALMOST_LEARNED, K_NUM_UNLEARNED, WordSelection.SELECT_REVERSE_MARKS);
+            exam.selectWords(Mark.YET_TO_LEARN, Mark.ALMOST_LEARNED, K_NUM_UNLEARNED);
 
             // Next select some learned words
-            exam.selectWords(Mark.LEARNED, Mark.LEARNED, K_NUM_TESTS, WordSelection.SELECT_REVERSE_MARKS);
+            exam.selectWords(Mark.LEARNED, Mark.LEARNED, K_NUM_TESTS);
 
             // Now shuffle them
             Collections.shuffle(exam.mChallenges, mRand);
