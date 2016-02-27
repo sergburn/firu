@@ -16,4 +16,16 @@
     <color name="stat_count_fg">#FFFFFF</color>
     <color name="trainer_fg">#000000</color>
 
+    <!-- color name="total_trans_bg">#0088FF</color>
+    <color name="rate0_trans_bg">#FF0000</color>
+    <color name="rate1_trans_bg">#FFFF00</color>
+    <color name="rate2_trans_bg">#00FFFF</color>
+    <color name="rate3_trans_bg">#00FF00</color -->
+
+    <color name="total_trans_bg">#FFFFFF</color>
+    <color name="rate0_trans_bg">#FFFFFF</color>
+    <color name="rate1_trans_bg">#FFFFFF</color>
+    <color name="rate2_trans_bg">#FFFFFF</color>
+    <color name="rate3_trans_bg">#FFFFFF</color>
+
 </resources>

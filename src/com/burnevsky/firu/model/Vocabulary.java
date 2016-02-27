@@ -89,6 +89,7 @@ public class Vocabulary extends DictionaryBase
     {
         public final Map<Mark, Integer> ForwardMarksDistribution = new TreeMap<>();
         public final Map<Mark, Integer> ReverseMarksDistribution = new TreeMap<>();
+        public int TotalWordsCount = 0;
         public int TotalTranslationsCount = 0;
     }
 
@@ -446,6 +447,8 @@ public class Vocabulary extends DictionaryBase
     public LearningStats collectStatistics()
     {
         LearningStats stats = new LearningStats();
+        stats.TotalWordsCount = mTotalWords;
+        stats.TotalTranslationsCount = mTotalTranslations;
         try
         {
             Cursor c = mDatabase.query(TRANSLATIONS_TABLE, TRANSLATION_COLUMNS,
@@ -457,7 +460,6 @@ public class Vocabulary extends DictionaryBase
 
                 setMarkStat(stats.ForwardMarksDistribution, t.ForwardMark);
                 setMarkStat(stats.ReverseMarksDistribution, t.ReverseMark);
-                stats.TotalTranslationsCount++;
 
                 next = c.moveToNext();
             }
