@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.burnevsky.firu.MainActivity" >
+
+    <item
+        android:id="@+id/action_switch"
+        android:icon="@drawable/ic_find_replace_white_36dp"
+        app:showAsAction="always"
+        android:title="@string/action_switch_search"/>
+
+</menu>

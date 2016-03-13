@@ -27,8 +27,8 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private ScrollView mDrawer;
-    MenuItem mExportVocMenu, mClearVocMenu = null;
     public String mViewTitle;
+    private boolean mTransSearchActive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -74,20 +74,16 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         });
 
         View btnRevSearch = findViewById(R.id.rlTrans);
-        btnRevSearch.setOnClickListener(new View.OnClickListener()
-        {
+        btnRevSearch.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 showSearchTransUi();
             }
         });
 
-        findViewById(R.id.rlTrainer).setOnClickListener(new View.OnClickListener()
-        {
+        findViewById(R.id.rlTrainer).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 mApp.startNextExam(MainActivity.this);
                 mDrawerLayout.closeDrawer(mDrawer);
             }
@@ -250,6 +246,11 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
 
         switch(item.getItemId())
         {
+            case R.id.action_switch:
+                if (mTransSearchActive)
+                    showSearchUi("");
+                else
+                    showSearchTransUi();
             default:
                 break;
         }
@@ -260,18 +261,13 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.search_activity_actions, menu);
-        //mExportVocMenu = menu.findItem(R.id.action_backup_voc);
-        //mClearVocMenu = menu.findItem(R.id.action_reset_voc);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        //mExportVocMenu.setEnabled(mModel.getVocabulary() != null);
-        //mClearVocMenu.setEnabled(mModel.getVocabulary() != null && mModel.getVocabulary().getTotalWords() > 0);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -304,6 +300,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         .replace(R.id.content_frame, frag)
         .commit();
 
+        mTransSearchActive = false;
         setWindowTitle("Search words");
         mDrawerLayout.closeDrawer(mDrawer);
     }
@@ -317,6 +314,7 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         .replace(R.id.content_frame, frag)
         .commit();
 
+        mTransSearchActive = true;
         setWindowTitle("Search translations");
         mDrawerLayout.closeDrawer(mDrawer);
     }

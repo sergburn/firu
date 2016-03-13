@@ -22,4 +22,5 @@
     <string name="search_box_trans_hint">Start typing translation</string>
     <string name="drawer_open">Show main menu</string>
     <string name="drawer_close">Hide menu</string>
+    <string name="action_switch_search">Switch search</string>
 </resources>
