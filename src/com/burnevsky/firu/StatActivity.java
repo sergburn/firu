@@ -25,6 +25,7 @@
 package com.burnevsky.firu;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -130,16 +131,39 @@ public class StatActivity extends FiruActivityBase
         }
     }
 
+    private int calculateRating(Map<Mark, Integer> map)
+    {
+        int rating = 0;
+
+        Map<Mark, Integer> MARK_FACTORS = new TreeMap<>();
+        MARK_FACTORS.put(Mark.WITH_HINTS, 1);
+        MARK_FACTORS.put(Mark.ALMOST_LEARNED, 2);
+        MARK_FACTORS.put(Mark.LEARNED, 3);
+
+        for (Mark mark : MARK_FACTORS.keySet())
+        {
+            Integer statValue = map.get(mark);
+            if (statValue != null)
+            {
+                rating += statValue * MARK_FACTORS.get(mark);
+            }
+        }
+
+        return rating;
+    }
+
     private void showStats()
     {
         setIntegerField(R.id.txtNumWords, mLearningStats.TotalWordsCount);
         setIntegerField(R.id.txtNumTrans, mLearningStats.TotalTranslationsCount);
 
+        setIntegerField(R.id.txtFwdRating, calculateRating(mLearningStats.ForwardMarksDistribution));
         setMarkField(R.id.txtFwdYetToLearn, mLearningStats.ForwardMarksDistribution, Mark.YET_TO_LEARN);
         setMarkField(R.id.txtFwdWithHints, mLearningStats.ForwardMarksDistribution, Mark.WITH_HINTS);
         setMarkField(R.id.txtFwdAlmost, mLearningStats.ForwardMarksDistribution, Mark.ALMOST_LEARNED);
         setMarkField(R.id.txtFwdLearned, mLearningStats.ForwardMarksDistribution, Mark.LEARNED);
 
+        setIntegerField(R.id.txtRevRating, calculateRating(mLearningStats.ReverseMarksDistribution));
         setMarkField(R.id.txtRevYetToLearn, mLearningStats.ReverseMarksDistribution, Mark.YET_TO_LEARN);
         setMarkField(R.id.txtRevWithHints, mLearningStats.ReverseMarksDistribution, Mark.WITH_HINTS);
         setMarkField(R.id.txtRevAlmost, mLearningStats.ReverseMarksDistribution, Mark.ALMOST_LEARNED);

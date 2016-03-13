@@ -41,7 +41,7 @@
             android:paddingBottom="8dp" />
 
         <TextView
-            android:layout_width="200dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="500"
@@ -49,19 +49,32 @@
             app:layout_column="1"
             app:layout_row="1"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/total_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Forward"
+            android:text="Translation for word"
             android:id="@+id/textView6"
             app:layout_column="0"
             app:layout_row="2"
             android:paddingTop="16dp"
             android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/txtFwdRating"
+            app:layout_column="1"
+            app:layout_row="2"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
+            android:text="70"
+            app:layout_gravity="right"
+            android:gravity="center_vertical|end"
+            android:textStyle="bold|italic" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -77,7 +90,7 @@
             app:layout_gravity="center_vertical" />
 
         <TextView
-            android:layout_width="55dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="100"
@@ -85,8 +98,7 @@
             app:layout_column="1"
             app:layout_row="3"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate0_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -110,8 +122,7 @@
             app:layout_column="1"
             app:layout_row="4"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate1_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -135,8 +146,7 @@
             app:layout_column="1"
             app:layout_row="5"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate2_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -160,19 +170,32 @@
             app:layout_column="1"
             app:layout_row="6"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate3_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Reverse"
             android:id="@+id/textView8"
             app:layout_column="0"
             app:layout_row="7"
             android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+            android:paddingBottom="8dp"
+            android:text="Word by translation" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/txtRevRating"
+            app:layout_column="1"
+            app:layout_row="7"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"
+            android:text="90"
+            app:layout_gravity="right"
+            android:gravity="center_vertical|end"
+            android:textStyle="bold|italic" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -196,8 +219,7 @@
             app:layout_column="1"
             app:layout_row="8"
             app:layout_gravity="right"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate0_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -221,8 +243,7 @@
             app:layout_column="1"
             app:layout_row="9"
             app:layout_gravity="right"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate1_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -246,8 +267,7 @@
             app:layout_column="1"
             app:layout_row="10"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate2_trans_bg" />
+            android:gravity="center_vertical|end" />
 
         <RatingBar
             android:layout_width="wrap_content"
@@ -271,7 +291,6 @@
             app:layout_column="1"
             app:layout_row="11"
             app:layout_gravity="end"
-            android:gravity="center_vertical|end"
-            android:background="@color/rate3_trans_bg" />
+            android:gravity="center_vertical|end" />
 
 </android.support.v7.widget.GridLayout>
