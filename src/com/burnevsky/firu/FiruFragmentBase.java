@@ -15,11 +15,13 @@ public class FiruFragmentBase extends Fragment implements Model.ModelListener
 {
     FiruApplication mApp = null;
     Model mModel;
+    private InputMethodManager mInputManager;
 
     @Override
     public void onAttach(Activity activity)
     {
         super.onAttach(activity);
+        mInputManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         mApp = (FiruApplication) activity.getApplicationContext();
         mModel = mApp.mModel;
         mModel.subscribeDictionaryEvents(this);
@@ -56,8 +58,7 @@ public class FiruFragmentBase extends Fragment implements Model.ModelListener
             View view = act.getCurrentFocus();
             if (view != null)
             {
-                InputMethodManager imm = (InputMethodManager) act.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                mInputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
         }
     }

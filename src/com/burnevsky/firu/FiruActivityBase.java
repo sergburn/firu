@@ -16,6 +16,7 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
 {
     FiruApplication mApp = null;
     Model mModel;
+    private InputMethodManager mInputManager;
 
     @Override
     public void onDictionaryEvent(DictionaryID dictionaryID, Model.ModelEvent event)
@@ -26,6 +27,7 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        mInputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         mApp = (FiruApplication) getApplicationContext();
 
@@ -38,8 +40,7 @@ public class FiruActivityBase extends AppCompatActivity implements Model.ModelLi
         View view = getCurrentFocus();
         if (view != null)
         {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            mInputManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 }
