@@ -24,40 +24,28 @@
 
 package com.burnevsky.firu;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Application;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Environment;
+import android.os.Handler;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.burnevsky.firu.model.DictionaryFactory;
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.Model;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ref.WeakReference;
-import java.security.InvalidParameterException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-
-import com.burnevsky.firu.model.Dictionary;
-import com.burnevsky.firu.model.DictionaryFactory;
-import com.burnevsky.firu.model.DictionaryID;
-import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
-import com.burnevsky.firu.model.Model.ModelEvent;
-import com.burnevsky.firu.model.Model.ModelListener;
-import com.burnevsky.firu.model.exam.Exam;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Application;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.os.AsyncTask;
-import android.os.Environment;
-import android.os.Handler;
-import android.util.Log;
-import android.widget.Toast;
 
 public class FiruApplication extends Application
 {
@@ -113,9 +101,8 @@ public class FiruApplication extends Application
             mLocalVocFile.getAbsolutePath());
 
         mModel = new Model(factory);
-        mModel.openDictionary(DictionaryID.UNIVERSAL);
         mModel.openDictionary(DictionaryID.VOCABULARY);
-    }
+   }
 
     private void copyFile(File src, File dst) throws IOException
     {

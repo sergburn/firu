@@ -24,6 +24,11 @@
 
 package com.burnevsky.firu.model;
 
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,13 +37,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-
 public class Model
 {
+    private final static String TAG = "firu/Model";
+
     public Model(DictionaryFactory factory)
     {
         mFactory = factory;
@@ -107,10 +109,25 @@ public class Model
 
     public void openDictionary(final DictionaryID dictionaryID)
     {
+        Log.v(TAG, String.format("openDictionary %s", dictionaryID.toString()));
+
         class DictionaryOpener extends AsyncTask<Void, Void, IDictionary>
         {
             @Override
             protected IDictionary doInBackground(Void... voids)
+            {
+                try
+                {
+                    return doOpen(dictionaryID);
+                }
+                catch (Exception e)
+                {
+                    Log.e(TAG, "Failed to load dictionary");
+                    return null;
+                }
+            }
+
+            private IDictionary doOpen(final DictionaryID dictID) throws Exception
             {
                 switch (dictionaryID)
                 {
@@ -119,7 +136,7 @@ public class Model
                     case VOCABULARY:
                         return mFactory.newVocabulary();
                     default:
-                        return null;
+                        throw new Exception(String.format("Unsupported dictionary ID (%d)", dictID.getID()));
                 }
             }
 
@@ -129,9 +146,8 @@ public class Model
                 mDictionaries.remove(dictionaryID);
                 if (result != null)
                 {
-                    Log.i("firu",
-                        "Dictionary " + dictionaryID.toString() +
-                        "totalWordCount: " + String.valueOf(result.getTotalWords()));
+                    Log.i(TAG,
+                        String.format("Dictionary %s: totalWordCount: %d", dictionaryID.toString(), result.getTotalWords()));
                     mDictionaries.put(dictionaryID, result);
                     mModelListeners.notifyAllListeners(dictionaryID, ModelEvent.MODEL_EVENT_OPENED);
                 }

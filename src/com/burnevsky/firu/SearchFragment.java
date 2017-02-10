@@ -24,45 +24,35 @@
 
 package com.burnevsky.firu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.burnevsky.firu.model.Dictionary;
 import com.burnevsky.firu.model.DictionaryID;
 import com.burnevsky.firu.model.IDictionary;
 import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Vocabulary;
 import com.burnevsky.firu.model.Word;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchFragment
     extends FiruFragmentBase
     implements SearchView.OnQueryTextListener, OnItemClickListener
 {
     private final static int MAX_WORDS_IN_RESULT = 20;
-
-    final Handler mHandler = new Handler();
 
     ListView mWordsListView = null;
     TextView mCountText = null;

@@ -1,14 +1,7 @@
 
 package com.burnevsky.firu;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.burnevsky.firu.model.DictionaryID;
-import com.burnevsky.firu.model.IDictionary;
-import com.burnevsky.firu.model.Model;
-import com.burnevsky.firu.model.Word;
-
+import android.Manifest;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -19,11 +12,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.burnevsky.firu.model.DictionaryID;
+import com.burnevsky.firu.model.IDictionary;
+import com.burnevsky.firu.model.Model;
+import com.burnevsky.firu.model.Word;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity
 extends FiruActivityBase
 implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnWordSelectedListener
 {
+    private static final String TAG = "firu/MainActivity";
+
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private ScrollView mDrawer;
@@ -158,6 +162,33 @@ implements SearchFragment.OnTranslationSelectedListener, SearchTransFragment.OnW
         }
 
         showSearchUi(sharedText);
+    }
+
+    @Override
+    public void onStart()
+    {
+        super.onStart();
+        if (mModel.getDictionary(DictionaryID.UNIVERSAL) != null)
+        {
+            return;
+        }
+
+        checkPermissions(new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+            new OnPermissionCheckCallback()
+            {
+                @Override
+                public void onGranted()
+                {
+                    mModel.openDictionary(DictionaryID.UNIVERSAL);
+                }
+
+                @Override
+                public void onDenied()
+                {
+                    Toast.makeText(MainActivity.this, "Dictionary not accessible", Toast.LENGTH_SHORT).show();
+                }
+            }
+        );
     }
 
     @Override

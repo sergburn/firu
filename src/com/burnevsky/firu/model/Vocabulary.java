@@ -24,6 +24,14 @@
 
 package com.burnevsky.firu.model;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,18 +39,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.support.v7.view.menu.ListMenuItemView;
-import android.util.Log;
-
 public class Vocabulary extends DictionaryBase
 {
-    private static final String TAG = "Vocabulary";
+    private static final String TAG = "firu/Vocabulary";
     private static final String[] WORD_COLUMNS = new String[]{"_id", "text", "lang"};
     private static final String[] TRANSLATION_COLUMNS = new String[]{"_id", "text", "word_id", "fmark", "rmark", "lang"};
 
